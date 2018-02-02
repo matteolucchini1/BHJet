@@ -1,0 +1,5 @@
+#gfortran -c -fPIC relconv.f90 relxill.f90 relbase.f90
+#g++ -Wall -O2 -I/opt/local/include -w -c mj_aven.cc thermal.cc agnjet_merged.cc jetwrap.cc
+#g++ -Wall -O2 -L/usr/local/lib/cfitsio/lib -o jetwrap mj_aven.o thermal.o agnjet_merged.o jetwrap.o relbase.o relconv.o relxill.o -lgfortran -L. -lcfitsio -lgsl -lgslcblas -lm
+
+g++ -O0 -g -o jetwrap mj_aven.cc thermal.cc agnjet_merged.cc jetwrap.cc -lgsl -lgslcblas -lm
