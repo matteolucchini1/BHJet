@@ -8,8 +8,7 @@ Compile using:
 
 ./MakeAgnjet
 
-Input parameters can be changed in ip.dat in the Input directory. If you want to use a different file, change the name in 
-jetwrap.cc and recompile. 
+Input parameters can be changed in ip.dat in the Input directory. If you want to use a different file, change the name in jetwrap.cc and recompile. 
 
 Run using:
 
@@ -17,15 +16,11 @@ Run using:
 
 This generates presyn.dat, postsyn.dat, bb.dat, com.dat, total.dat, zonesFile.dat in the output directory.
 
-If you want to quickly plot these outputs, a simple python script is provided (AGNPlot.py) and ran automatically by jetwrap.
-If you want to use your own plotting tools, this can be disabled by commenting out line 79 in the wrapper: 
+If you want to quickly plot these outputs, a simple python script is provided (AGNPlot.py) and ran automatically by jetwrap. If you want to use your own plotting tools, this can be disabled by commenting out line 79 in the wrapper: 
 
 system("python AGNplot.py");
 
-You can also check the output of each zone in the jet; in order to do so search and uncomment the lines that include the 
-file "zonesFile" and run AGNPlot.py. Each zone will be plotted in different color; blue is close to the base, red is the
-outermost regions. When fitting data make sure these lines are commented out, as outputting large amounts of information
-to file can slow the code down.
+You can also check the output of each zone in the jet; in order to do so change the parameter "infosw" to 1 and run AGNPlot.py. Each zone will be plotted in different color; blue is close to the base, red is the outermost regions. Make sure infosw is set to 0 when fitting data to avoid slowing the code down.
 
 ---------------------------------------------------------------------------------------------------------------------------
 
@@ -50,104 +45,44 @@ CHANGES:
 
 A number of alterations have been made that mean the user must be aware of the case-dependent relevance of the model parameters. 
 
-The calculation of the SSC has been updated to take care of sources where multiple IC scattering can occur. The code 
-automatically decides whether higher orders are important with respect to the first one and how many of them give a sensible 
-contribution to the final spectrum. None of the parameters needs to be treated differently, as far as we tested it.
+The calculation of the SSC has been updated to take care of sources where multiple IC scattering can occur. The code automatically decides whether higher orders are important with respect to the first one and how many of them give a sensible contribution to the final spectrum. None of the parameters needs to be treated differently, as far as we tested it.
 
-The Compton spectrum is very delicate due to not having any treatment of radiation transfer or of an accurate particle 
-distribution. In may 2017 we found that the spectrum was highly resolution dependent and therefore re-wrote the grid in
-which the jet is divided to avoid this issue. The old grid was purely logarithmic. Instead now the length of each zone 
-along the jet is twice the jet radius in each zone, thus roughly approximating the jet as a superposition of spheres. 
-This happens as long as the jet is in the Comptonizing region (where IC emission is computed); past this the we went back
-to a logarithmic grid; this speeds up the code slightly. This also  means that the geometry of the nozzle/corona is more 
-constrained than in previous versions; the aspect ratio should never be below about unity, or the calculation of the Compton
-spectrum near the base will be incorrect. As a result, the new model will not recover the same best-fit values for sources
-treated with the old code, but the new best fit values still describe the same physics and are within error bars most of the 
-time. With these changes, the spectra produced now only depend very weakly on the number of zones in the jet (as longas that 
-number is not smaller than around 50, which you should never set).
+The Compton spectrum is very delicate due to not having any treatment of radiation transfer or of an accurate particle distribution. In may 2017 we found that the IC spectrum was highly resolution dependent and therefore re-wrote the grid in which the jet is divided to avoid this issue. The old grid was purely logarithmic. Instead now the length of each zone along the jet is twice the jet radius in each zone, thus roughly approximating the jet as a superposition of indipendent cylindrical regions. This happens as long as the jet is in the Comptonizing region (where IC emission is computed); past this the we went back to a logarithmic grid; this speeds up the code slightly. Because of this change the geometry of the nozzle/corona is more constrained than in previous versions; the aspect ratio should never be below about unity, or the calculation of the Compton spectrum near the base will be incorrect. As a result, the new model may not recover the same best-fit values for sources treated with the old code, but the new best fit values still describe the same physics and should be within error bars most of the time. With these changes, the spectra produced now only depend very weakly on the number of zones in the jet (as longas that number is not smaller than around 50, which you should never set).
 
-The code now allows for two methods of accelerating the jet, toggled by the velsw parameter. If velsw = 1, the model is the
-"default" agnjet in which the jet is accelerated by a pressure gradient caused by lateral expansion (see Markoff et al. 2005). 
-In this case the jet can reach a Lorentz factor of ~few at most. This is appropriate for X-ray binaries and LLAGN. If instead
-velsw > 1 the jet is very Poynting-dominated at the base and turns magnetic energy into bulk kinetic energy. In this case the
-jet can reach a arbitrarily high Lorentz factor at a location zacc where the acceleration ends and the Lorentz factor remains
-constant at a value equal to velsw. This is appropriate for more powerful AGN like BL Lacs.
+The code now allows for two methods of accelerating the jet, toggled by the velsw parameter. If velsw = 1, the model is the "default" agnjet in which the jet is accelerated by a pressure gradient caused by lateral expansion (see Markoff et al. 2005). In this case the jet can reach a Lorentz factor of ~few at most. This is appropriate for X-ray binaries and LLAGN. If instead velsw > 1 the jet is very Poynting-dominated at the base and turns magnetic energy into bulk kinetic energy. In this case the jet can reach a arbitrarily high Lorentz factor at a location zacc where the acceleration ends and the Lorentz factor remains constant at a value equal to velsw. This is appropriate for more powerful AGN like BL Lacs.
+
+In 2017 we also added a simple treatment for shock heating: at the shock region the temperature of the electrons can be increased from its value near the base, to a new value Tshock = fheat * Eltemp, where fheat is a free parameter. fheat = 1 means the electrons keep the same temperature. If you need to include fheat > 1, make sure the post-shock temperature isn't too high (greater than ~10^12) or the code may crash. 
 
 -----------------------------------------------------------------------------------------------------------------------------
 
 PARAMETERS:
 
-See Markoff et al. 2005, Maitra et al. 2009, Lucchini et al. (in prep) for more in-depth discussion. For easier use the 
-order has been changed to be:
- frozen parameters, jet power, jet geometry, particle distribution, equipartition conditions, accretion disk, model switches.
+See Markoff et al. 2005, Maitra et al. 2009, Lucchini et al. (in prep) for more in-depth discussion. For easier use the order has been changed to be:
+frozen parameters, jet power, jet geometry, particle distribution, equipartition conditions, accretion disk, model switches.
  
 
 mbh 	- mass of the black hole. Always frozen.
 Incl 	- viewing angle of the jet. Sets Doppler factor for the various regions. Always frozen.
 dkpc 	- distance from source in kpc. Always frozen.
 jetrat	- amount of power injected at the base of the jet. Does not account for heating/acceleration of particles.
-r0	- radius of the nozzle/corona, described by an outflowing, magnetized cylinder of radius r0 and height
-	  hratio*r0. Changes emission properties of the nozzle and (if velsw > 1) sets magnetic field in the jet.
+r0	- radius of the nozzle/corona, described by an outflowing, magnetized cylinder of radius r0 and height hratio*r0. Changes emission properties of the nozzle and (if velsw > 1) sets magnetic field in the jet.
 hratio  - aspect ratio of the nozzle/corona. 	  
-zsh	- location of non-thermal particle injection. sets optically thick to thin break and (if velsw > 1) overall
-	  normalization and Compton-y of non-thermal component. In older versions this was the logarithm of zsh, now
-	  it's the actual value in r_g.
-zacc    - if velsw > 1, sets location of the jet acceleration. Sets dependency of magnetic field with distance; 
-	  smaller values correspond to faster dissipation before zacc (see velsw below). Measured in r_g like zsh.
-zmax 	- maximum length of the jet. Typically frozen to large values in order to get a flat radio spectrum.
-eltemp 	- temperature of relativistic electrons in the nozzle/corona, expressed in electron gamma. Sets Compton-y 
-	  of thermal components.
+zsh	- location of non-thermal particle injection. sets optically thick to thin break and (if velsw > 1) overall normalization and Compton-y of non-thermal component. In older versions this was the logarithm of zsh, now it's the actual value in r_g. 
+zacc    - if velsw > 1, sets location of the jet acceleration. Sets dependency of magnetic field with distance; smaller values correspond to faster dissipation before zacc (see velsw below). Measured in r_g like zsh.
+zmax 	- maximum length of the jet in log(cm). Typically frozen to large values in order to get a flat radio spectrum.
+eltemp 	- temperature of relativistic electrons in the nozzle/corona, expressed in electron gamma. Sets Compton-y of thermal components.
 pspec 	- slope of non-thermal particle distribution.
-heat 	- imitates shock heating; at z=zsh bumps eltemp by a fixed factor heat thus also changing the normalization
-	  of the non-thermal particles. Sets Compton-y and normalization of non-thermal emission from the outer parts 
-	  of the jet; introduced to fit blazar data. Typically set to 1 and frozen unless necessary.
-brk 	- sets the break energy by parametrizing the escape time from the jet; the break energy is computed as a 
-	  balance between synchrotron and escape losses (Compton losses are ignored for simplicity). Higher values
-	  correspond to lower break energies. Typically set to 1 and frozen unless necessary.
-fsc  	- sets the maximum energy of non-thermal particles by parametrizing the acceleration timescale (and therefore 
-	  acceleration efficiency). 
-gamfac  - sets the maximum energy of non-thermal particles, if a pure power-law population is injected at the nozzle 
-	  rather than a thermal one (see below).
-equip 	- equipartition factor between electrons and magnetic field at the base. If velsw = 0 or 1 this sets (and 
-	  freezes) the equipartition value throughout the jet, if velsw > 1 this only sets the pair content and has to
-	  be frozen to a value high enough to have pair content ~approx unity (see infosw for how to check this). This
-	  is because the assumptions going into the calculation of the magnetic field when velsw>1 only hold for low
-	  lepton energy densities.
-sig 	- only used if velsw > 1, sets the value for magnetization (defined as magnetic pressure plus energy density, 
-	  over proton energy density plus lepton energy density and pressure, although the latter two are negligible). 
-	  Sets Compton-y and peak frequencies for non-thermal bumps.
-Tin 	- Temperature the accretion disk at the innermost radius in KeV.
+heat 	- imitates shock heating; at z=zsh bumps eltemp by a fixed factor heat thus also changing the normalization of the non-thermal particles. Sets Compton-y and normalization of non-thermal emission from the outer parts of the jet; introduced to fit blazar data. Typically set to 1 and frozen unless necessary.
+brk 	- sets the break energy by parametrizing the escape time from the jet; the break energy is computed as a balance between synchrotron and escape losses (Compton losses are ignored for simplicity). Higher values correspond to lower break energies. Typically set to 1 and frozen unless necessary.
+fsc  	- sets the maximum energy of non-thermal particles by parametrizing the acceleration timescale (and therefore acceleration efficiency). 
+gamfac  - sets the maximum energy of non-thermal particles, if a pure power-law population is injected at the nozzle rather than a thermal one (see below).
+beta_pl	- plasma beta (ratio between lepton and magnetic field energy density) at the base. If velsw = 0 or 1 this sets (and freezes) the equipartition value throughout the jet, if velsw > 1 this only sets the pair content and has to be frozen to a value high enough to have pair content ~approx unity (see infosw for how to check this). This is because the assumptions going into the calculation of the magnetic field when velsw>1 only hold if lepton energy density <<< (cold) proton energy density.
+sig 	- only used if velsw > 1, sets the value for magnetization (defined as magnetic pressure plus energy density, over proton energy density plus lepton energy density and pressure, although the latter two are negligible). Sets Compton-y and peak frequencies for non-thermal bumps.
+Tin 	- If positive, sets the temperature the accretion disk at the innermost radius in KeV; accretion rate is computed from knowing Tin and Rin. If negative, sets the accretion rate Eddrat of the disk in Eddington units at Rin, and the corresponding temperature is computed from knowing Eddrat and Rin.
 rin 	- inner radius of the disk.
-rout    - outer radius of the disk. Only has a minimal contribution to the SED, typically frozen. rout<rin disables the
-	  disk.
-plfrac  - percentage of thermal particles accelerated into power-law tail. Typical values range between 10% and 90%. 
-	  Typically frozen.
-mxsw 	- sets initial particle distribution. If mxsw = 1, a purely thermal distribution of particles is injected.
-	  If mxsw = 0, a purely non-thermal distribution of particles is injected, and zsh is no longer relevant;  
- 	  instead, it should be set at a higher value than zmax. If 0 < mxsw < 1 (a double), a mixed distribution 
-	  of particles is injected, with thermal = mxsw * number of particles, and power-law = (1-mxsw) * number 
-	  of particles. In this case, the limits of the power-law are set by the temperature of the maxwellian 	
-	  and the parameter gamfac such that gamax = gamfac * gamin. If mxsw is set too low errors in the normalization
-  	  of the particle distribution may appear. Typically set to 1 and frozen unless necessary. Only tested with
-  	  velsw = 1.
-velsw 	- This sets the jet velocity profile used by the code. If velsw = 0 or 1 the jet expands laterally and the 
-	  resulting vertical gradient in pressure accelerates the jet. The jet is also "maximal" (Falcke and Biermann
-	  1996), in the sense that its maximum total energy equals the initial rest-mass energy. In this case solving
-  	  the Euler equation to find the jet's velocity results in maximum Lorentz factors of a few at most. Momentum
-	  is conserved, energy is not (by a factor of ~2, Crumley et al. 2016). Velsw = 0 means the jet is adiabatic,
-	  resulting in large amounts of cooling of electrons and very faint non-thermal emission; velsw = 1 means the
- 	  jet is isothermal, resulting in the typical flat or slightly inverted spectrum in radio. Velsw = 1 is always
- 	  used while fitting sources unless there's a good reason not to do so. If velsw > 1 the jet instead turns the
-   	  magnetic flux near the base into bulk kinetic energy (mostly in the protons) in the outer regions by solving
-	  the relativistic Bernoulli equation (by definition this conserves energy). This allows the jet to reach 
-	  arbitrarily high Lorentz factors. In this case, velsw equals the terminal Lorentz factor, which is reached 
-  	  at zacc. CAREFUL: in some cases in order to speed up the code (ie, when treating blazars) multiple Compton is
-	  ignored, the inverse Compton frequency grid is defined on a different interval, and the counterjet is ignored.
-	  Make sure to disable these changes (comment out the lines, recompile, re slirp) if necessary!
+rout    - outer radius of the disk. Only has a minimal contribution to the SED, typically frozen. rout<rin disables the disk.
+plfrac  - percentage of thermal particles accelerated into power-law tail. Typical values range between 10% and 90%. Typically frozen.
+mxsw 	- sets initial particle distribution. If mxsw = 1, a purely thermal distribution of particles is injected. If mxsw = 0, a purely non-thermal distribution of particles is injected, and zsh is no longer relevant; instead, it should be set at a higher value than zmax. If 0 < mxsw < 1 (a double), a mixed distribution of particles is injected, with thermal = mxsw * number of particles, and power-law = (1-mxsw) * number of particles. In this case, the limits of the power-law are set by the temperature of the maxwellian and the parameter gamfac such that gamax = gamfac * gamin. If mxsw is set too low errors in the normalization of the particle distribution may appear. Typically set to 1 and frozen unless necessary. Only change if velsw = 1.
+velsw 	- This sets the jet velocity profile used by the code. If velsw = 0 or 1 the jet expands laterally and the resulting vertical gradient in pressure accelerates the jet. In this case the velocity profile is obtained by solving the Euler equation; the assumptions that were made when solving it result in maximum Lorentz factors of a few at most. Momentum along the jet is conserved, energy is not (by a factor of ~2, Crumley et al. 2017). Velsw = 0 means the jet is adiabatic, resulting in large amounts of cooling of electrons and very faint non-thermal emission; velsw = 1 means the jet is isothermal, resulting in the typical flat or slightly inverted spectrum in radio. Velsw = 1 is always  used while fitting sources unless there's a good reason not to do so. If velsw = 0, the particles will likely cool too much and cause the code to crash due to becoming non-relativistic (which the code currently can't treat). If velsw > 1 the jet instead turns the magnetic flux near the base into bulk kinetic energy (mostly in the protons) in the outer regions by solving the relativistic Bernoulli equation (by definition this conserves energy). This allows the jet to reach arbitrarily high Lorentz factors. In this case, velsw equals the terminal Lorentz factor, which is reached at zacc. CAREFUL: in some cases in order to speed up the code (ie, when treating blazars) multiple Compton is ignored, the inverse Compton frequency grid is defined on a different interval, and the counterjet is ignored. Make sure to disable these changes (comment out the lines, recompile, re slirp) if necessary!
 plotsw  - if 1 prints output to file, if 0 does not. Set to 0 if running a fit or emcee to speed up the code.
-visco	- legacy switch. Always set to 0.
-infosw  - quality of life switch; if set to 1 prints inner disk temperature in Kelvin and the corresponding accretion rate, 
-	  nozzle/corona temperature in Kelvin, pair content (only useful if velsw > 1 for a consistency check), electron 
-	  temperature after heating at the start of shock region, plus values for magnetic field, lepton number density 
-	  (thermal plus non-thermal), minimum, break and maximum energy, jet velocity, Doppler factor and jet opening angle 
-	  in each zone
+infosw  - quality of life switch; if set to 1 prints inner disk temperature in Kelvin and the corresponding accretion rate, nozzle/corona temperature in Kelvin, pair content (only useful if velsw > 1 for a consistency check), electron temperature after heating at the start of shock region, plus values for magnetic field, lepton number density (thermal plus non-thermal), minimum, break and maximum energy, jet velocity, Doppler factor and jet opening angle in each zone

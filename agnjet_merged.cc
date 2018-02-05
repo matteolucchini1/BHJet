@@ -446,7 +446,7 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
          * plotsw       switch to choose plotting or not
          * fsc          solid angle \times (2*pi)^{-1}
          * zmax         end-point of the jets
-         * beta_pl        equipartition factor
+         * beta_pl      equipartition factor
 	 * velsw	Velocity profile used; change between 
 	 *              magnetic and pressure accelerated jets
 	 * 		velsw = 0: adiabatic agnjet (never used)	
@@ -759,17 +759,27 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
         }
 
         /**
-         * Checking if disk flux is super or very sub-Eddington
+         * Setting disk temperature/checking if it's super Eddington
          *
          */
-        thrlum  = 4*pi*sbconst*pow(tin,4)*pow(rin,2)*(1-1/outfac);
-        eddrat  = thrlum/eddlum;
-        if(eddrat > 1){
-                cout << "Disk flux super-Eddington, please readjust rin/tin. eddrat larger than 1: " << eddrat << endl;                
+         
+        if (tin > 0) { 
+        	thrlum  = 4*pi*sbconst*pow(tin,4)*pow(rin,2)*(1-1/outfac);
+        	eddrat  = thrlum/eddlum;
+        	if(eddrat > 1){
+                	cout << "Disk flux super-Eddington, please readjust rin/tin. eddrat larger than 1: " << eddrat << endl;                
+        	}       
         }
-        if (eddrat < 1.e-2){
-                cout << "Accretion rate highly sub-Eddington, please readjust rin/tin. eddrat smaller than 1.e-2: " << eddrat << endl;                
+        
+        else {
+        	eddrat = - tin * kboltz_kev;
+        	thrlum  = eddrat*eddlum;
+		tin = pow(thrlum/(4*pi*sbconst*pow(rin,2)*(1-1/outfac)),0.25);	
         }	
+        /*
+        thrlum  = eddrat*eddlum;
+	tin = pow(thrlum/(4*pi*sbconst*pow(rin,2)*(1-1/outfac)),0.25);	
+	*/
 
         /* Setting thmfrac as 1-plfrac */
         thmfrac = 1.-plfrac;
