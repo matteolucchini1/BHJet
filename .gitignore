@@ -7,3 +7,4 @@ agnjet_merged.o
 agnjet_merged_glue.o
 mj_aven.o
 thermal.o
+outputs/
