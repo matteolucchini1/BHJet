@@ -81,8 +81,23 @@ sig 	- only used if velsw > 1, sets the value for magnetization (defined as magn
 Tin 	- If positive, sets the temperature the accretion disk at the innermost radius in KeV; accretion rate is computed from knowing Tin and Rin. If negative, sets the accretion rate Eddrat of the disk in Eddington units at Rin, and the corresponding temperature is computed from knowing Eddrat and Rin.
 rin 	- inner radius of the disk.
 rout    - outer radius of the disk. Only has a minimal contribution to the SED, typically frozen. rout<rin disables the disk.
+tbb2    - temperature of second black body (like companion star)
+bbf2    - normalization of second black body
 plfrac  - percentage of thermal particles accelerated into power-law tail. Typical values range between 10% and 90%. Typically frozen.
 mxsw 	- sets initial particle distribution. If mxsw = 1, a purely thermal distribution of particles is injected. If mxsw = 0, a purely non-thermal distribution of particles is injected, and zsh is no longer relevant; instead, it should be set at a higher value than zmax. If 0 < mxsw < 1 (a double), a mixed distribution of particles is injected, with thermal = mxsw * number of particles, and power-law = (1-mxsw) * number of particles. In this case, the limits of the power-law are set by the temperature of the maxwellian and the parameter gamfac such that gamax = gamfac * gamin. If mxsw is set too low errors in the normalization of the particle distribution may appear. Typically set to 1 and frozen unless necessary. Only change if velsw = 1.
 velsw 	- This sets the jet velocity profile used by the code. If velsw = 0 or 1 the jet expands laterally and the resulting vertical gradient in pressure accelerates the jet. In this case the velocity profile is obtained by solving the Euler equation; the assumptions that were made when solving it result in maximum Lorentz factors of a few at most. Momentum along the jet is conserved, energy is not (by a factor of ~2, Crumley et al. 2017). Velsw = 0 means the jet is adiabatic, resulting in large amounts of cooling of electrons and very faint non-thermal emission; velsw = 1 means the jet is isothermal, resulting in the typical flat or slightly inverted spectrum in radio. Velsw = 1 is always  used while fitting sources unless there's a good reason not to do so. If velsw = 0, the particles will likely cool too much and cause the code to crash due to becoming non-relativistic (which the code currently can't treat). If velsw > 1 the jet instead turns the magnetic flux near the base into bulk kinetic energy (mostly in the protons) in the outer regions by solving the relativistic Bernoulli equation (by definition this conserves energy). This allows the jet to reach arbitrarily high Lorentz factors. In this case, velsw equals the terminal Lorentz factor, which is reached at zacc. CAREFUL: in some cases in order to speed up the code (ie, when treating blazars) multiple Compton is ignored, the inverse Compton frequency grid is defined on a different interval, and the counterjet is ignored. Make sure to disable these changes (comment out the lines, recompile, re slirp) if necessary!
 plotsw  - if 1 prints output to file, if 0 does not. Set to 0 if running a fit or emcee to speed up the code.
 infosw  - quality of life switch; if set to 1 prints inner disk temperature in Kelvin and the corresponding accretion rate, nozzle/corona temperature in Kelvin, pair content (only useful if velsw > 1 for a consistency check), electron temperature after heating at the start of shock region, plus values for magnetic field, lepton number density (thermal plus non-thermal), minimum, break and maximum energy, jet velocity, Doppler factor and jet opening angle in each zone
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+TODO:
+
+List of planned/considered future additions:
+
+- Add hadronic routines + continuity equation for radiating particles
+- Add arbitrary external Compton field
+- Add non-relativistic electrons and heating profile
+- Add Chiara's code base to make the code prettier
+- Add single zone blob
+- Add interaction between single zone blob and jet
