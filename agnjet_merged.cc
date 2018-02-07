@@ -91,7 +91,6 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
          * Parameters that used to be changeable but are now fixed
          * ********************************************************
          * zfrac        multiplier to set Comptonization region; zcut = zfrac*r0
-         * dopsw        switch to get doppler effect
          * bbsw         switch to get black-body radiation
          * disksw       switch to get disk radiation
          * zinc         size of segment with logarithmic grid
@@ -108,7 +107,6 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
         int nz;
         double outfac, thrlum, eddrat, thmfrac, zcut, zmin;
         int zfrac       = 100;
-        int dopsw   	= 1;
         int bbsw    	= 1;
         int disksw  	= 1;
         int nzdum   	= 100;   
@@ -267,10 +265,11 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
         double photmx, peaksw;
         double bbcon    = 0.;
         double hbb;
-        double bbirad, bbnrm, bbtrm;
+        double bbirad, bbnrm, bbtrm, theff, tbbeff;
+       	double reff, reff2;        
         double bfield, gamv;
 	int t = 0;
-        /**
+	/**
          * Variables related to fluxes
          * ****************************
          * sflx         synchrotron flux
@@ -428,37 +427,48 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
        /**
          * Jet's parameters
          * ********************************************************
+         * mbh		mass of the black hole
          * r_g          gravitational radius
-         * eddlum       Eddington luminosity
+         * eddlum       Eddington luminosity of the black hole
+         * inclin	viewing angle wrt to the jet axis
+         * dist		distance from the source in kpc
          * jetrat       total power injected in jets
-         * pspec        power-law spectral index
+         * r0           radius of the nozzle
+         * hratio       aspect ratio of nozzle
          * zsh          z at the shock
 	 * zacc		distance travelled by the jet before it
 	 * 		stops accelerating with magnetically
 	 * 		accelerated profile
-         * r0           radius of the nozzle
-         * h0           height of nozzle
-         * eltemp       electron's temperature
+	 * zmax         end-point of the jets
+	 * eltemp       electron's temperature in the nozzle
+         * pspec        non-thermal particle index
+         * heat		shock heating; at shock eltem = heat*eltemp
+         * brk		break energy of non-thermal particles
+         * fsc          acceleration timescale
+         * gamfac       maximum Lorentz factor if injection is non-thermal; 
+         *		gamax = gamfac*eltemp
+         * beta_pl      equipartition factor at base Ue/Ub
+         * sigsh	final magnetization at the shock, if velsw > 1
+         * tin		temperature of inner disk if > 1, accretion rate 
+         *		at inner radius if < 1
+         * rin		inner accretion disk radius
+         * rout		outer accretion disk radius
          * plfrac       fraction of particles being
          *              accelerated into the power-law
-         * mxsw         switch to choose maxwellian distribution
-         * dist         distance to the source <!-- TODO -->
-         * plotsw       switch to choose plotting or not
-         * fsc          solid angle \times (2*pi)^{-1}
-         * zmax         end-point of the jets
-         * beta_pl      equipartition factor
-	 * velsw	Velocity profile used; change between 
+         * mxsw         if 1 injected leptons are thermal, if 0 non-thermal, 
+         * 		if between 0 and 1 hybrid
+         * velsw	Velocity profile used; change between 
 	 *              magnetic and pressure accelerated jets
 	 * 		velsw = 0: adiabatic agnjet (never used)	
          *		velsw = 1: isothermal agnjet        		
          *              velsw > 1: magnetically accelerated
          *                         jet Lorentz factor
-	 * sigsh	magnetization at the shock, if velsw > 1
-         * heat		amount of shock heating
-         * gamfac       maximum Lorentz factor if injection is non-thermal; gamax = gamfac*eltemp
+         * plotsw       switch to choose plotting or not
+         * infosw	switch to print useful info on screen
          */
         double mbh, r_g, eddlum, jetrat, pspec, zsh, r0, hratio, h0, eltemp, plfrac, dist, fsc, zmax, equip, beta_pl, gamfac, k_equip, zacc, velsw, sigsh, heat, brk;
         double rin, rout, tin;
+        double tbb2,bbf2, bbf1;
         double mxsw;
         int plotsw;
 	int infosw;
@@ -482,14 +492,16 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
       	gamfac          = param[14];  
         beta_pl         = param[15];	
 	sigsh		= param[16];
-	tin 		= param[17]  / kboltz_kev; //Inner temperature of the disk in keV	
+	tin 		= param[17]  / kboltz_kev; //Inner temperature of the disk is in keV	
 	rin             = param[18] * r_g;
 	rout            = param[19]*r_g;
-        plfrac          = param[20];
-        mxsw            = param[21];
-	velsw		= param[22];
-	plotsw          = param[23];	
-	infosw		= param[24];
+	tbb2		= param[20];
+	bbf2		= param[21];
+        plfrac          = param[22];
+        mxsw            = param[23];
+	velsw		= param[24];
+	plotsw          = param[25];	
+	infosw		= param[26];
 	
 	h0 = hratio*r0;
 	equip = 1./beta_pl; //input paramter is inverse plasma beta; here converted to old equip for calculations
@@ -760,7 +772,7 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
 
         /**
          * Setting disk temperature/checking if it's super Eddington
-         *
+         * Setting normalizations of disk and second blackbody
          */
          
         if (tin > 0) { 
@@ -776,10 +788,10 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
         	thrlum  = eddrat*eddlum;
 		tin = pow(thrlum/(4*pi*sbconst*pow(rin,2)*(1-1/outfac)),0.25);	
         }	
-        /*
-        thrlum  = eddrat*eddlum;
-	tin = pow(thrlum/(4*pi*sbconst*pow(rin,2)*(1-1/outfac)),0.25);	
-	*/
+        
+        bbf1 = sqrt(bbf2*jetrat/(sbconst*pi*pow(tbb2,4)*pow(rout,2)));
+        reff = bbf1*rout;
+        reff2 = reff*reff;
 
         /* Setting thmfrac as 1-plfrac */
         thmfrac = 1.-plfrac;
@@ -1126,18 +1138,21 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
                 else{
                         beta	= sqrt(gamv2-1.)/gamv;
                 }
+                
+              /**
+                * theff is the angle to the irradiation blackbody. Then calculate relevant
+                * effective temperature (see R&L 153 or 156, iv)
+                *
+                */
+               
+                theff	= atan(reff/(z-hbb/2.));
+                tbbeff	= tbb2*gamv*(1.-beta*cos(theff));
 
-                /* Setting Doppler factor accordingly to dopsw (hard coded to 1) */
-                if(dopsw==1){
-			for(l=0; l< njet; l++){
-				dopfac[l*nz+k]	= 1./(gamv*(1. - beta*cos(inclin)*pow(-1.,l)));
-			}
-                }
-                else{
-			for(l=0; l<njet; l++){
-				dopfac[l*nz+k]	= 1.;
-                    	}
-                }
+                /* Setting Doppler factor */
+
+		for(l=0; l< njet; l++){
+			dopfac[l*nz+k]	= 1./(gamv*(1. - beta*cos(inclin)*pow(-1.,l)));
+		}
 
                 /* Express gshift and nw, used in shifting down energy distribution */
                 gshift  = gamax/gamax0;
@@ -1519,6 +1534,7 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
                         * plus component from irradiation, w/ effective area pi*reff**2
                         */
 			if(disksw==1){
+				bbdil = 2.*reff2/(2.*reff2+pow(z-hbb/2.,2))-reff2/(reff2+pow(z-hbb/2.,2));
 				if(bbsw==1){
                                 	nubot = 1.5e-5*kboltz*tin/herg;
                                         nutop = 8.*kboltz*tin/herg;
@@ -1535,7 +1551,13 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
                                     	}
                                         bbintegrals(log(nubot), log(nutop), gamv, tin, rin, rout, z, hbb, bbint);
 				    	uphdil = bbint/cee;
-   					ucom = ucom + uphdil;                                            	
+				    	uphdil2	= bbdil*aconst*tbbeff*tbbeff*tbbeff*tbbeff/4.;
+   					if(z > hbb/2.){
+                                               	ucom = ucom + uphdil + uphdil2;
+                                         }
+                                         else{
+                                               	ucom = ucom + uphdil;
+                                         }                                           	
 		                }//END if(bbsw==1)
 			}//END if(disksw==1)
 			else{
@@ -1792,29 +1814,36 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
                      	* Add in multicolor disk contribution
                      	* (old versions: plus component from irradiation, w/ effective area pi*reff**2)
                      	*/
-                    	if(disksw==1){
-                        	if(bbsw==1){
-                            		nubot	= 1.5e-5*kboltz*tin/herg;
-                            		nutop	= 8.*kboltz*tin/herg;
-                            	if(bbdisk(log(nutop), gamv, tin, rin, rout, z, hbb)*nubot/(bbdisk(log(nubot), gamv, tin, rin, rout, z, hbb)*nutop) > 1.e30){
-                                	cerr << "nutop not high enough" << endl;
-                                	exit(1);
-                            	}
-                            	tst	= bbdisk(log(nutop), gamv, tin, rin, rout, z, hbb);
-                            	if(tst <= 1.e-20){
-                                	while(tst < 1.e-20){
-                                    		nutop	*= 0.75;
-                                    		tst	= bbdisk(log(nutop), gamv, tin, rin, rout, z, hbb);
-                                	}
-                            	}
-                            	bbintegrals(log(nubot), log(nutop), gamv, tin, rin, rout, z, hbb, bbint);                            
-                            	uphdil	= bbint/cee;
-                            	ucom	= ucom + uphdil;                            	
-                        	}//END if(bbsw==1)
-                    	}//END if(disksw==1)
-                    	else{
-                        	ucom    = 0.;
-                    	}//END else(disksw==1)
+			if(disksw==1){
+				bbdil = 2.*reff2/(2.*reff2+pow(z-hbb/2.,2))-reff2/(reff2+pow(z-hbb/2.,2));
+				if(bbsw==1){
+                                	nubot = 1.5e-5*kboltz*tin/herg;
+                                        nutop = 8.*kboltz*tin/herg;
+                                        if(bbdisk(log(nutop), gamv, tin, rin, rout, z, hbb)*nubot/(bbdisk(log(nubot), gamv, tin, rin, rout, z, hbb)*nutop) > 1.e30){
+                                        	cerr << "nutop not high enough" << endl;
+                                                exit(1);
+                                     	}
+                                        tst	= bbdisk(log(nutop), gamv, tin, rin, rout, z, hbb);
+                                        if(tst <= 1.e-20){
+                                        	while(tst < 1.e-20){
+                                                	nutop *= 0.75;
+                                                        tst = bbdisk(log(nutop), gamv, tin, rin, rout, z, hbb);
+                                                }
+                                    	}
+                                        bbintegrals(log(nubot), log(nutop), gamv, tin, rin, rout, z, hbb, bbint);
+				    	uphdil = bbint/cee;
+				    	uphdil2	= bbdil*aconst*tbbeff*tbbeff*tbbeff*tbbeff/4.;
+   					if(z > hbb/2.){
+                                               	ucom = ucom + uphdil + uphdil2;
+                                         }
+                                         else{
+                                               	ucom = ucom + uphdil;
+                                         }                                           	
+		                }//END if(bbsw==1)
+			}//END if(disksw==1)
+			else{
+                               	ucom = 0.;
+                        }//END else(disksw==1)
                     
                     	if(isVerbose){
                     		cout << left << setw(15) << "ucom:" << setw(15) << ucom << setw(15) << uphdil << setw(15) << uphdil2 << endl;
@@ -2183,6 +2212,7 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
 				cerr << "BB going to higher freq than syn" << endl;
 				exit(1);
 			}
+			bbdil	= 2.*reff2/(2.*reff2+(z-hbb/2.)*(z-hbb/2.))-reff2/(reff2+(z-hbb/2.)*(z-hbb/2.));
 			
                         /**
 			 * Stop Compton loop when too far past photon peak
@@ -2210,12 +2240,13 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
                                                 else{
                                                 	bbcon   = 0.;
                                                 }//END nubb
+                                        	bbirad	= bbdil*2.*herg*pow(nurad[i],3)/(cee*cee*(exp(energ[i]/(kboltz*tbbeff))-1.)*cee*herg*energ[i]);        
 					}//END if(peak!=1)
 
 					if(z > hbb/2){
-                                               	phodis[i]= log10(jetu[i]+bbcon);
+                                               	phodis[i]= log10(jetu[i]+bbcon+bbirad);
                                                	if (jetu[i]+bbcon == 0) phodis[i]= -500;
-                                               	disku[i]= bbcon;
+                                               	disku[i]= bbcon + bbirad;
                                         }
                                         else{
                                               	phodis[i]= log10(jetu[i]+bbcon);
@@ -2502,6 +2533,7 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
 		}//end z for loop
 	}//end m[njet] for loop
 	
+	bbnrm	= (bbf1*rout)*(bbf1*rout) * cos(inclin)/(4.*dist*dist);
 	blim	= log(rin);
 	ulim	= log(rout);
 
@@ -2510,9 +2542,10 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
 		if(bbsw	== 1 && disksw == 1){
 			bbearthint(blim, ulim, frq, tin, rin, dist, inclin, bbflx);
 			bbflx	= bbflx/mjy;
-			fplot[i]= fplot[i] + bbflx;
+			bbtrm	= bbnrm*2.*herg*frq*frq*frq/(cee*cee*mjy*(exp(herg*frq/(kboltz*tbb2))-1.));
+			fplot[i]= fplot[i] + bbflx + bbtrm;
 			if(plotsw == 1){
-				bbplot[i]= bbflx;
+				bbplot[i]= bbflx + bbtrm;
 			}
 		}
 

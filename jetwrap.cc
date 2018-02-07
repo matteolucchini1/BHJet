@@ -36,7 +36,7 @@ int main(){
 	//feenableexcept(FE_DIVBYZERO);
 
 	int time_elaps	= 0; 
-	int npar	= 25;
+	int npar	= 27;
 	int ne		= 300;
 	double emin	= -11.;
 	double emax	= 10;

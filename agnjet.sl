@@ -15,7 +15,7 @@ define agnjet_merged_fit(lo,hi,par)
    variable ear = [_A(hi),_A(lo[0])];
    variable nein = length(lo), photar=Double_Type[nein], photer=@photar;
 
-   variable pars = par[[1:25]];
+   variable pars = par[[1:27]];
 
    % !!!  It is important to match the type for arrays that are input, !!!
    % !!!  and recieve return values.  I.e., phot & energ go in and     !!!
@@ -66,6 +66,8 @@ static variable jet_input = {
 "Tin [keV]",      1.e-2,  1.e-6,     5.,
 "rin [r_g]",        1.,      1.,   1.e2,
 "rout [r_g]",     1000.,    10.,   1.e5,
+"Tbb [K]",         1.e2,   1.e2,   1.e6,
+"Bbf ",          1.e-8,   1.e-9,  1.e-1,
 "plfrac",          0.1,    0.05,   0.95,
 "mxsw",              1.,     0.,     1.,
 "velsw", 	    15.,     1.,    30.,
@@ -92,7 +94,7 @@ static variable jet_frz = Integer_Type[npar];
 
 % Default above is no frozen parameters, now set the frozen ones
 
-jet_frz[[0,1,2,3,6,15,16,20,21,22,23,24,25]]=1;
+jet_frz[[0,1,2,3,6,15,16,20,21,22,23,24,25,26,27]]=1;
 
 add_slang_function("agnjet_merged",jet_pars);
 
@@ -109,6 +111,6 @@ set_param_default_hook("agnjet_merged","agnjet_merged_defaults");
 % of the above
 
 variable par = @jet_def;
-variable pars = par[[1:25]];
+variable pars = par[[1:27]];
 variable lo = _A([-10.0:9:0.001]);
 variable hi = make_hi_grid(lo);
