@@ -22,8 +22,8 @@ define agnjet_merged_fit(lo,hi,par)
    % !!!  out as real*8 == Double_Type, not real*4 == Float_Type       !!!
 
    variable ne = 300, ifl=1, phot = Double_Type[ne], energ = @phot;
-   variable ebins = [-11.00:13.0:24.0/ne];
-   
+   variable ebins = [-10.00:10.0:0.0667];
+
    ebins = 10.^ebins;
 
    % Model called on a fixed grid, then interpolated

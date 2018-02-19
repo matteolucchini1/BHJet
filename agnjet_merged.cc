@@ -2884,10 +2884,10 @@ void bljetpars(double mxsw, double velsw, double z, double zacc, double r_g, dou
 		b_prof(mxsw, velsw, eta, n, endnsmj, pspec, cnorm, emin, emax, ebreak, b, gam, sigsh);
 		g = g0;
 	} else if (z < zacc){
-		g = g0/pow(mj, 1./3.);
+		g = g0;;
 		b_prof(mxsw, velsw, eta, n, endnsmj, pspec, cnorm, emin, emax, ebreak, b, gam, sigsh);
 	} else {
-		g = g0/pow(mj, 1./3.);
+		g = g0;
 		b_prof(mxsw, velsw, eta, nshock, endnsmj, pspec, cnorm, emin, emax, ebreak, bshock, velsw, sigsh);
 		b = bshock*(zacc/z);
 	}

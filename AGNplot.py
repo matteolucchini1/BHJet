@@ -36,7 +36,7 @@ for j in range(69):
 	plt.plot(fr,10**(fr+sf-3.-23.),linewidth=1.5,color=colors[j])
 	plt.plot(fr,10**(fr+cf-3.-23.),linewidth=1.5,color=colors[j])
 plt.xlim([7.,25.])
-plt.ylim([1.e-20,1.e-8])
+plt.ylim([1.e-16,1.e-8])
 plt.grid(True)
 plt.ylabel('Flux ($\\nu$F$\\nu$) ergs s$\\rm ^{-1}$ cm$\\rm ^{-2}$', fontsize=16)
 plt.xlabel('Freq (Hz)', fontsize=16)
