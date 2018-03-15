@@ -504,7 +504,7 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
 	infosw		= param[26];
 	
 	h0 = hratio*r0;
-	equip = 1./beta_pl; //input paramter is inverse plasma beta; here converted to old equip for calculations
+	equip = 1./beta_pl; //input paramter is inverse plasma beta; here converted to old equip for calculations; this is more convenient than rewriting all the code from equip to beta_pl
 	
 	if (infosw == 1) {
 		cout << "Nozzle height: " << h0/r_g << " r_g" << endl;
@@ -514,7 +514,7 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
           * Setting the speed of sound in nozzle <!-- FIXME -->
           */
         gad4_3  = 4./3.;
-        betas0  = sqrt(gad4_3*(gad4_3 - 1.)/(gad4_3 + 1.));
+        betas0  = sqrt(gad4_3*(gad4_3 - 1.)/(gad4_3 + 1.));        
         gam0    = 1./sqrt(1.-(betas0*betas0));
         
         rvel0   = gam0*betas0;
@@ -531,10 +531,10 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
 	}
 
 	/**
-	  * Older radiation grids if not treating a blazar
+	  * Older radiation grids if not treating an aligned source
 	  */
 	
-	if (velsw <= 1 || param[1] > 12) {		
+	if (velsw <= 1 || param[1] > 15) {		
 		nsyn    	= 100;
         	ncom    	= 60;
         	snumin  	= log10(0.5*ear[0]/hkev);
@@ -821,7 +821,7 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
 	* In this case, for pspec close to 2 and it is possible for numerical issues to arise, so in this case we compute the average Lorentz 
 	* factor as if pspec = 2. The difference is negligible
 	*/
-	
+
 	if (velsw <= 1){
         	nprot0  = (jetrat/4.)/(vel0*pmgm*cee*cee*pi*r0*r0);
 	} else {
@@ -841,8 +841,12 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
 			}
 		}
 		sig0 = ((1.+sigsh)*velsw)/gam0-1.;
-		//cout << "Magnetization at the base: " << sig0 << endl;
-		eta = (sig0*pmgm)/(avgen*emgm*(2.*equip-sig0*gad4_3));
+		if (beta_pl == 0){
+			eta = 1.;
+			equip = (sig0/2.)*(gad4_3+(pmgm)/(avgen*emgm));
+		} else {
+			eta = (sig0*pmgm)/(avgen*emgm*(2.*equip-sig0*gad4_3));
+		}
 		numcorr = 1.+eta*(1.+equip)*(avgen*emgm)/(pmgm);
 		nprot0  = jetrat/(2.*numcorr*vel0*pi*r0*r0*pmgm*cee*cee); 
 	} 
@@ -854,13 +858,12 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
 		numcorr = 1.+eta*(1.+equip)*(avgen*emgm)/(pmgm);
 		nprot0  = jetrat/(2.*numcorr*vel0*pi*r0*r0*pmgm*cee*cee); 
 		cout << "Changed equip to: " << equip << endl;
-		cout << "Check equip value!" << endl;
+		cout << "Check equip value! Pair content now is: " << eta << endl;
 	}
 	if (nprot0 < 0){
 		cout << "Proton number density: " << nprot0 << endl;
 		cout << "Too many pairs, the jet has a negative proton number density!" << endl;		
 	}
-
 	
         /**
          * Calculating magnetic energy from equipartition assumptions
@@ -877,7 +880,7 @@ void xrbjet(double* ear, int ne, double *param, double *phot_spect, double *phot
          */
         equipartition(velsw, mxsw, nenpsw, eta, equip, pspec, nprot0, emin, emax, endnsmj, cnorm, ntot0, b_en);
         b0 = sqrt(8.*pi*b_en);
-       
+
         /**
          * Frequencies in Hz, fluxes in mJy
          * Setting gamax0 to unity so that gamax/gamax0 gives
@@ -2877,8 +2880,8 @@ void bljetpars(double mxsw, double velsw, double z, double zacc, double r_g, dou
 	theta = 0.15/gam;
 	r = r0+max(z-h0,0.)*tan(theta);
 	tshock = 0.15/velsw;
-	nshock = n0*pow(h0/zacc,2.)*(gbs0/sqrt(velsw*velsw-1.))*pow(sin(0.15/gam0)/sin(tshock),2.);
-	n = n0*pow(sin(0.15/gam0)/sin(theta),2.)*pow(min(h0/z,1.),2.)/mj;
+	nshock = eta*n0*pow(h0/zacc,2.)*(gbs0/sqrt(velsw*velsw-1.))*pow(sin(0.15/gam0)/sin(tshock),2.);
+	n = eta*n0*pow(sin(0.15/gam0)/sin(theta),2.)*pow(min(h0/z,1.),2.)/mj;
 
 	if(z < h0){
 		b_prof(mxsw, velsw, eta, n, endnsmj, pspec, cnorm, emin, emax, ebreak, b, gam, sigsh);
@@ -2918,7 +2921,6 @@ void b_prof(double mxsw, double gfin, double eta, double n, double endnsmj, doub
 	double betas0, g0, sig0, sig, w;
 	double Gammas = 4./3.;
 	betas0 = sqrt(Gammas*(Gammas-1.)/(Gammas+1.));
-	//betas0 = 0.05;
    	g0 = 1./sqrt((1.-betas0)*(1.+betas0));
 
 	/*

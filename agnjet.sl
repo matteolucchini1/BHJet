@@ -14,7 +14,7 @@ define agnjet_merged_fit(lo,hi,par)
 {
    variable ear = [_A(hi),_A(lo[0])];
    variable nein = length(lo), photar=Double_Type[nein], photer=@photar;
-
+   
    variable pars = par[[1:27]];
 
    % !!!  It is important to match the type for arrays that are input, !!!
@@ -38,7 +38,7 @@ define agnjet_merged_fit(lo,hi,par)
 
    % Interpolate back to original grid size
    xrbinterp(ear, energ, phot, photar, ne, nein);
-
+   
    % Multiply by normalization, and return in wavelength ascending order
 
    return reverse(par[0]*photar);
