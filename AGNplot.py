@@ -20,7 +20,7 @@ n = 70
 colors = pl.cm.jet(np.linspace(0.25,1,n))
 
 plt.figure(1)
-#plt.title('$\\gamma_{\\rm max} = 15$, $\\gamma(z) \\propto z^{0.5}$, $\\theta(z) = 0.15/\\gamma(z)$, $\\sigma(z_{\\rm diss}) = 0.01$, $\\beta_{0} = 0.05$, $\\beta_{\\rm pl} = 0.0005$',fontsize=24)
+plt.title('$\\gamma_{\\rm max} = 5$, $z_{\\rm acc} = z_{\\rm sh} = 630$, $f_{\\rm heat} = 10$, $\\sigma(z_{\\rm diss}) = 0.024$, $N_{\\rm j} = 5*10^{-3}$',fontsize=24)
 plt.plot(bb.T[0], 10**(bb.T[0]+bb.T[1]-3.-23.), linewidth=2.5, color='red')
 plt.plot(pre.T[0], 10**(pre.T[0]+pre.T[1]-3.-23.), linewidth=2.5, color='teal')
 plt.plot(post.T[0], 10**(post.T[0]+post.T[1]-3.-23.), linewidth=2.5, color='green')
@@ -46,7 +46,7 @@ plt.yscale('log', basey=10)
 i = 0
 
 plt.figure(2)
-#plt.title('$\\gamma_{\\rm max} = 15$, $\\gamma(z) \\propto z^{0.5}$, $\\theta(z) = 0.15/\\gamma(z)$, $\\sigma(z_{\\rm diss}) = 0.01$, $\\beta_{0} = 0.4$, $\\beta_{\\rm pl} = 0.0005$',fontsize=24)
+plt.title('$\\gamma_{\\rm max} = 15$, $z_{\\rm acc} = 2.5*10^{5}$, $z_{\\rm sh} = 25$, $f_{\\rm heat} = 1$, $\\sigma(z_{\\rm diss}) = 1$, $N_{\\rm j} = 1*10^{-2}$',fontsize=24)
 plt.plot(bb.T[0], 10**bb.T[1], linewidth=2.5, color='red')
 plt.plot(pre.T[0], 10**pre.T[1], linewidth=2.5, color='teal')
 plt.plot(post.T[0], 10**post.T[1], linewidth=2.5, color='green')
@@ -63,7 +63,7 @@ for j in range(69):
 	plt.plot(fr,10**(sf),linewidth=1.5,color=colors[j],linestyle='dashed')
 	plt.plot(fr,10**(cf),linewidth=1.5,color=colors[j],linestyle='dashed')
 plt.xlim([8.5,19.])
-plt.ylim([1.e-6,3.e4])
+plt.ylim([1.e-6,3.e2])
 plt.grid(True)
 plt.ylabel('Flux (mJy)', fontsize=16)
 plt.xlabel('Freq (Hz)', fontsize=16)

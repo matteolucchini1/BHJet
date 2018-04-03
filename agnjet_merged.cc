@@ -2881,7 +2881,7 @@ void bljetpars(double mxsw, double velsw, double z, double zacc, double r_g, dou
 	r = r0+max(z-h0,0.)*tan(theta);
 	tshock = 0.15/velsw;
 	nshock = eta*n0*pow(h0/zacc,2.)*(gbs0/sqrt(velsw*velsw-1.))*pow(sin(0.15/gam0)/sin(tshock),2.);
-	n = eta*n0*pow(sin(0.15/gam0)/sin(theta),2.)*pow(min(h0/z,1.),2.)/mj;
+	n = eta*n0*pow(r0/r,2.)/mj;
 
 	if(z < h0){
 		b_prof(mxsw, velsw, eta, n, endnsmj, pspec, cnorm, emin, emax, ebreak, b, gam, sigsh);
