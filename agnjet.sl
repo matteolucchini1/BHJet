@@ -8,9 +8,9 @@
 % /usr/local/isis/modules).  In your ISIS .isisrc, or other S-lang
 % input file, run all the code below.
 
-import("agnjet_merged");
+import("agnjet");
 
-define agnjet_merged_fit(lo,hi,par)
+define agnjet_fit(lo,hi,par)
 {
    variable ear = [_A(hi),_A(lo[0])];
    variable nein = length(lo), photar=Double_Type[nein], photer=@photar;
@@ -22,13 +22,13 @@ define agnjet_merged_fit(lo,hi,par)
    % !!!  out as real*8 == Double_Type, not real*4 == Float_Type       !!!
 
    variable ne = 300, ifl=1, phot = Double_Type[ne], energ = @phot;
-   variable ebins = [-10.00:10.0:0.0667];
-
+   variable ebins = [-11.00:10.0:0.07];
+   
    ebins = 10.^ebins;
 
    % Model called on a fixed grid, then interpolated
 
-   xrbjet(ebins,ne,pars,phot,energ);
+   bhjet(ebins,ne,pars,energ,phot);
    %xrbjet(ebins,ne,pars,ifl,phot,energ);
 
    % Convert to keV and ph/cm^2/s/keV
@@ -37,8 +37,8 @@ define agnjet_merged_fit(lo,hi,par)
    phot = (10.^phot)*(10./6.6260755/energ); 
 
    % Interpolate back to original grid size
-   xrbinterp(ear, energ, phot, photar, ne, nein);
-   
+   bhinterp(ear, energ, phot, photar, ne, nein);
+
    % Multiply by normalization, and return in wavelength ascending order
 
    return reverse(par[0]*photar);
@@ -46,33 +46,33 @@ define agnjet_merged_fit(lo,hi,par)
 
 static variable jet_input = { 
 "norm",              1.,     0.,   1.e6,
-"mbh [msun]",      1.e9,     5.,  3.e10,
-"incl [deg]",        2.,     2.,    80.,
-"dkpc [kpc]",    543.e3,     1.,   1.e6,
+"mbh [msun]",      1.e9,     3.,  3.e10,
+"incl [deg]",       20.,     2.,    80.,
+"dkpc [kpc]",     16.e3,     1.,   1.e6,
 "jetrat [L_edd]", 5.e-3,  1.e-8,     2.,
-"r0 [r_g]",         50.,    10.,   100.,
-"hratio",	     2.,     1.,    10.,		
-"zsh [r_g]",      1000.,    20.,   5.e5,
-"zacc [r_g]",     1000.,    50.,   5.e5,
-"zmax [lg cm]",     20.,   13.5,    21.,
-"eltemp [gamma]",    3.,     1.,   1.e2,
-"pspec",             2.,    1.7,     3.,
-"heat",              1.,     1.,   100.,
-"brk",		     1.,     1.,    50.,
-"fsc",           1.5e-7,   1e-7,  1.e-1,
+"r0 [r_g]",         20.,     2.,    80.,
+"hratio",	     	 2.,     1.,    10.,		
+"zsh [r_g]",      1000.,   3.e2,   5.e4,
+"zacc [r_g]",     1000.,   3.e2,   5.e4,
+"zmax [r_g]",     1.e6,   1.e5,    1.e8,
+"eltemp [gamma]",    3.,     1.,    50.,
+"pspec",             2.,    1.5,     3.,
+"heat",              1.,     1.,    50.,
+"brk",		     	 1.,     1.,   100.,
+"fsc",           1.5e-7,   1e-7,  1.e-3,
 "gamfac",           10.,     1.,   1.e4,
-"betapl",        2.e-3,   1e-3,     1.,
-"sig",		   1e-1,  1.e-3,     1.,
-"Tin [keV]",      1.e-2,  1.e-6,     5.,
-"rin [r_g]",         1.,     1.,   1.e2,
+"betapl",         2.e-3,   1e-3,     1.,
+"sig",		   	   1e-1,  1.e-3,     1.,
+"Tin [keV/-L_edd]",1.e-2,  1.e-6,     5.,
+"rin [r_g]",         1.,     1.,   2.e2,
 "rout [r_g]",     1000.,    10.,   1.e5,
 "Tbb [K]",         1.e2,   1.e2,   1.e6,
-"Bbf",           1.e-8,  1.e-9,  1.e-1,
+"Bbf",            1.e-8,  1.e-9,  1.e-1,
 "plfrac",           0.1,   0.05,   0.95,
 "mxsw",              1.,     0.,     1.,
-"velsw", 	    15.,     1.,    30.,
+"velsw", 	         1.,     1.,    25.,
 "plotsw",            1.,     0.,     1.,
-"infosw",	     0.,     0.,     1.,	
+"infosw",	         0.,     0.,     1.,	
 };
 
 variable npar=length(jet_input)/4;
@@ -96,14 +96,14 @@ static variable jet_frz = Integer_Type[npar];
 
 jet_frz[[0,1,2,3,6,15,16,20,21,22,23,24,25,26,27]]=1;
 
-add_slang_function("agnjet_merged",jet_pars);
+add_slang_function("agnjet",jet_pars);
 
-define agnjet_merged_defaults(i)
+define agnjet_defaults(i)
 {
    return (jet_def[i],jet_frz[i],jet_min[i],jet_max[i]);
 }
 
-set_param_default_hook("agnjet_merged","agnjet_merged_defaults");
+set_param_default_hook("agnjet","agnjet_defaults");
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -112,5 +112,5 @@ set_param_default_hook("agnjet_merged","agnjet_merged_defaults");
 
 variable par = @jet_def;
 variable pars = par[[1:27]];
-variable lo = _A([-10.0:9:0.001]);
+variable lo = _A([-11.0:10.0:0.07]);
 variable hi = make_hi_grid(lo);

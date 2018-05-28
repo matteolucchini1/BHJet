@@ -24,21 +24,20 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <fenv.h>
 
+#include "agnjet.hh"
 using namespace std;
 
 void read_params(string file, double *pars);
 
-extern void xrbjet(double *ear, int ne, double *param, double *photar, double *photeng);
+extern void bhjet(double* ear, int ne, double *params, double *phot_spect, double *photeng);
 
 int main(){
-	//feenableexcept(FE_DIVBYZERO);
-
-	int time_elaps	= 0; 
+	int time_elaps	= 0;    
 	int npar	= 27;
+		
 	int ne		= 300;
-	double emin	= -11.;
+	double emin	= -10.;
 	double emax	= 10;
 	double einc	= (emax-emin)/ne;
 
@@ -51,15 +50,20 @@ int main(){
 		ebins[i]= pow(10,(emin+i*einc));
 	}
 
-      	read_params("Input/ip.dat", param);
- 
-	xrbjet(ebins, ne, param, spec, dumarr);
+	read_params("Input/ip.dat", param);
+    
+	bhjet(ebins,ne,param,dumarr,spec);
+    
+    for (int i=0; i<npar; i++) {
+        cout << "param["<< i << "]= " << param[i] << endl;
+    }
 
-        delete[] ebins, delete[] param, delete[] spec, delete[] dumarr;
+    delete[] ebins, delete[] param, delete[] spec, delete[] dumarr;
 
-        time_elaps = clock();
-        cout << "Total running time: " << (double) time_elaps/CLOCKS_PER_SEC << " seconds" << endl;
-	system("python AGNplot.py");
+    time_elaps = clock();
+    cout << "Total running time: " << (double) time_elaps/CLOCKS_PER_SEC << " seconds" << endl;
+
+    system("python AGNplot2.py");
 	return EXIT_SUCCESS;
 }				// ----------  end of function main  ----------
 
@@ -92,6 +96,5 @@ void read_params(string file, double *pars){
                         line_nb++;
                 }
 	}
-        //cout << "# of parameters read: " << line_nb << endl;
         inFile.close();
 }

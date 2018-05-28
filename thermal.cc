@@ -1,4 +1,3 @@
-/////////////////////////////////////////////////////////////////////////
 /** Blackbody function: for a blackbody at temperature T (K),
   returns the blackbody flux at frequency nu (Hz).
   The spectrum peaks at h*nu_max=2.82*kB*T or nu_max=5.88e10*T. 
@@ -18,15 +17,40 @@
 #define c1      1.474499e-47      ///< 2*h/c/c in CGS
 #define c2      3.072361e-37      ///< 2*kB/c/c in CGS
 
-double bb (double nu, double T)
-{
+struct fobs_params {
+	double nu;
+};
+
+struct fobs1_params{
+	double nu; 
+	double t1; 
+	double t2; 
+};
+
+struct fjet_params{
+	double nu;
+	double t1; 
+	double z; 
+	double beta; 
+	double gamma;
+};
+
+struct fjet1_params{
+	double nu; 
+	double t1; 
+	double t2; 
+	double beta; 
+	double z; 
+	double gamma;
+};
+
+double bb(double nu,double T){
 	double nu_max, x=0;
 	nu_max=5.88e10*T;
 	if (nu < 1e-3*nu_max || nu > 5e1*nu_max) x=1e-99;
 	else
 		if	(nu < nu_max/1e2) x=c2*nu*nu*T;
 	else {
-// 		x=h*nu/kB/T;
 		x=c1*nu*nu*nu/(exp(x)-1.);
 	}
 
@@ -36,43 +60,37 @@ double bb (double nu, double T)
 #undef kB
 #undef c1
 #undef c2
-/////////////////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////////////////////
-/** Computes the observed flux from a spherical blackbody emitter, a.k.a. the
-  secondary star, which has a radius of 'r' (cm) and temperature of 'T' (K).
-  The observer is located at a distance of 'd' (cm) away from the center of
-  the star. It can return either the flux observed by the observer (cgs units)
-  or the photon number density dN/dE/dV at observer (#/cm^3/erg).
-
-  Description: The flux at the position of the observer is calculated using
-               the result of eq. (12) of Chia 1976, Astrophysics and Space 
-	       Science, 46, 239. Also see Rybicki and Lightman eq. (1.13).
-
-  Requirements: Routine bb() to compute blackbody fluxes.
-
-  Input: nu (Hz);
-         r = radius of star (cm);
-	 T = BB temp on stellar surface (K);
-         d = distance from center of star to the observer (cm);
-	 cos_theta = cos(theta) such that pi-theta is the angle between 
-	         the vectors
-	         V and JS where V is the velocity vector of the observer 
-		 and JS is a vector from the observer to the BB emitting 
-		 region.
-	 gamma = Lorentz factor of the observer.
-	 switch = 1 or 2 (See output below)
-
-  Output: If switch = 1 : Flux observed by the observer (mJy).
-                    = 2 : Photon density dN/dE/dV at observer (#/cm^3/erg).
+/** 
+ *Computes the observed flux from a spherical blackbody emitter, like the companion star,  which has a radius
+ *'r' (cm) and temperature of 'T' (K).  The observer is located at a distance of 'd' (cm) away from the center
+ *of the star. It can return either the flux observed by the observer (cgs units) or the photon number density 
+ *dN/dE/dV at observer (#/cm^3/erg).  
+ *
+ *Description: The flux at the position of the observer is calculated using the result of eq. (12) of Chia 
+ *             1976, Astrophysics and Space Science, 46, 239. Also see Rybicki and Lightman eq. (1.13).      
+ *
+ *Requirements: function bb() to compute blackbody fluxes.
+ *
+ *Input: nu (Hz);
+ *       r = radius of star (cm);
+ *	 	 T = BB temp on stellar surface (K);
+ *       d = distance from center of star to the observer (cm);
+ *	 	 cos_theta = cos(theta) such that pi-theta is the angle between the vectors  V and JS where V is the 
+ *	   				velocity vector of the observer and JS is a vector from the observer to the BB emitting         
+ *	        		region
+ *		 gamma = Lorentz factor of the observer.
+ *	 	 switch = 1 or 2 (See output below)
+ *	
+ *Output: If switch = 1 : Flux observed by the observer (mJy).
+ *                  = 2 : Photon density dN/dE/dV at observer (#/cm^3/erg).	 .
 */
+
 #include <math.h>
 #define pi M_PI
 #define hhc 1.31623211e-42                     ///< h*h*c in CGS units
 
-double star (double nu, double r, double T, double d, 
-		double cos_theta, double gamma, int sw)
-{
+double star(double nu,double r,double T,double d,double cos_theta,double gamma,int sw){
 	double bb (double nu, double T);
 	double beta = sqrt(gamma*gamma-1.)/gamma;
 	double result,Teff;
@@ -130,15 +148,13 @@ double star (double nu, double r, double T, double d,
 #define EPSREL 1e-2
 #define KEY    1
 
-struct fobs_params {double nu;};
 double fobs1 (double T, void * p){
 	struct fobs_params * params = (struct fobs_params *)p;
 	double nu = (params->nu);
 	return pow (T,-11./3.) * bb(nu,T);
 }
-double mcd_obs (double nu, double Rin, double Tin, 
-		  double d, double incl_deg)
-{
+
+double mcd_obs(double nu,double Rin,double Tin,double d,double incl_deg){
 	double incl=incl_deg*pi/180.;  // incl in rad
 	double Tout=1000.;
 	double norm, result, error;
@@ -148,14 +164,13 @@ double mcd_obs (double nu, double Rin, double Tin,
 	
 	params.nu = nu;
 	gsl_integration_workspace * w = 
-		gsl_integration_workspace_alloc (WORKSZ);
+	gsl_integration_workspace_alloc (WORKSZ);
 	gsl_function F1;
 	F1.function = &fobs1;
 	F1.params   = &params;
 
-        // Do the integration from Tout to Tin
-	gsl_integration_qag  (&F1, Tout, Tin, EPSABS, EPSREL, WORKSZ, 
-			KEY, w, &result, &error);
+	// Do the integration from Tout to Tin
+	gsl_integration_qag(&F1,Tout,Tin,EPSABS,EPSREL,WORKSZ,KEY,w,&result,&error);
 	gsl_integration_workspace_free(w);
 	// Return observed flux in mJy
 	norm=1e26*pow(Tin, 8./3.)*8.*pi*Rin*Rin*cos(incl)/3./d/d;
@@ -164,8 +179,7 @@ double mcd_obs (double nu, double Rin, double Tin,
 }
 
 // Includes irradiation + viscous disk
-struct fobs1_params {double nu; double t1; double t2; };
-double fobs11 (double logr, void * p){
+double fobs11(double logr,void *p){
 	struct fobs1_params * params = (struct fobs1_params *)p;
 	double nu    = (params->nu);
 	double t1	= (params->t1);
@@ -173,13 +187,12 @@ double fobs11 (double logr, void * p){
 	double r     = exp(logr);
 	double Teff;
 	Teff = pow (t1*pow(r,-0.75), 4.) + 
-		pow (t2*pow(r,-3./7.), 4.);
+	pow (t2*pow(r,-3./7.), 4.);
 	Teff = pow(Teff,0.25);
 	return bb(nu,Teff)*r*r;
 }
-double mcdobs1 (double nu, double Rin, double Tin, double Rout,
-		double Tout, double d, double incl_deg)
-{
+
+double mcdobs1(double nu,double Rin,double Tin,double Rout,double Tout,double d,double incl_deg){
 	double incl=incl_deg*pi/180.;  // incl in rad
 	double logrin=log(Rin);
 	double logrout=log(Rout);
@@ -295,8 +308,6 @@ double mcdobs1 (double nu, double Rin, double Tin, double Rout,
 #define EPSREL 1e-2
 #define KEY    1
 
-struct fjet_params {double nu; double t1; double z; double beta; double gamma;};
-
 double fjet1 (double logr, void * p){
 	struct fjet_params * params = (struct fjet_params *)p;
 	double nu    = (params->nu);
@@ -315,9 +326,7 @@ double fjet1 (double logr, void * p){
 	return bb(nu,Teff)*cos2_theta*sin2_theta;
 }
 
-double mcd_jet (double nu, double Rin, double Tin, 
-		  double z, double gamma)
-{
+double mcd_jet(double nu,double Rin,double Tin,double z,double gamma){
 	double Tout = 1e3;
 	double Rout = Rin*pow(Tout/Tin, -4./3.);
 	double logrin=log(Rin);
@@ -336,23 +345,19 @@ double mcd_jet (double nu, double Rin, double Tin,
 	params.gamma=gamma;
 
 	gsl_integration_workspace * w = 
-		gsl_integration_workspace_alloc (WORKSZ);
-     gsl_function F1;
-     F1.function = &fjet1;
-     F1.params = &params;
-     // Do the integration from Rin to Rout
-     gsl_integration_qag  (&F1, logrin, logrout, 
-		     EPSABS, EPSREL, WORKSZ, KEY, w, &result, &error);
-     gsl_integration_workspace_free(w);
-     result*=2.*pi/nu/hhc;   // Photon density
-     //result*=2.*pi*1e26;   // Flux in mJy
-     return result;
-
+	gsl_integration_workspace_alloc (WORKSZ);
+    gsl_function F1;
+    F1.function = &fjet1;
+    F1.params = &params;
+    // Do the integration from Rin to Rout
+    gsl_integration_qag(&F1,logrin,logrout,EPSABS,EPSREL,WORKSZ,KEY,w,&result,&error);
+    gsl_integration_workspace_free(w);
+    result*=2.*pi/nu/hhc;   // Photon density
+    
+    return result;
 }
 
 // Includes irradiation + viscous disk
-struct fjet1_params {double nu; double t1; double t2; double beta; double z; double gamma;};
-
 double fjet11 (double logr, void * p){
 	struct fjet1_params * params = (struct fjet1_params *)p;
 	double nu	= (params->nu);
@@ -378,9 +383,7 @@ double fjet11 (double logr, void * p){
 	return bb(nu,Teff)*cos2_theta*sin2_theta;
 }
 
-double mcdjet1 (double nu, double Rin, double Tin, double Rout, 
-		double Tout, double z, double gamma)
-{
+double mcdjet1(double nu,double Rin,double Tin,double Rout,double Tout,double z,double gamma){
 	double logrin=log(Rin);
 	double logrout=log(Rout);
 	double beta = sqrt(gamma*gamma-1.)/gamma;
@@ -398,16 +401,15 @@ double mcdjet1 (double nu, double Rin, double Tin, double Rout,
 	params.gamma=gamma;
 
 	gsl_integration_workspace * w = gsl_integration_workspace_alloc (WORKSZ);
-     gsl_function F1;
-     F1.function = &fjet11;
-     F1.params = &params;
-     // Do the integration from Rin to Rout
-     gsl_integration_qag  (&F1, logrin, logrout, 
-		     EPSABS, EPSREL, WORKSZ, KEY, w, &result, &error);
-     gsl_integration_workspace_free(w);
-     result*=2.*pi/nu/hhc;   // Photon density
-     //result*=2.*pi*1e26;   // Flux in mJy
-     return result;
+    gsl_function F1;
+    F1.function = &fjet11;
+    F1.params = &params;
+    // Do the integration from Rin to Rout
+    gsl_integration_qag(&F1,logrin,logrout,EPSABS,EPSREL,WORKSZ,KEY,w,&result,&error);
+    gsl_integration_workspace_free(w);
+    result*=2.*pi/nu/hhc;   // Photon density
+    //result*=2.*pi*1e26;   // Flux in mJy
+    return result;
 }
 
 #undef pi
