@@ -36,127 +36,127 @@ using namespace std;
  
 void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
 
-    int i, k, m; 										//for-loop variables
-    double sum1, sum2, tmp1, tmp2;						//temporary stuff for numerics
+    int i, k, m; 							//for-loop variables
+    double sum1, sum2, tmp1, tmp2;					//temporary stuff for numerics
 
-    bool isShock         = false;						//flag for shock
-    bool isBreaknjetnsyn = false;						//flag for synchrotron for loop
-    bool isVerbose       = false;						//flag for verbose debug mode
-    bool isSSC           = false;						//when false: multiple SSC
-    bool isPair          = false;						//when false no pair rate is calculated
+    bool isShock         = false;					//flag for shock
+    bool isBreaknjetnsyn = false;					//flag for synchrotron for loop
+    bool isVerbose       = false;					//flag for verbose debug mode
+    bool isSSC           = false;					//when false: multiple SSC
+    bool isPair          = false;					//when false no pair rate is calculated
 
     //Synchrotron - Compton - Gamma-ray grid [Hz]
-    int nsyn = 100;										//number of bins in Synchrotron grid
-    int ncom = 60;										//number of bins in Compton grid
-    double snumin;										//lower boundary Synchrotron grid
-    double snumax;										//upper boundary Synchrotron grid
-    double cnumin;										//lower boundary Compton grid
-    double cnumax;										//upper boundary Compton grid
-    double snuinc;										//increment of Synchrotron grid
-    double cnuinc;										//increment of Compton grid
+    int nsyn = 100;							//number of bins in Synchrotron grid
+    int ncom = 60;							//number of bins in Compton grid
+    double snumin;							//lower boundary Synchrotron grid
+    double snumax;							//upper boundary Synchrotron grid
+    double cnumin;							//lower boundary Compton grid
+    double cnumax;							//upper boundary Compton grid
+    double snuinc;							//increment of Synchrotron grid
+    double cnuinc;							//increment of Compton grid
 
     //Fixed quantities for computations
-    int nz 			= 70;								//number of zones in jet
-    int zone_zcut 	= 0;								//index of zone where grid switches to logarithmic
-    double thrlum; 										//disk thermal luminosity
-    double eddrat; 										//accretion rate in Eddington units 
-    double thmfrac; 									//1-plfrac (see jet's parameter plfrac down)
-    double zcut; 										//distance above which Compton is neglected
-    double theff; 										//angle to the secondary blackbody
-    double tbbeff;										//effective blackbody temperature
-    int zfrac       = 100;								//multiplier to set Comptonization region
-    int bbsw    	= 1;								//switch to get black-body radiation
-    int disksw  	= 1;								//switch to get disk radiation
-    double zmin;										//minimum distance from BH
-    int nzdum   	= 100;								//size of jet's segment array
-    double bbf1    	= 0;								//black-body fraction (used for second BB)
-    double reff    	= 0;								//bff1*rout (used for second BB)
-    double reff2   	= 0;								//reff**2		
-    int njet    	= 2;								//number of jets produced
-    int Niter		= 100;								//number of IC scatterings
-    int sizegb 		= 55;								//size of velocity/distance array before interpolation
-    double zeta		= 1;								//Uj = n mc2, see Crumley et al. 2017
-    double sig0;										//Initial magnetization for magnetic acceleration
+    int nz 		= 70;						//number of zones in jet
+    int zone_zcut 	= 0;						//index of zone where grid switches to logarithmic
+    double thrlum; 							//disk thermal luminosity
+    double eddrat; 							//accretion rate in Eddington units 
+    double thmfrac; 							//1-plfrac (see jet's parameter plfrac down)
+    double zcut; 							//distance above which Compton is neglected
+    double theff; 							//angle to the secondary blackbody
+    double tbbeff;							//effective blackbody temperature
+    int zfrac       	= 100;						//multiplier to set Comptonization region
+    int bbsw    	= 1;						//switch to get black-body radiation
+    int disksw  	= 1;						//switch to get disk radiation
+    double zmin;							//minimum distance from BH
+    int nzdum   	= 100;						//size of jet's segment array
+    double bbf1    	= 0;						//black-body fraction (used for second BB)
+    double reff    	= 0;						//bff1*rout (used for second BB)
+    double reff2   	= 0;						//reff**2		
+    int njet    	= 2;						//number of jets produced
+    int Niter		= 100;						//Maximum number of IC scatterings
+    int sizegb 		= 55;						//size of velocity/distance array before interpolation
+    double zeta		= 1;						//Uj = n mc2, see Crumley et al. 2017
+    double sig0;							//Initial magnetization for magnetic acceleration
 
 	//Variables related to the speed of sound in nozzle
-    double gad4_3; 										//relativistic ideal gas adiabatic index
-    double betas0; 										//speed of sound in the nozzle
-    double gam0;										//initial jet Lorentz factor 1./sqrt(1.-(betas0^2))
-    double rvel0;										//gam0*betas0
-    double vel0;										//cee*rvel0
-    double gamax0; 										//electron Lorentz factor in the nozzle
+    double gad4_3; 							//relativistic ideal gas adiabatic index
+    double betas0; 							//speed of sound in the nozzle
+    double gam0;							//initial jet Lorentz factor 1./sqrt(1.-(betas0^2))
+    double rvel0;							//gam0*betas0
+    double vel0;							//cee*rvel0
+    double gamax0; 							//electron Lorentz factor in the nozzle
 
     //Variables related to particles and energies
-    double eta;											//pair content in jet if using magnetic acceleration
-    double emin; 										//minimum electron energy
-    double emax; 										//maximum electron energy
-    double ebreak; 										//break electron energy
-    double gamin; 										//minimum electron Lorentz factor
-    double uplim; 										//upper limit in thermal energy density calculation
-    double endncom; 									//average thermal Lorentz factor
-    double endnsmj;										//electron energy at peak of M-J distribution
-    double nprot0;										//initial number density of protons 
-    double ntot0;										//initial number density of electrons
-    double b_en;										//magnetic energy density in nozzle
-    double b0;											//magnetic field strength in nozzle
-    double cnorm;										//power-law distribution normalization
-    double endens;										//initial electron energy density
-    double betat;										//emerg/(kboltz*eltemp)
-    double enorm;										//ntot0*betat/(emerg*k2_fnc(betat));
-    double einc;										//energy incrementation in thermal distribution
-    double bete;										//electron beta in distribution
-    int nelec		= 200;								//electron array size in each jet segment
-    double elenmn;										//minimum electron energy for radiation integration
-    double elenmx;										//maximum electron energy for radiation integration
-    int nenpsw 		= 1;								//switch for change between normalizations when using
-    													//velsw = 0 or 1, leave to 0 if you dont have a good
-    													//reason not to do so
+    double eta;								//pair content in jet if using magnetic acceleration
+    double emin; 							//minimum electron energy
+    double emax; 							//maximum electron energy
+    double ebreak; 							//break electron energy
+    double gamin; 							//minimum electron Lorentz factor
+    double uplim; 							//upper limit in thermal energy density calculation
+    double endncom; 							//average thermal Lorentz factor
+    double endnsmj;							//electron energy at peak of M-J distribution
+    double nprot0;							//initial number density of protons 
+    double ntot0;							//initial number density of electrons
+    double b_en;							//magnetic energy density in nozzle
+    double b0;								//magnetic field strength in nozzle
+    double cnorm;							//power-law distribution normalization
+    double endens;							//initial electron energy density
+    double betat;							//emerg/(kboltz*eltemp)
+    double enorm;							//ntot0*betat/(emerg*k2_fnc(betat));
+    double einc;							//energy incrementation in thermal distribution
+    double bete;							//electron beta in distribution
+    int nelec		= 200;						//electron array size in each jet segment
+    double elenmn;							//minimum electron energy for radiation integration
+    double elenmx;							//maximum electron energy for radiation integration
+    int nenpsw 		= 1;						//switch for change between normalizations when using
+    									//velsw = 0 or 1, leave to 0 if you dont have a good
+    									//reason not to do so
 
     //Variables related to each jet segment
-    double z; 											//distance along the jet
-    double delz;										//height of segment
-    double area;										//jet transverse area 
-    double vol;											//volume of segment
-    double rvel;										//jet velocity along z			
-    double gamax;										//shift parameterin peak MJ distribution
-    double r;											//jet radius
-    double bfield;										//magnetic field strength
-    double ntot;										//electron number density
-    double gamv2;										//bulk Lorentz factor squared
-    double gamv;										//bulk Lorentz factor
-    double beta;										//jet velocity in units of c
-    double gshift;										//actual shift, gamax/gamax0
-    double gshock;										//peak MJ value at shock
-    double ub;											//magnetic energy density 
-    double ucom;										//rough estimate of Urad for IC
-    int nw;												//counter to track lost particles when cooling
-    double uphdil; 										//some measure of photons from disk, CHECK UNITS
-    double uphdil2;										//similar to above, CHECK UNITS
-    double gemax;										//maximum electron Lorentz factor
-    double bemax;										//maximum electron velocity in units of c
-    double gebreak;										//break electron Lorentz factor
-    double mjteff;										//peak of MJ distribution when cooling
-    double pltrm;										//power-law distribution term for a given energy
-    double shocknd;										//number density at shock region
-    double shockr;										//shock region radius
-    double shockgb;										//shock region cooling shift
-    double avelec;										//average electron energy, only used for debugging
-    double avphot;										//average photon energy, only used for debugging
-    double ephmin;										//lower integration boundary for first Compton
-    double ephmax;										//higher integration boundary for first Compton
-    double hbb;											//disk height as a function of accretion rate
+    double z; 								//distance along the jet
+    double delz;							//height of segment
+    double area;							//jet transverse area 
+    double vol;								//volume of segment
+    double rvel;							//jet velocity along z			
+    double gamax;							//shift parameter in peak MJ distribution
+    double r;								//jet radius
+    double bfield;							//magnetic field strength
+    double ntot;							//electron number density
+    double gamv2;							//bulk Lorentz factor squared
+    double gamv;							//bulk Lorentz factor
+    double beta;							//jet velocity in units of c
+    double gshift;							//actual shift, gamax/gamax0
+    double gshock;							//peak MJ value at shock
+    double ub;								//magnetic energy density 
+    double ucom;							//rough estimate of Urad for IC
+    int nw;								//counter to track lost particles when cooling
+    double uphdil; 							//some measure of photons from disk, CHECK UNITS
+    double uphdil2;							//similar to above, CHECK UNITS
+    double gemax;							//maximum electron Lorentz factor
+    double bemax;							//maximum electron velocity in units of c
+    double gebreak;							//break electron Lorentz factor
+    double mjteff;							//peak of MJ distribution when cooling
+    double pltrm;							//power-law distribution term for a given energy
+    double shocknd;							//number density at shock region
+    double shockr;							//shock region radius
+    double shockgb;							//shock region cooling shift
+    double avelec;							//average electron energy, only used for debugging
+    double avphot;							//average photon energy, only used for debugging
+    double ephmin;							//lower integration boundary for first Compton
+    double ephmax;							//higher integration boundary for first Compton
+    double hbb;								//disk height as a function of accretion rate
 
     //Variables related to pair estimates    
-    double rate_pa; 									//pair annihilation rate
-    double rate_pp;										//pair production rate
-    double n_pa;										//number density of pairs annihilated
-    double n_pp;										//number density of pairs produced
-    double ratio_ne;									//ratio of number density to initial number density
+    double rate_pa; 							//pair annihilation rate
+    double rate_pp;							//pair production rate
+    double n_pa;							//number density of pairs annihilated
+    double n_pp;							//number density of pairs produced
+    double ratio_ne;							//ratio of number density to initial number density
 
 	//Definition of all pointers used in code
-	double *gbx 	= new double[sizegb-1]();			//distance array for velocity profile
-	double *gby 	= new double[sizegb-1]();			//gamma*beta array for velocity profile
-	double *zed 	= new double[nz](); 				//distance array, needed in the radiation calculation
+    double *gbx 	= new double[sizegb-1]();			//distance array for velocity profile
+    double *gby 	= new double[sizegb-1]();			//gamma*beta array for velocity profile
+    double *zed 	= new double[nz](); 				//distance array, needed in the radiation calculation
     double *nutot	= new double[NEBIN]();				//frequency array for total spectrum
     double *nubb	= new double[nsyn]();				//frequency array for black body spectrum
     double *nurad	= new double[nsyn]();				//pow(10.,nubb)
@@ -174,11 +174,11 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
     double *etemp	= new double[nelec]();				//temporary electron energy array
     double *dtemp	= new double[nelec]();				//temporary electron energy density array
     double *eled	= new double[nelec]();				//temporary energy*density array
-    double *nusyn	= new double[njet*nzdum*nsyn]();	//frequency of synchrotron photons
-    double *nucom	= new double[njet*nzdum*ncom]();	//frequency of Compton photons
-    double *comspc	= new double[njet*nzdum*ncom]();	//Compton spectrum pre-final dump
+    double *nusyn	= new double[njet*nzdum*nsyn]();		//frequency of synchrotron photons
+    double *nucom	= new double[njet*nzdum*ncom]();		//frequency of Compton photons
+    double *comspc	= new double[njet*nzdum*ncom]();		//Compton spectrum pre-final dump
     double *totcom = new double[ncom]();				//total Compton flux for pair estimate
-    double *synabs	= new double[njet*nzdum*nsyn]();	//self-absorbed synchrotron emission
+    double *synabs	= new double[njet*nzdum*nsyn]();		//self-absorbed synchrotron emission
     double *shelen	= new double[nelec]();				//elen at shock
     double *shden	= new double[nelec]();				//total electron density array at shock
     double *thmshock = new double[nelec]();				//thermal component array at shock
@@ -194,7 +194,7 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
     double *jetu	= new double[nsyn]();				//comoving radiation energy density 
     double *disku	= new double[nsyn]();				//disk radiation energy density
     double *complot	= new double[NEBIN]();				//flux array for Compton plot
-    double *cflx_array = new double[NEBIN]();			//temporary flux array for Compton plot
+    double *cflx_array = new double[NEBIN]();				//temporary flux array for Compton plot
     double *presyn	= new double[NEBIN]();				//flux array for preshock synchrotron plot
     double *postsyn	= new double[NEBIN]();				//flux array for postshock synchrotron plot
     double *bbplot	= new double[NEBIN]();				//flux array for blackbody plot
@@ -202,37 +202,37 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
     double *fplot	= new double[NEBIN]();				//frequency array for plot   
 
     //Free parameters
-    double mbh;											//black hole mass in solar masses
-    double r_g; 										//black hole gravitational radius in cm
-    double eddlum; 										//black hole Eddington luminosity
-    double inclin;   									//jet viewing angle wrt line of sight
-    double dist;										//luminosity distance in kpc
-    double jetrat;										//injected jet power in Eddington units
-    double r0;											//nozzle radius in r_g
-    double hratio;										//nozzle aspect ratio
-    double h0;											//nozzle height
-    double zsh;											//shock region location in r_g
-    double zacc;										//acceleration distance if using magnetic acceleration
-    double zmax;										//maximum jet length in r_g
-    double eltemp;										//thermal electron peak Lorentz factor in the nozzle   
-    double pspec;										//power-law distribubtion slope
-	double heat; 										//shock heating; at shock eltem = heat*eltemp
-	double brk; 										//break energy of non-thermal particles
-    double fsc;											//acceleration efficiency parameter
-    double gamfac;										//maximum injected energy of PL particles
-    double beta_pl;										//plasma beta at base Ue/Ub
-    double equip;										//1/beta_pl
-	double sigsh;										//final magnetization at the shock, if velsw > 1
-	double tin;											//inner accretiond disk temperature(if>0)/-Mdot(if<0)
-	double rin; 										//inner accretion disk radius
-    double rout;										//outer accretion disk
-    double tbb2;										//secondary blackbody temperature
-	double bbf2;										//secondary blackbody normalization	
-    double plfrac;										//percentage of particles accelerated into powerlaw
-	double mxsw;										//initial particle distribution switch
-    double velsw;										//Velocity profile used, see README
-	int plotsw;											//plot switch
-    int infosw;											//print info to screen switch  
+    double mbh;								//black hole mass in solar masses
+    double r_g; 							//black hole gravitational radius in cm
+    double eddlum; 							//black hole Eddington luminosity
+    double inclin;   							//jet viewing angle wrt line of sight
+    double dist;							//luminosity distance in kpc
+    double jetrat;							//injected jet power in Eddington units
+    double r0;								//nozzle radius in r_g
+    double hratio;							//nozzle aspect ratio
+    double h0;								//nozzle height
+    double zsh;								//shock region location in r_g
+    double zacc;							//acceleration distance if using magnetic acceleration
+    double zmax;							//maximum jet length in r_g
+    double eltemp;							//thermal electron peak Lorentz factor in the nozzle   
+    double pspec;							//power-law distribubtion slope
+    double heat; 							//shock heating; at shock eltem = heat*eltemp
+    double brk; 							//break energy of non-thermal particles
+    double fsc;								//acceleration efficiency parameter
+    double gamfac;							//maximum injected energy of PL particles
+    double beta_pl;							//plasma beta at base Ue/Ub
+    double equip;							//1/beta_pl
+    double sigsh;							//final magnetization at the shock, if velsw > 1
+    double tin;								//inner accretiond disk temperature(if>0)/-Mdot(if<0)
+    double rin; 							//inner accretion disk radius
+    double rout;							//outer accretion disk
+    double tbb2;							//secondary blackbody temperature
+    double bbf2;							//secondary blackbody normalization	
+    double plfrac;							//percentage of particles accelerated into powerlaw
+    double mxsw;							//initial particle distribution switch
+    double velsw;							//Velocity profile used, see README
+    int plotsw;								//plot switch
+    int infosw;								//print info to screen switch  
 
     //New tabulated velocity for 1D quasi-isothermal Bernoulli eq.
     static double gbx_vel2[54] = {1.0, 1.00001, 1.00005, 1.00023, 1.00101, 1.00456, 1.02053, 1.09237,1.41567,
