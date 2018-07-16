@@ -41,13 +41,19 @@ double zmax,int &zone_zcut,double &delz,double &z,double zed[]){
         	z = z + delz;
 			delz = 2.*r;
             zone_zcut = zone_zcut + 1;
+            if (infosw ==1 ){
+            	cout << "Zone number: " << k << endl;
+            	if (z >= zcut) {
+					cout << "Out of the Comptonization region; distance: " << z/r_g << endl;
+				}
+            }            
 		}
         else{
         	zinc = (log10(zmax) - log10(zcut/80.))/(nz - zone_zcut);
             z = pow(10.,log10(zcut/80.) + zinc*(k-zone_zcut)) * (1. + pow(10.,-6));
             delz = z - z*pow(10.,-zinc);
 			if (infosw == 1) {
-				cout << "Grid shifted; distance: " << z/r_g << " r_g; zone number " << k  << endl;
+				cout << "Grid shifted; zone number " << k  << endl;
 				if (z >= zcut) {
 					cout << "Out of the Comptonization region; distance: " << z/r_g << endl;
 				}	
@@ -238,7 +244,7 @@ double emax,double ebreak,double &field,double g,double sigsh){
 	betas0 = sqrt(Gammas*(Gammas-1.)/(Gammas+1.));
    	g0 = 1./sqrt((1.-betas0)*(1.+betas0));
 
-	//Simplified; currently only accounts for thermal distribution. To be updated in the future.
+	//Only accounts for thermal distribution
 	w = Gammas*eta*n*endnsmj;
 	sig0 = (1.+sigsh)*gfin/g0 - 1.;
 	sig = (g0/g)*(1.+sig0)-1.;
@@ -246,34 +252,30 @@ double emax,double ebreak,double &field,double g,double sigsh){
 }
 
 //parameters of each jet section
-void zonepars(int njet,int k,int nz,double z,double r,double delz,double rvel,double reff,double hbb,
-double tbb2,double inclin,double gamax0,double gamax,int &nw,double &area,double &vol,double &gamv2,
-double &gamv,double &beta,double &theff,double &tbbeff,double &gshift,double dopfac[]){
+void zonepars(int njet,int k,int nz,double z,double r,double delz,double rvel,double tbb,double inclin,
+double gamax0,double gamax,int &nw,double &area,double &vol,double &gamv2,double &gamv,double &beta,
+double &tbbeff,double &gshift,double dopfac[]){
 
 	int l;
 	
  	//Area and volume of jet's segment
 	area = pi*r*r;
-	vol = delz*area;
+	vol = delz*area;	
 
 	//Express jet velocity in the zone
 	gamv2 = 1.+rvel*rvel;
 	gamv = sqrt(gamv2);
-	if (gamv2 > 1.e5){
-		beta = 1. - 1./(2.*gamv2) - 1./(8.*gamv2*gamv2);
-	} else{
-    	beta = sqrt(gamv2-1.)/gamv;
-	}
-        
-    //Calculate relevant effective temperature (see R&L 153 or 156, iv) for secondary blackbody
-    theff = atan(reff/(z-hbb/2.));
-    tbbeff = tbb2*gamv*(1.-beta*cos(theff));
+	beta = sqrt(gamv2-1.)/gamv;
 
 	//Setting Doppler factor in jet segment
     for(l=0; l< njet; l++){
 		dopfac[l*nz+k]	= 1./(gamv*(1. - beta*cos(inclin)*pow(-1.,l)));
 	}
-		
+	
+	//Calculate relevant effective temperature (see R&L 153 or 156, iv) for secondary photon fields
+    tbbeff = tbb*gamv;
+	//tbbeff = tbb;
+	
     //Express gshift and nw, used in shifting down energy distribution
     gshift  = gamax/gamax0;
     nw      = 0;

@@ -203,7 +203,7 @@ double &esum, double &asum, double &fluxa, double &fluxa2){
     fluxa	= (2.*r*h*sin(angle)*dopfac*absfac*epsasyn)/area;
     
     //This second term is the same as above, but assuming what is "seen" locally by the particles for compton
-    //scattering. Pass 'flux', erg/s/Hz to main code
+    //scattering. Pass 'specific luminosity', erg/s/Hz to main code
     tsyn2	= pi/2.*asyn*r;
     if(tsyn2 >= 1.){
         absfac2	= (1.-exp(-tsyn2));

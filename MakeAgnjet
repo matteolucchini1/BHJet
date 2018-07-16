@@ -1,3 +1,3 @@
 rm *.o
 g++ -Wall -O2 -g -I/opt/local/include -c electrons.cc pairs.cc spectral_compnts.cc plots.cc equipartition.cc dynamics.cc synchrotron.cc compton.cc bb.cc utilities.cc norm_ele.cc max_ene.cc mj_aven.cc thermal.cc agnjet.cc jetwrap.cc 
-g++ -Wall -O2 -g -I/opt/local/include -L/opt/local/lib -L/usr/local/lib/cfitsio/lib -o jetwrap electrons.o pairs.o spectral_compnts.o plots.o equipartition.o dynamics.o synchrotron.o compton.o bb.o utilities.o norm_ele.o max_ene.o mj_aven.o thermal.o agnjet.o jetwrap.o  -L. -lcfitsio -lgsl -lgslcblas -lm
+g++ -Wall -O2 -g -I/opt/local/include -L/opt/local/lib -o jetwrap electrons.o pairs.o spectral_compnts.o plots.o equipartition.o dynamics.o synchrotron.o compton.o bb.o utilities.o norm_ele.o max_ene.o mj_aven.o thermal.o agnjet.o jetwrap.o  -L. -lgsl -lgslcblas -lm

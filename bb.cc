@@ -2,42 +2,34 @@
 
 using namespace std;
 
-void bbdisk_comp(int disksw,int bbsw, double z, double reff2,double hbb,double tin,double rin,double rout,
-double gamv,double tbbeff,double &ucom,double &uphdil,double &uphdil2){
+void ec_comp(int disksw,int compsw, double z,double tbbeff,double normbb,double rbb,double tin,double rin,
+double rout,double hbb,double gamv,double &ucom,double &uphdil,double &uphdil2){
     
-    double bbdil,nubot,nutop,tst,bbint;
-    //Adding  in multicolor disk contribution plus component from second BB, w/ effective area pi*reff**2
+    double nubot,nutop,tst,bbint;
+    
+    //Estimate disk contribution to cooling
     if(disksw==1){
-        bbdil	= 2.*reff2/(2.*reff2+pow(z-hbb/2.,2))-reff2/(reff2+pow(z-hbb/2.,2));
-        if(bbsw==1){
-            nubot	= 1.5e-5*kboltz*tin/herg;
-            nutop	= 8.*kboltz*tin/herg;
-            if(bbdisk(log(nutop),gamv,tin,rin,rout,z,hbb)*nubot/(bbdisk(log(nubot),gamv,tin,rin,rout,z,hbb)*
-            nutop) > 1.e30){
-                cerr << "nutop not high enough, something is wrong with the disk" << endl;
+		nubot	= 1.5e-5*kboltz*tin/herg;
+        nutop	= 8.*kboltz*tin/herg;
+        if(bbdisk(nutop,gamv,tin,rin,rout,z,hbb)*nubot/(bbdisk(nubot,gamv,tin,rin,rout,z,hbb)*nutop) > 1.e30){
+			cerr << "nutop not high enough, something is wrong with the disk" << endl;
+		}
+        tst	= bbdisk(nutop,gamv,tin,rin,rout,z,hbb);
+        if(tst <= 1.e-20){
+        	while(tst < 1.e-20){
+            	nutop	*= 0.75;
+                tst	= bbdisk(nutop,gamv,tin,rin,rout,z,hbb);
             }
-            tst	= bbdisk(log(nutop),gamv,tin,rin,rout,z,hbb);
-            if(tst <= 1.e-20){
-                while(tst < 1.e-20){
-                    nutop	*= 0.75;
-                    tst	= bbdisk(log(nutop),gamv,tin,rin,rout,z,hbb);
-                }
-            }
-            bbintegrals(log(nubot),log(nutop),gamv,tin,rin,rout,z,hbb,bbint);
-            
-            uphdil	= bbint/cee;
-            uphdil2	= bbdil*aconst*pow(tbbeff,4.)/4.;
-            if(z > hbb/2.){
-                ucom	= ucom + uphdil + uphdil2;
-            }
-            else{
-                ucom	= ucom + uphdil;
-            }
-        }//END if(bbsw==1)
+		}
+        bbintegrals(log(nubot),log(nutop),gamv,tin,rin,rout,z,hbb,bbint);
+        uphdil	= bbint/cee; //this has units of erg cm^-3, it's the disk integrated energy density
+		ucom	= ucom + uphdil;     
     }//END if(disksw==1)
-    else{
-        ucom    = 0.;
-    }//END else(disksw==1)
+
+    if (compsw==1){
+ 		uphdil2 = (pow(gamv,2)*normbb*sbconst*pow(tbbeff/gamv,4))/(4.*pi*pow(rbb,2)*cee);
+ 		ucom = ucom + uphdil2;
+    }        
 }
 
 double bbfnc(double thet, void *p){
@@ -105,10 +97,9 @@ double bbfnc3(double thet, void *p){
  * bbdisk gives flux of the top of the disk as a function of the frequency and assumes that hbb is constant, 
  * set by inner radius
  */
-double bbdisk(double lnu, double gamv, double tin, double rin, double rout, double z, double hbb){
-    double nu, blim, ulim, inside, top;
+double bbdisk(double nu,double gamv,double tin,double rin,double rout,double z,double hbb){
+    double blim,ulim,inside,top;
     
-    nu	= exp(lnu);
     blim	= atan(rin/(z+hbb/2.));
     if(z > hbb/2.){
         ulim	= atan(rin/(z-hbb/2.));
@@ -116,7 +107,7 @@ double bbdisk(double lnu, double gamv, double tin, double rin, double rout, doub
     else{
         ulim	= pi/2. + atan((hbb/2-z)/rin);
     }
-    
+
     gsl_integration_workspace *w2 = gsl_integration_workspace_alloc(1000);
     double result2, error2;
     gsl_function F2;
@@ -150,7 +141,7 @@ double bbdisk(double lnu, double gamv, double tin, double rin, double rout, doub
 /**
  * bbdiskfnc for integration of bbdisk in bbintegral
  */
-double bbdiskfnc(double lnu, void *p){
+double bbdiskfnc(double nu, void *p){
     struct bbdiskfnc_params *params = (struct bbdiskfnc_params *)p;
     double rin      = (params -> rin);
     double rout     = (params -> rout);
@@ -159,14 +150,14 @@ double bbdiskfnc(double lnu, void *p){
     double gamv     = (params -> gamv);
     double tin      = (params -> tin);
     
-    return bbdisk(lnu, gamv, tin, rin, rout, z, hbb);
+    return bbdisk(nu, gamv, tin, rin, rout, z, hbb);
 }
 
 /**
- * bbintegral calculates the integration over log(nubot)-log(nutop) of bbdisk
+ * bbintegrals calculates the integration over log(nubot)-log(nutop) of bbdisk
  */
-void bbintegrals(double lnub, double lnut, double gamv, double tin, double rin, double rout, double z, 
-double hbb, double &bbint){
+void bbintegrals(double lnub,double lnut,double gamv,double tin,double rin,double rout,double z, double hbb,
+double &bbint){
     gsl_integration_workspace *w1 = gsl_integration_workspace_alloc(1000);
     double result1, error1;
     gsl_function F1;
@@ -208,7 +199,7 @@ double bbearth(double lr, void *p){
 /**
  * bbearthint is the integration of bbearth function
  */
-void bbearthint(double blim, double ulim, double frq, double tin, double rin, double dist, double inclin, 
+void bbearthint(double blim,double ulim,double frq,double tin,double rin,double dist,double inclin, 
 double & bbflx){
     gsl_integration_workspace *w   = gsl_integration_workspace_alloc(1000);
     double result, error;

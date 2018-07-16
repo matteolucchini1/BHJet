@@ -34,7 +34,7 @@ extern void bhjet(double* ear, int ne, double *params, double *phot_spect, doubl
 
 int main(){
 	int time_elaps	= 0;    
-	int npar	= 27;
+	int npar	= 29;
 		
 	int ne		= 300;
 	double emin	= -10.;

@@ -49,18 +49,19 @@ double ephxr[],double comspc[],double nucom[],double totcom[]){
         for(i=0; i<ncom; i++){
             nucom_src[i] = -100.;
             comspc_src[i]= -100.;
-        }
-        
+        }        
         //New source terms for higher orders
         if (it > 0) {
             for(i=0; i<ncom; i++){
-                if (comi[i]==0) comi[i] = 1e-100;
-                    nucom_src[i] = log10(ephxr[i]*herg);
-                    comspc_src[i]= log10(comi[i])-log10(herg*herg*cee*ephxr[i]*pi*r*r);
+                if (comi[i]==0) {
+                	comi[i] = 1e-100;
+                }
+                nucom_src[i] = log10(ephxr[i]*herg);
+                comspc_src[i]= log10(comi[i])-log10(herg*herg*cee*ephxr[i]*pi*r*r);
                     
-                	//The energy limits must be changed in order to avoid problems with interpolation 
-                    ephmin = ephxr[0]*herg;
-                    ephmax = ephxr[ncom-1]*herg;
+                //The energy limits must be changed in order to avoid problems with interpolation 
+                ephmin = ephxr[0]*herg;
+                ephmax = ephxr[ncom-1]*herg;
             }
         } else {
             //This is a dummy filling for the it=0 because it's not needed
@@ -263,21 +264,22 @@ double synabs[],double &ucom){
     delete[] phoint, delete[] phofrq;
 }
 
-void seed_sync_and_disk_phtns(bool isVerbose,int disksw,int bbsw,double tin,double rin,
-double rout,double gamv,int nsyn,double snumax, double z,double r,double reff2,double hbb,double tbbeff,
-double nphot[],double nurad[],double nubb[],double energ[], double phodis[],double ephot[],
+void seed_phtns(bool isVerbose,int disksw,int compsw,double inclin,double tin,double rin,
+double rout,double hbb,double gamv,int nsyn,double snumax, double z,double r,double tbbeff,double normbb,
+double rbb,double nphot[],double nurad[],double nubb[],double energ[], double phodis[],double ephot[],
 double &ephmax,double &ephmin){
 
     double *jetu	= new double[nsyn]();
     double *disku	= new double[nsyn]();
+    double *extu	= new double[nsyn]();
     
-    double bbnumax,bbdil,photmx,bbcon,bbirad;
+    double bbnumax,photmx,bbcon,bbfield,delta;
     double peaksw;
-    int i;
-    
+    int i; 
+
     //spline_dbl photon density (erg/s/Hz) is passed to Compton routines, we need to divide by
     //herg*cee*energy(erg)*pi*r**2 (erg**2*s**2*cm**3*Hz*s**-1) to get #/cm**3/erg
-    //Also adding in the emission from the disk, making the max energy based on tin
+    //This loop calculates sets up ssc (calculates synchrotron seed photon distribution)
     for(i=0; i<nsyn; i++){
         if(nphot[i] == 0){
             nphot[i]= nphot[i-1]-4.;
@@ -286,7 +288,12 @@ double &ephmax,double &ephmin){
             nphot[i]= log10(nphot[i]);
         }
         jetu[i]	= pow(10,nphot[i])/(cee*herg*energ[i]*pi*r*r);
-    }
+        if (jetu[i] == 0){ 
+        	phodis[i]= -500;
+        } else{
+        	phodis[i]= log10(jetu[i]);
+        }
+    }    
 
     if(isVerbose){
         //Checking SSC energy density to compare to ucom1 at shock
@@ -299,69 +306,97 @@ double &ephmax,double &ephmin){
         cout << "ENDEN FOR SSC: " << toten << endl;
     }
     
+    //calculate disk contribution if it's active
     if(disksw==1){
         bbnumax	= log10(1e2*tin*kboltz/herg);
-        if(bbnumax > snumax){
-            cerr << "Need to change BB+syn for IC" << endl;
-            cerr << "BB going to higher freq than syn" << endl;
-            exit(1);
-        }
-        bbdil	= 2.*reff2/(2.*reff2+(z-hbb/2.)*(z-hbb/2.))-reff2/(reff2+(z-hbb/2.)*(z-hbb/2.));
-        
         //Stopping Compton loop when too far past photon peak
         photmx	= 1.e-20;
         peaksw	= 0;
-        bbcon	= 0;
-        bbirad = 0;
+        bbcon	= 0; //bbcon is the disk contribution
         
         for(i=0; i<nsyn; i++){
-            if(bbsw==1){
-                if (peaksw!=1){
-                    if(nubb[i] <= bbnumax){
-                        if(photmx > 1.e-20 && bbcon/photmx <= 1.e-13){
-                            if(isVerbose){
-                                cout << left << setw(15) << "gone too low" << setw(15) << i << setw(15) 
-                                	 << photmx << setw(15) << bbcon << endl;
-                            }
-                            bbcon	= 0.;
-                            peaksw	= 1.;
+        	if (peaksw!=1){
+            	if(nubb[i] <= bbnumax){
+                	if(photmx > 1.e-20 && bbcon/photmx <= 1.e-13){
+                    	if(isVerbose){
+                        	cout << left << setw(15) << "gone too low" << setw(15) << i << setw(15) 
+                            	 << photmx << setw(15) << bbcon << endl;
                         }
-                        else{
-							bbcon	= bbdisk(log(nurad[i]), gamv, tin, rin, rout, z, hbb)/
-									  (cee*herg*energ[i]*nurad[i]);                               
-                            photmx	= max(photmx,bbcon);
-                        }//end else(photmx)
-                    }//END if(nubb[i] <= bbnumax)
+                        bbcon	= 0.;
+                        peaksw	= 1.;
+					}
                     else{
-                        bbcon   = 0.;
-                    }//END nubb
-                    bbirad	= bbdil*2.*herg*pow(nurad[i],3)/(cee*cee*(exp(energ[i]/(kboltz*tbbeff))-1.)
-                    		  *cee*herg*energ[i]);
-                }//END if(peak!=1)
-                
-				if(z > hbb/2){
-					phodis[i]= log10(jetu[i]+bbcon+bbirad);
-					if (jetu[i]+bbcon == 0) phodis[i]= -500;
-						disku[i]= bbcon + bbirad;
-					} else{
-						phodis[i]= log10(jetu[i]+bbcon);
-					if (jetu[i]+bbcon == 0) phodis[i]= -500;
-					disku[i]= bbcon;
+						bbcon	= bbdisk(nurad[i], gamv, tin, rin, rout, z, hbb)/(cee*herg*energ[i]*nurad[i]);
+						photmx	= max(photmx,bbcon);
+						disku[i] = bbcon; //keep track of disk contribution for EC part
+                    }
+                }
+                else{
+                    bbcon   = 0.;
+                }
+            }     
+        	if (jetu[i]+disku[i] == 0){
+				phodis[i]= -500;
+			} else {
+				phodis[i] = log10(jetu[i] + disku[i]);
+			}
+		}
+	}
+	
+	/* Calculate External Compton
+	 * NOTE: Doppler boosting is already accounted for in the MICompton function, but it assumes that the 
+	 * standard scaling (delta^2*gamma^2) holds, while EC wants delta^6. That's why the term (delta/gamv)^2
+	 * is included in the calculation
+	 */
+	if(compsw==1){
+		bbnumax	= log10(1e2*tbbeff*kboltz/herg);		
+		//Stopping Compton loop when too far past photon peak
+        photmx	= 1.e-20;
+        peaksw	= 0;
+        bbfield	= 0; //bbfield is the external contribution   
+        delta = 1./(gamv*(1. - (sqrt(gamv*gamv-1.)/gamv)*cos(inclin)));  
+		for(i=0; i<nsyn; i++){
+        	if (peaksw!=1){
+            	if(nubb[i] <= bbnumax){
+                	if(photmx > 1.e-20 && bbfield/photmx <= 1.e-13){
+                    	if(isVerbose){
+                        	cout << left << setw(15) << "gone too low" << setw(15) << i << setw(15) 
+                            	 << photmx << setw(15) << bbcon << endl;
+                        }
+                        bbfield	= 0.;
+                        peaksw	= 1.;
+					}
+                    else{
+						bbfield	= pow(delta/gamv,2.)*normbb*2.*herg*pow(nurad[i],3)/((4.*pi*pow(rbb,2.)*cee*herg*
+						energ[i])*cee*cee*(exp(energ[i]/(kboltz*tbbeff))-1.));					
+						photmx	= max(photmx,bbfield);
+						extu[i] = bbfield; //keep track of disk contribution for EC part						
+                    }
+                }
+                else{
+                    bbfield   = 0.;
+                }
+            }             
+              //here will need to differentiate disk on or not              
+            if (disksw==1){
+            	if (jetu[i]+disku[i]+extu[i] == 0){
+					phodis[i]= -500;
+				} else {
+					phodis[i] = log10(jetu[i]+disku[i]+extu[i]);
 				}
-			} else{ //END if(bbsw==1)
-				phodis[i]= log10(jetu[i]);
-				if (jetu[i] == 0) phodis[i]= -500;
-			}//end bbsw
-		}//END for-loop nsyn
-	}//END if(disksw==1)
-    else{
-        for(i=0; i<nsyn; i++){
-            phodis[i]= log10(jetu[i]);
-            if (jetu[i] == 0) phodis[i]= -500;
-        }
-    }// disksw!=1
+            }  
+            else {
+            	if (jetu[i]+extu[i] == 0){
+					phodis[i]= -500;
+				} else {
+					phodis[i] = log10(jetu[i]+extu[i]);
+				}
+            }
+		}        
+	} 
+	      
     ephmax	= pow(10,ephot[nsyn-1]);
     ephmin	= pow(10,ephot[0]);
     
-    delete[] disku,delete[] jetu;
+	delete[] jetu; delete[] disku; delete[] extu;
 }

@@ -13,9 +13,9 @@ double &emax,double &gemax,double &ebreak,double &gebreak,double &bemax){
     ub      = bfield*bfield/(8.*pi);    
     accon	= 3./4.*fsc*cee*charg*bfield;
     syncon	= 4./3.*sigtom*ub/(emgm*emgm*cee*cee*cee);
-    comcon	= syncon*ucom/ub;
-    escom	= beta*cee/z;
+    comcon	= syncon*ucom/ub;    
     tdyn    = (brk*r)/(beta*cee);
+    escom	= 1./tdyn;
     qutrmb	= escom/(syncon+comcon);
     qutrmc	= accon/(syncon+comcon);
     emax	= (-qutrmb+sqrt(qutrmb*qutrmb+4.*qutrmc))/2.;

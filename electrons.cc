@@ -124,7 +124,7 @@ double &bete){
 
 void pl_and_th_comp(bool isShock,double thmfrac,int &nw,int nelec,double mxsw,double rdlgen[],
 double thmbase[],double ebreak,double emin,double emax,double gshift,double gshock,double mjteff,
-double ratio_ne,double ntot, double cnorm,double enorm,double pspec,double &pltrm,double etemp[],
+double heat,double ratio_ne,double ntot, double cnorm,double enorm,double pspec,double &pltrm,double etemp[],
 double dtemp[],double plcomp[],double thmcomp[],double &bete){
     
     int i;
@@ -256,7 +256,7 @@ double dtemp[],double plcomp[],double thmcomp[],double &bete){
             else{
                 thmcomp[i]=0;
             }
-            if(pow(10.,etemp[i])*(gshock/gshift) < 2.*emin && plcomp[i]>thmcomp[i]){//smooth out distirbution
+            if(pow(10.,etemp[i])*(gshock/gshift) < 2.*emin/heat && plcomp[i]>thmcomp[i]){//smooth distirbution
                 plcomp[i]=thmcomp[i];												//if PLcomponent > thermal 
             }																		
             if(thmcomp[i]>0){ //again, thermal component should only be included in total sum if it's non-zero

@@ -62,16 +62,11 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
     double eddrat; 										//accretion rate in Eddington units 
     double thmfrac; 									//1-plfrac (see jet's parameter plfrac down)
     double zcut; 										//distance above which Compton is neglected
-    double theff; 										//angle to the secondary blackbody
     double tbbeff;										//effective blackbody temperature
     int zfrac       = 100;								//multiplier to set Comptonization region
-    int bbsw    	= 1;								//switch to get black-body radiation
     int disksw  	= 1;								//switch to get disk radiation
     double zmin;										//minimum distance from BH
-    int nzdum   	= 100;								//size of jet's segment array
-    double bbf1    	= 0;								//black-body fraction (used for second BB)
-    double reff    	= 0;								//bff1*rout (used for second BB)
-    double reff2   	= 0;								//reff**2		
+    int nzdum   	= 200;								//size of jet's segment array    
     int njet    	= 2;								//number of jets produced
     int Niter		= 100;								//number of IC scatterings
     int sizegb 		= 55;								//size of velocity/distance array before interpolation
@@ -154,53 +149,53 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
     double ratio_ne;									//ratio of number density to initial number density
 
 	//Definition of all pointers used in code
-	double *gbx 	= new double[sizegb-1]();			//distance array for velocity profile
-	double *gby 	= new double[sizegb-1]();			//gamma*beta array for velocity profile
-	double *zed 	= new double[nz](); 				//distance array, needed in the radiation calculation
-    double *nutot	= new double[NEBIN]();				//frequency array for total spectrum
-    double *nubb	= new double[nsyn]();				//frequency array for black body spectrum
-    double *nurad	= new double[nsyn]();				//pow(10.,nubb)
-    double *energ	= new double[NEBIN]();				//herg*nurad
-    double *ephot	= new double[nsyn]();				//log10(energ)
-    double *ephxr	= new double[ncom]();				//X-ray photon energy array for Compton 
-    double *dopfac	= new double[njet*nzdum]();			//Doppler factor in each jet segment
-    double *rdend	= new double[nelec]();				//electron energy density 
-    double *rdedn	= new double[nelec]();				//electron energy distribution, log10(reled)
-    double *rdlgen	= new double[nelec]();				//log10(electron energy array)  
-    double *rden	= new double[nelec]();				//electron energy array
-    double *lelec	= new double[nelec]();				//electron energy array
-    double *elen	= new double[nelec]();				//electron energy used in each step of z loop
-    double *ledens	= new double[nelec]();				//log10(electron number density)
-    double *etemp	= new double[nelec]();				//temporary electron energy array
-    double *dtemp	= new double[nelec]();				//temporary electron energy density array
-    double *eled	= new double[nelec]();				//temporary energy*density array
-    double *nusyn	= new double[njet*nzdum*nsyn]();	//frequency of synchrotron photons
-    double *nucom	= new double[njet*nzdum*ncom]();	//frequency of Compton photons
-    double *comspc	= new double[njet*nzdum*ncom]();	//Compton spectrum pre-final dump
-    double *totcom = new double[ncom]();				//total Compton flux for pair estimate
-    double *synabs	= new double[njet*nzdum*nsyn]();	//self-absorbed synchrotron emission
-    double *shelen	= new double[nelec]();				//elen at shock
-    double *shden	= new double[nelec]();				//total electron density array at shock
-    double *thmshock = new double[nelec]();				//thermal component array at shock
-    double *thmcomp = new double[nelec]();				//thermal component array in each segment
-    double *thmbase = new double[nelec]();				//thermal component array at base
-    double *plshock = new double[nelec]();				//powerlaw component array at shock
-    double *plcomp = new double[nelec]();				//powerlaw component array at in each segmetn
-    double *plbase = new double[nelec]();				//powerlaw component array at base
-    double *tstrm	= new double[nelec]();				//first term in derivative of electron array
-    double *drtrm	= new double[nelec]();				//second term in derivative of electron array
-    double *phodis	= new double[nsyn]();				//photon distribution to use for Compton 
-    double *nphot	= new double[nsyn]();				//synchrotron seed photons for Compton
-    double *jetu	= new double[nsyn]();				//comoving radiation energy density 
-    double *disku	= new double[nsyn]();				//disk radiation energy density
-    double *complot	= new double[NEBIN]();				//flux array for Compton plot
-    double *cflx_array = new double[NEBIN]();			//temporary flux array for Compton plot
-    double *presyn	= new double[NEBIN]();				//flux array for preshock synchrotron plot
-    double *postsyn	= new double[NEBIN]();				//flux array for postshock synchrotron plot
-    double *bbplot	= new double[NEBIN]();				//flux array for blackbody plot
-    double *total	= new double[NEBIN]();				//flux array for total plot
-    double *fplot	= new double[NEBIN]();				//frequency array for plot   
-
+	double *gbx 		= new double[sizegb-1]();		//distance array for velocity profile
+	double *gby 		= new double[sizegb-1]();		//gamma*beta array for velocity profile
+	double *zed 		= new double[nz](); 			//distance array, needed in the radiation calculation
+    double *nutot		= new double[NEBIN]();			//frequency array for total spectrum
+    double *nubb		= new double[nsyn]();			//frequency array for black body spectrum
+    double *nurad		= new double[nsyn]();			//pow(10.,nubb)
+    double *energ		= new double[NEBIN]();			//herg*nurad
+    double *ephot		= new double[nsyn]();			//log10(energ)
+    double *ephxr		= new double[ncom]();			//X-ray photon energy array for Compton 
+    double *dopfac		= new double[njet*nzdum]();		//Doppler factor in each jet segment
+    double *rdend		= new double[nelec]();			//electron energy density 
+    double *rdedn		= new double[nelec]();			//electron energy distribution, log10(reled)
+    double *rdlgen		= new double[nelec]();			//log10(electron energy array)  
+    double *rden		= new double[nelec]();			//electron energy array
+    double *lelec		= new double[nelec]();			//electron energy array
+    double *elen		= new double[nelec]();			//electron energy used in each step of z loop
+    double *ledens		= new double[nelec]();			//log10(electron number density)
+    double *etemp		= new double[nelec]();			//temporary electron energy array
+    double *dtemp		= new double[nelec]();			//temporary electron energy density array
+    double *eled		= new double[nelec]();			//temporary energy*density array
+    double *nusyn		= new double[njet*nzdum*nsyn]();//frequency of synchrotron photons
+    double *nucom		= new double[njet*nzdum*ncom]();//frequency of Compton photons
+    double *comspc		= new double[njet*nzdum*ncom]();//Compton spectrum pre-final dump
+    double *totcom 		= new double[ncom]();			//total Compton flux for pair estimate
+    double *synabs		= new double[njet*nzdum*nsyn]();//self-absorbed synchrotron emission
+    double *shelen		= new double[nelec]();			//elen at shock
+    double *shden		= new double[nelec]();			//total electron density array at shock
+    double *thmshock 	= new double[nelec]();			//thermal component array at shock
+    double *thmcomp		= new double[nelec]();			//thermal component array in each segment
+    double *thmbase		= new double[nelec]();			//thermal component array at base
+    double *plshock		= new double[nelec]();			//powerlaw component array at shock
+    double *plcomp 		= new double[nelec]();			//powerlaw component array at in each segmetn
+    double *plbase 		= new double[nelec]();			//powerlaw component array at base
+    double *tstrm		= new double[nelec]();			//first term in derivative of electron array
+    double *drtrm		= new double[nelec]();			//second term in derivative of electron array
+    double *phodis		= new double[nsyn]();			//photon distribution to use for Compton 
+    double *nphot		= new double[nsyn]();			//synchrotron seed photons for Compton
+    double *jetu		= new double[nsyn]();			//comoving radiation energy density 
+    double *disku		= new double[nsyn]();			//disk radiation energy density
+    double *complot		= new double[NEBIN]();			//flux array for Compton plot
+    double *presyn		= new double[NEBIN]();			//flux array for preshock synchrotron plot
+    double *postsyn		= new double[NEBIN]();			//flux array for postshock synchrotron plot
+    double *bbplot		= new double[NEBIN]();			//flux array for disk plot
+    double *extphplot 	= new double[NEBIN]();			//flux array for external blackbody plot
+    double *total		= new double[NEBIN]();			//flux array for total plot
+    double *fplot		= new double[NEBIN]();			//frequency array for plot   
+	
     //Free parameters
     double mbh;											//black hole mass in solar masses
     double r_g; 										//black hole gravitational radius in cm
@@ -226,11 +221,16 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
 	double tin;											//inner accretiond disk temperature(if>0)/-Mdot(if<0)
 	double rin; 										//inner accretion disk radius
     double rout;										//outer accretion disk
-    double tbb2;										//secondary blackbody temperature
-	double bbf2;										//secondary blackbody normalization	
+    double compar1;										//external compton parameter 1
+    double compar2;										//external compton parameter 2
+    double compar3;										//external compton parameter 3
+    double tbb;											//secondary blackbody temperature
+	double normbb;										//secondary blackbody normalization	
+	double rbb;											//secondary blackbody radius
     double plfrac;										//percentage of particles accelerated into powerlaw
 	double mxsw;										//initial particle distribution switch
     double velsw;										//Velocity profile used, see README
+    int compsw;											//external compton switch 
 	int plotsw;											//plot switch
     int infosw;											//print info to screen switch  
 
@@ -290,25 +290,27 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
 	tin		= param[17]/kboltz_kev; 
 	rin		= param[18]*r_g;
 	rout	= param[19]*r_g;
-	tbb2	= param[20];
-	bbf2	= param[21];
-    plfrac	= param[22];
-    mxsw	= param[23];
-	velsw	= param[24];
-	plotsw	= param[25];	
-	infosw	= param[26];
+	compar1 = param[20];
+	compar2	= param[21];
+	compar3	= param[22];
+    plfrac	= param[23];
+    mxsw	= param[24];
+	velsw	= param[25];
+	compsw	= param[26];
+	plotsw	= param[27];	
+	infosw	= param[28];
 
 	//Creating energy arrays for synch, compton, total calculations 
     ene_arrays(isSSC,ne,nsyn,ncom,zfrac,mbh,inclin,njet,snumin,snumax,snuinc,cnumin,cnumax,cnuinc,ear,nutot,
     nubb,nurad,energ,ephot,ephxr);
 	
-	//Initializing disk quantities
-	disk_init(infosw,jetrat,rin,rout,eddlum,bbf2,tbb2,tin,disksw,thrlum,eddrat,bbf1,reff,reff2,hbb);		
-	
+	//Initializing external photons quantities
+	ext_init(infosw,compsw,jetrat,compar1,compar2,compar3,rin,rout,eddlum,tin,disksw,thrlum,eddrat,tbb,
+	normbb,rbb,hbb);		
+
 	//Initializing jet quantities	
 	jet_init(zfrac,sizegb,mxsw,velsw,jetrat,r_g,r0,hratio,zacc,zmax,beta_pl,equip,h0,zsh,zcut,gad4_3,betas0,
-	gam0,rvel0,vel0,zmin,gbx,gby,gbx_vel2,gby_vel2);
-	
+	gam0,rvel0,vel0,zmin,gbx,gby,gbx_vel2,gby_vel2);	
 
    	//Setting up velocity profile spline
  	//WARNING: if you are using Velprof rather than the table you need to change spline into akima
@@ -389,8 +391,8 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
         ratio_ne = ntot/ntot0;
 
 		//calculate specific parameters of each zone
-		zonepars(njet,k,nz,z,r,delz,rvel,reff,hbb,tbb2,inclin,gamax0,gamax,nw,area,vol,gamv2,gamv,beta,theff,
-		tbbeff,gshift,dopfac); 
+		zonepars(njet,k,nz,z,r,delz,rvel,tbb,inclin,gamax0,gamax,nw,area,vol,gamv2,gamv,beta,tbbeff,gshift,
+		dopfac); 
 		
 		if (infosw == 1) {
 			if (!isShock && mxsw == 1){                
@@ -403,7 +405,7 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
 				cout << "Z: " << z/r_g << " B: " << bfield << " n: " << ntot << " gmin: " << emin/emerg
 				<< " gbreak: " << gebreak << " gmax: " << gemax << endl;
 			}
-			cout << "velocity: " << rvel << " Doppler factor: " << 1./(sqrt(1.+rvel*rvel)*(1.-beta*
+			cout << "velocity: " << gamv << " Doppler factor: " << 1./(sqrt(1.+rvel*rvel)*(1.-beta*
 			cos(inclin))) << " radius: " << r/r_g << " opening angle: " << 57.3*2.*atan(r/z) << endl << endl;
 		}
 
@@ -418,7 +420,7 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
                                
             //Renormalizing the pl and thermal components, returning other arrays 
             pl_and_th_comp(isShock,thmfrac,nw,nelec,mxsw,rdlgen,thmbase,ebreak,emin,emax,gshift,gshock,mjteff,
-            ratio_ne,ntot,cnorm,enorm,pspec,pltrm,etemp,dtemp,plcomp,thmcomp,bete);
+            heat,ratio_ne,ntot,cnorm,enorm,pspec,pltrm,etemp,dtemp,plcomp,thmcomp,bete);
                 
             //Counting lost electrons and renormalising accordingly
             lost_ele(nw,nelec,etemp,dtemp,ntot,einc,elen,eled,lelec,ledens); 
@@ -467,13 +469,12 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
 					eltemp = 5.e11;
 					cout << "Maxed out shock heating at 5x10^11!" << endl; 				
 				}					
-                //Estimating energy density for first order Compton
+                //Estimating synchrotron energy density for electron cooling
                 ucompton(nz,njet,nsyn,k,dist,r,nusyn,dopfac,synabs,ucom);
                
-               	//Adding in multicolor disk contribution plus component from second BB, w/ effective area 
-               	//pi*reff**2                
-                bbdisk_comp(disksw,bbsw,z,reff2,hbb,tin,rin,rout,gamv,tbbeff,ucom,uphdil,uphdil2);
-               
+            	//Adding in disk and EC contributions to Compton cooling
+                ec_comp(disksw,compsw,z,tbbeff,normbb,rbb,tin,rin,rout,hbb,gamv,ucom,uphdil,uphdil2);
+                
 				//Calculating the energy breaks; if normalization of PL at emin greater than thermal then	
 				//below emin, fix maxwellian which will require renormalizing again
                 maxene(z,r,ucom,fsc,bfield,beta,delz,brk,emax,gemax,ebreak,gebreak,bemax);            
@@ -547,12 +548,11 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
             //Repeating the process completed at shock for every jet segment: determine ub/ucom, max energy, 
 			//break energy, and shift distribution down
         
-            //Estimating energy density for first order Compton
+            //Estimating energy density for electron cooling
             ucompton(nz,njet,nsyn,k,dist,r,nusyn,dopfac,synabs,ucom);
-        
-            //Adding in multicolor disk contribution plus component from second BB, w/ effective area 
-            //pi*reff**2   
-            bbdisk_comp(disksw,bbsw,z,reff2,hbb,tin,rin,rout,gamv,tbbeff,ucom,uphdil,uphdil2);
+
+            //Adding in disk and EC contributions to cooling
+            ec_comp(disksw,compsw,z,tbbeff,normbb,rbb,tin,rin,rout,hbb,gamv,ucom,uphdil,uphdil2);
 
             //Calculating the energy breaks; if normalization of PL at emin greater than thermal then
             //below emin, fix maxwellian which will require renormalizing again
@@ -564,7 +564,7 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
             
             //Returning the pl and thermal components, plus other arrays
             pl_and_th_comp(isShock,thmfrac,nw,nelec,mxsw,rdlgen,thmbase,ebreak,emin,emax,gshift,gshock,mjteff,
-            ratio_ne,ntot,cnorm,enorm,pspec,pltrm,etemp,dtemp,plcomp,thmcomp,bete);
+            heat,ratio_ne,ntot,cnorm,enorm,pspec,pltrm,etemp,dtemp,plcomp,thmcomp,bete);
              
             //Counting lost electrons and renormalizing accordingly
             lost_ele(nw,nelec,etemp,dtemp,ntot,einc,elen,eled,lelec,ledens);        
@@ -646,9 +646,9 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
 		//In order to add the diluted blackbody from the disk we take the max energy to be based based on tin
         //Both contributions return arrays phodis(#/cm**3/erg) and ephot(erg), which are used by the compton 
         //integrals as seed photons. Here we define the integration boundaries for the first Compton order
-		//ephmax and ephmin
-        seed_sync_and_disk_phtns(isVerbose,disksw,bbsw,tin,rin,rout,gamv,nsyn,snumax,z,r,reff2,hbb,
-        tbbeff,nphot,nurad,nubb,energ,phodis,ephot,ephmax,ephmin);
+		//ephmax and ephmin              reff2/tbbeff need to go this comment is bullshit
+        seed_phtns(isVerbose,disksw,compsw,inclin,tin,rin,rout,hbb,gamv,nsyn,snumax,z,r,tbbeff,
+        normbb,rbb,nphot,nurad,nubb,energ,phodis,ephot,ephmax,ephmin);       
         
         if(isVerbose){
             //Checking energy densities            
@@ -689,13 +689,13 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
     }//END of BIG LOOP OVER Z
 
     //Calculating/interpolating some of the spectral components over the total array of frequencies
-    spcomponents(infosw,plotsw,ne,njet,nz,nsyn,ncom,zed,zcut,zsh,ephxr,nusyn,synabs,nucom,comspc,cflx_array,
-    nutot,complot,presyn,postsyn,fplot);
+    spcomponents(infosw,plotsw,ne,njet,nz,nsyn,ncom,zed,zcut,zsh,ephxr,nusyn,synabs,nucom,comspc,nutot,
+    complot,presyn,postsyn,fplot);
     
     for(i=0; i<(ne-1); i++){
         //Dumping all the spectral components into files/arrays
-        write_plotFiles(plotsw,bbsw,disksw,tin,rin,rout,dist,inclin,bbf1,tbb2,nutot[i],fplot[i],complot[i],
-        presyn[i],postsyn[i],bbplot[i]);
+        write_plotFiles(plotsw,disksw,compsw,tin,rin,rout,dist,inclin,normbb,tbb,nutot[i],fplot[i],complot[i],
+        presyn[i],postsyn[i],bbplot[i],extphplot[i]);
 
         if(fplot[i] == 0){
             photeng[i]= nutot[i];
@@ -716,8 +716,8 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
     delete[] eled, delete[] nusyn, delete[] nucom, delete[] comspc, delete[] totcom, delete[] synabs; 
     delete[] shelen, delete[] shden, delete[] thmshock, delete[] thmcomp, delete[] thmbase, delete[] plshock;
     delete[] plcomp, delete[] plbase, delete[] tstrm, delete[] drtrm, delete[] phodis, delete[] nphot;
-    delete[] jetu, delete[] disku, delete[] complot, delete[] cflx_array, delete[] presyn, delete[] postsyn;
-    delete[] bbplot, delete[] total, delete[] fplot;   
+    delete[] jetu, delete[] disku, delete[] complot, delete[] presyn, delete[] postsyn;
+    delete[] bbplot, delete[] extphplot, delete[] total, delete[] fplot;   
 
     gsl_spline_free(spline_syn), gsl_interp_accel_free(acc_syn);
     gsl_spline_free(spline_jet), gsl_interp_accel_free(acc_jet);

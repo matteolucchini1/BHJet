@@ -4,6 +4,7 @@ agnjet-module.so
 agnjet-test.sl
 agnjet.o
 agnjet_glue.o
+agnjet_glue.cc
 bb.o
 compton.o
 dynamics.o

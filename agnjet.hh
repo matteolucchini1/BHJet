@@ -34,7 +34,7 @@
 #include <gsl/gsl_integration.h>
 #include <stdarg.h>
 
-#define NEBIN	10000
+#define NEBIN	3000
 #define kpc		(1e3*GSL_CONST_CGSM_PARSEC)
 #define pi		M_PI
 #define cee		GSL_CONST_CGSM_SPEED_OF_LIGHT
@@ -139,8 +139,8 @@ struct bbearth_params{
 void bhjet(double* ear,int ne,double *params,double *photeng,double *phot_spect);
 
 //bb.cc
-void bbdisk_comp(int disksw,int bbsw,double z,double reff2,double hbb,double tin,double rin,double rout,
-double gamv,double tbbeff,double &ucom,double &uphdil,double &uphdil2);
+void ec_comp(int disksw,int compsw, double z,double tbbeff,double normbb,double rbb,double tin,double rin,
+double rout,double hbb,double gamv,double &ucom,double &uphdil,double &uphdil2);
 
 double bbfnc(double thet,void *p);
 
@@ -174,9 +174,9 @@ gsl_interp_accel *acc_eldis1,gsl_spline *spline_com1,gsl_interp_accel *acc_com1)
 void ucompton(int nz,int njet,int nsyn,int k,double dist,double r,double nusyn[],double dopfac[],
 double synabs[],double &ucom);
 
-void seed_sync_and_disk_phtns(bool isVerbose,int disksw,int bbsw,double tin,double rin,double rout,
-double gamv,int nsyn,double snumax, double z,double r,double reff2,double hbb,double tbbeff,
-double nphot[],double nurad[],double nubb[],double energ[], double phodis[],double ephot[],
+void seed_phtns(bool isVerbose,int disksw,int compsw,double inclin,double tin,double rin,
+double rout,double hbb,double gamv,int nsyn,double snumax, double z,double r,double tbbeff,double normbb,
+double rbb,double nphot[],double nurad[],double nubb[],double energ[], double phodis[],double ephot[],
 double &ephmax,double &ephmin);
 
 //dynamics.cc
@@ -197,9 +197,9 @@ gsl_spline *spline,gsl_interp_accel *acc,double &gb,double &b,double &n,double &
 void b_prof(double mxsw,double gfin,double eta,double n,double endsmj,double pspec,double cnorm,double emin,
 double emax,double ebreak,double &field, double g,double sigsh);
 
-void zonepars(int njet,int k,int nz,double z,double r,double delz,double rvel,double reff,double hbb,
-double tbb2,double inclin,double gamax0,double gamax,int &nw,double &area,double &vol,double &gamv2,
-double &gamv,double &beta,double &theff,double &tbbeff,double &gshift,double dopfac[]);
+void zonepars(int njet,int k,int nz,double z,double r,double delz,double rvel,double tbb2,double inclin,
+double gamax0,double gamax,int &nw,double &area,double &vol,double &gamv2,double &gamv,double &beta,
+double &tbbeff,double &gshift,double dopfac[]);
 
 //electrons.cc
 void electrons(int mxsw,int nelec,double pspec,double gamfac,double endnsmj,double ntot0,double cnorm,
@@ -208,7 +208,7 @@ double &bete);
 
 void pl_and_th_comp(bool isShock,double thmfrac,int &nw,int nelec,double mxsw,double rdlgen[],
 double thmbase[],double ebreak,double emin,double emax,double gshift,double gshock,double mjteff,
-double ratio_ne,double ntot,double cnorm,double enorm,double pspec,double &pltrm,double etemp[],
+double heat,double ratio_ne,double ntot,double cnorm,double enorm,double pspec,double &pltrm,double etemp[],
 double dtemp[],double plcomp[],double thmcomp[],double &bete);
 
 void update_ebreak(int nz,int k,double z,double r,double h0,double brk,double bfield,double beta,
@@ -271,14 +271,14 @@ void pa_rate_thermal (double numden,double T_e,double &rate);
 //plots.cc
 void create_plotFiles(int plotsw,int infosw);
 
-void write_plotFiles(int plotsw,int bbsw,int disksw,double tin,double rin,double rout,double dist,
-double inclin,double bbf1,double tbb2,double nutot,double &fplot,double complot,double presyn,
-double postsyn,double bbplot);
+void write_plotFiles(int plotsw,int disksw,int compsw,double tin,double rin,double rout,double dist,
+double inclin,double normbb,double tbb,double nutot,double &fplot,double complot,double presyn,double postsyn, 
+double bbplot,double extph);
 
 //spectral_compnts.cc
 void spcomponents(int infosw,int plotsw,int ne,int njet,int nz,int nsyn,int ncom,double zed[],double zcut,
-double zsh,double ephxr[],double nusyn[],double synabs[],double nucom[],double comspc[],double cflx_array[],
-double nutot[],double complot[],double presyn[],double postsyn[],double fplot[]);
+double zsh,double ephxr[],double nusyn[],double synabs[],double nucom[],double comspc[],double nutot[],
+double complot[],double presyn[],double postsyn[],double fplot[]);
 
 //sycnhrotron.cc
 void synchrotron(bool &isBreaknjetnsyn,int nsyn,int njet,int nz,int k,double bfield,double delz,double inclin,
@@ -315,8 +315,9 @@ double fjet11(double logr, void *p);
 double mcdjet1(double nu,double Rin,double Tin,double Rout,double Tout,double z,double gamma);
 
 //utilities.cc
-void disk_init(int infosw,double jetrat,double rin,double rout,double eddlum,double bbf2,double tbb2,
-double &tin,int &disksw,double &thrlum,double &eddrat,double &bbf1,double &reff,double &reff2,double &hbb);
+void ext_init(int infosw,int compsw,double jetrat,double compar1,double compar2,double compar3,double rin,
+double rout,double eddlum,double &tin,int &disksw,double &thrlum,double &eddrat,double &tbb,double &normbb,
+double &rbb,double &hbb);
 
 void jet_init(int zfrac,int sizegb,double mxsw,double velsw,double jetrat,double r_g,double r0,double hratio,
 double zacc,double zmax,double beta_pl,double &equip,double &h0,double &zsh,double &zcut,double &gad4_3,

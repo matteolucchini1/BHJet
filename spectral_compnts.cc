@@ -7,8 +7,8 @@ using namespace std;
  */
 
 void spcomponents(int infosw,int plotsw,int ne,int njet,int nz,int nsyn,int ncom,double zed[],double zcut,
-double zsh,double ephxr[],double nusyn[],double synabs[],double nucom[],double comspc[],double cflx_array[],
-double nutot[],double complot[],double presyn[],double postsyn[],double fplot[]){
+double zsh,double ephxr[],double nusyn[],double synabs[],double nucom[],double comspc[],double nutot[],
+double complot[],double presyn[],double postsyn[],double fplot[]){
 
     int k,m,i;
     double sflx,cflx,z;
@@ -60,11 +60,9 @@ double nutot[],double complot[],double presyn[],double postsyn[],double fplot[])
                     else{
                         cflx	= -200.;
                     }
-                }
-                
+                }                
                 if(plotsw == 1){
-                    complot[i]= complot[i] + pow(10,cflx);
-                    
+                    complot[i]= complot[i] + pow(10,cflx);                    
                     if(z < log10(zsh)){
                         presyn[i]= presyn[i] + pow(10,sflx);
                     }
@@ -72,7 +70,6 @@ double nutot[],double complot[],double presyn[],double postsyn[],double fplot[])
                         postsyn[i]= postsyn[i] + pow(10,sflx);
                     }
                 }
-                cflx_array[i] = cflx_array[i] + pow(10,cflx);
                 fplot[i]= fplot[i] + pow(10,sflx) + pow(10,cflx);
                 
 				if (infosw == 1) {
@@ -86,11 +83,9 @@ double nutot[],double complot[],double presyn[],double postsyn[],double fplot[])
 						}
 					zonesFile.close();
 				}
-            }//end ne for loop
-            
+            }//end ne for loop            
             gsl_spline_free(spline_snu), gsl_interp_accel_free(acc_snu);
             gsl_spline_free(spline_cnu), gsl_interp_accel_free(acc_cnu);
-
         }//end z for loop
     }//end m[njet] for loop
     

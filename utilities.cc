@@ -4,11 +4,13 @@ using namespace std;
 
 /* Initialize disk quantities */
 
-void disk_init(int infosw,double jetrat,double rin,double rout,double eddlum,double bbf2,double tbb2,
-double &tin,int &disksw,double &thrlum,double &eddrat,double &bbf1,double &reff,double &reff2,double &hbb){
+void ext_init(int infosw,int compsw,double jetrat,double compar1,double compar2,double compar3,double rin,
+double rout,double eddlum,double &tin,int &disksw,double &thrlum,double &eddrat,double &tbb,double &normbb,
+double &rbb, double &hbb){
 
 	double outfac;
 	outfac = rout/rin;
+	
     if(outfac < 1){
     	disksw  = 0;
         if (infosw ==1) {
@@ -20,6 +22,7 @@ double &tin,int &disksw,double &thrlum,double &eddrat,double &bbf1,double &reff,
 	if (tin > 0) { 
     	thrlum  = 4*pi*sbconst*pow(tin,4)*pow(rin,2)*(1-1/outfac);
         eddrat = thrlum/eddlum;
+        hbb = rin*eddrat;
         if(eddrat > 1){
         	cout << "Disk flux super-Eddington, please readjust rin/tin. eddrat larger than 1: " << eddrat <<
         	endl;                
@@ -29,13 +32,22 @@ double &tin,int &disksw,double &thrlum,double &eddrat,double &bbf1,double &reff,
     	eddrat = - tin * kboltz_kev;
         thrlum = eddrat*eddlum;
 		tin = pow(thrlum/(4*pi*sbconst*pow(rin,2)*(1-1/outfac)),0.25);	
+		hbb = rin*eddrat;
 	}	
 	
-    //[M.Nowak] H/R~L/L_edd
-    hbb = rin*eddrat;											
-    bbf1 = sqrt(bbf2*jetrat/(sbconst*pi*pow(tbb2,4)*pow(rout,2)));
-    reff = bbf1*rout;
-    reff2 = reff*reff;   
+	//setting external photon fields;
+	/*
+	 compsw == 1: homogeneus external black body
+	 			  compar1 is the bb temperature in the observer frame
+	 			  compar2 is the (desired or estimated) bb energy density in the observer frame
+	 			  compar3 is the radius of the bb
+	 			  the normalization/luminosity are calculated from the desired urad (ie what's needed for IC)
+	*/
+	if (compsw == 1) {
+		tbb = compar1; //bbody temperature (from kev to kelvin?)
+		rbb = compar3; 	//bbody radius (U_bb = normbb/4*pi*rbb^2)
+		normbb = 4*pow(pi,2.)*pow(rbb,2.)*cee*compar2/(sbconst*pow(tbb,4.)); //bbody normalization    	
+    }
 };
 
 void jet_init(int zfrac,int sizegb,double mxsw,double velsw,double jetrat,double r_g,double r0,double hratio,
@@ -54,6 +66,9 @@ double gbx_vel2[],double gby_vel2[]){
 	
 	//Setting distance in the jet above which comptonisation is neglected for computational speed
 	zcut    = zfrac*r0;
+	if (velsw > 1 && r0 < 10.*r_g){
+		zcut = 5.*zcut;
+	}
 	
 	//Setting initial jet velocity
 	gad4_3  = 4./3.;
@@ -214,9 +229,9 @@ double nutot[],double nubb[],double nurad[],double energ[],double ephot[],double
    								
     
     //If aligned agn, extend Compton calculation and grid, disable multiple Compton, disable second jet.
-    if (mbh > 1e4 || inclin <= 20){
-    	cnumin = 16;								//lower boundary Compton grid
-    	cnumax = 26;								//upper boundary Compton grid
+    if (mbh > 1e4 || inclin*(180./pi) <= 20.){
+    	cnumin = 14;								//lower boundary Compton grid
+    	cnumax = 27;								//upper boundary Compton grid
     	cnuinc = (cnumax-cnumin)/ncom;
 		zfrac = 100*zfrac;
 		njet = 1;

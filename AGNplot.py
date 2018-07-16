@@ -17,17 +17,17 @@ sf = np.zeros(298)
 cf = np.zeros(298)
 
 i = 0
-n = 70
+n = 150
 colors = pl.cm.jet(np.linspace(0.25,1,n))
 
 plt.figure(1)
 #plt.title('$\\gamma_{\\rm max} = 5$, $z_{\\rm acc} = z_{\\rm sh} = 630$, $f_{\\rm heat} = 10$, $\\sigma(z_{\\rm diss}) = 0.024$, $N_{\\rm j} = 5*10^{-3}$',fontsize=24)
-plt.plot(10.**bb.T[0], 10**(bb.T[0]+bb.T[1]-3.-23.), linewidth=2.5, color='#FB02ED', linestyle='dashed')
+plt.plot(10.**bb.T[0], 10**(bb.T[0]+bb.T[1]-3.-23.), linewidth=1.0, color='#FB02ED', linestyle='dashed')
 plt.plot(10.**pre.T[0], 10**(pre.T[0]+pre.T[1]-3.-23.), linewidth=2.5, color='#3AEFF4',zorder=151)
 plt.plot(10.**post.T[0], 10**(post.T[0]+post.T[1]-3.-23.), linewidth=2.5, color='#52F856')
 plt.plot(10.**compton.T[0], 10**(compton.T[0]+compton.T[1]-3.-23.), linewidth=2.5, color='#0102EE')
 plt.plot(10.**total.T[0], 10**(total.T[0]+total.T[1]-3.-23.), linewidth=1.5, color='#0B0B0B')
-for j in range(69):
+for j in range(149):
 	if (zones.T[0][i+1] - zones.T[0][i] < 0.):
 		i = i + 1
 	while(zones.T[0][i+1] > zones.T[0][i]):
@@ -35,7 +35,7 @@ for j in range(69):
 		sf[i-299*j] = zones.T[1][i]
 		cf[i-299*j] = zones.T[2][i]
 		i = i + 1
-	if ((j%5) == 0):
+	if ((j%10) == 0):
 		#print("xfig sucks")
 		plt.plot(10.**fr,10**(fr+sf-3.-23.),linewidth=2.5,color=colors[j],linestyle='dashed',zorder=150-j)
 		plt.plot(10.**fr,10**(fr+cf-3.-23.),linewidth=2.5,color=colors[j],linestyle='dashed',zorder=150-j)
@@ -48,6 +48,14 @@ plt.xscale('log', basex=10)
 plt.xticks([1.e12,1.e15,1.e18,1.e21,1.e24],fontsize=16)
 plt.yticks([1.e-14,1.e-13,1.e-12,1.e-11,1.e-10],fontsize=16)
 
+#We create the colorbar:
+sm  = plt.cm.ScalarMappable(cmap="jet")                                       # we use the color_map jet
+sm.set_array(colors)                                                          # based on the array 'colors'
+bar = plt.colorbar(sm,pad=0.01, ticks=[0, 0.25, 0.5, .75, 1])  # at distance pad from y axis
+bar.set_label('z ($r_g$)', fontsize=18)
+bar.ax.set_yticklabels(['$6.0\\times 10^0$', '$1.0\\times10^2$', '$1.8\\times10^3$', '$3.1\\times10^4$',
+                        ' $6.0\\times10^5$'], fontsize = 15)
+
 i = 0
 
 plt.figure(2)
@@ -57,7 +65,7 @@ plt.plot(pre.T[0], 10**pre.T[1], linewidth=2.5, color='#3AEFF4')
 plt.plot(post.T[0], 10**post.T[1], linewidth=2.5, color='#52F856')
 plt.plot(compton.T[0], 10**compton.T[1], linewidth=2.5, color='#0102EE')
 plt.plot(total.T[0], 10**total.T[1], linewidth=1.0, color='#0B0B0B')
-for j in range(69):
+for j in range(149):
 	if (zones.T[0][i+1] - zones.T[0][i] < 0.):
 		i = i + 1
 	while(zones.T[0][i+1] > zones.T[0][i]):
