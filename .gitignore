@@ -20,4 +20,3 @@ spectral_compnts.o
 synchrotron.o
 thermal.o
 utilities.o
-outputs/
