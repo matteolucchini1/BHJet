@@ -16,18 +16,41 @@ fr = np.zeros(298)
 sf = np.zeros(298)
 cf = np.zeros(298)
 
+total = np.genfromtxt("outputs/total.dat")
+bb = np.genfromtxt("outputs/bb.dat")
+extph = np.genfromtxt("outputs/extph.dat")
+pre = np.genfromtxt("outputs/presyn.dat")
+post = np.genfromtxt("outputs/postsyn.dat")
+compton = np.genfromtxt("outputs/com.dat")
+
+zones = np.genfromtxt("outputs/zones.dat")
+
+fr = np.zeros(298)
+sf = np.zeros(298)
+cf = np.zeros(298)
+
+fig, ax1 = plt.subplots(1,1,figsize=(12,6))
+
 i = 0
-n = 150
+n = 140
 colors = pl.cm.jet(np.linspace(0.25,1,n))
 
-plt.figure(1)
-#plt.title('$\\gamma_{\\rm max} = 5$, $z_{\\rm acc} = z_{\\rm sh} = 630$, $f_{\\rm heat} = 10$, $\\sigma(z_{\\rm diss}) = 0.024$, $N_{\\rm j} = 5*10^{-3}$',fontsize=24)
-plt.plot(10.**bb.T[0], 10**(bb.T[0]+bb.T[1]-3.-23.), linewidth=1.0, color='#FB02ED', linestyle='dashed')
-plt.plot(10.**pre.T[0], 10**(pre.T[0]+pre.T[1]-3.-23.), linewidth=2.5, color='#3AEFF4',zorder=151)
-plt.plot(10.**post.T[0], 10**(post.T[0]+post.T[1]-3.-23.), linewidth=2.5, color='#52F856')
-plt.plot(10.**compton.T[0], 10**(compton.T[0]+compton.T[1]-3.-23.), linewidth=2.5, color='#0102EE')
-plt.plot(10.**total.T[0], 10**(total.T[0]+total.T[1]-3.-23.), linewidth=1.5, color='#0B0B0B')
-for j in range(149):
+zmin = 20.0
+zmax = 6.e5
+#type in zmin/zmax from agnjet
+
+zheight=np.zeros(5) # the array that we use to print the labels in colorbar
+for i in range(0,len(zheight)):
+    zheight[i] = pow(10.,math.log10(zmax/zmin)*(i*.25) + math.log10(zmin))
+    print("z[",i,"] = %.2e" %zheight[i], "r_g")
+
+ax1.plot(10.**bb.T[0], 10**(bb.T[0]+bb.T[1]-3.-23.), linewidth=1.5, color='#FB02ED', linestyle='dashed')
+ax1.plot(10.**extph.T[0], 10**(extph.T[0]+extph.T[1]-3.-23.), linewidth=1.5, color='#4b006e', linestyle='dashed')
+ax1.plot(10.**pre.T[0], 10**(pre.T[0]+pre.T[1]-3.-23.), linewidth=2.5, color='#3AEFF4',zorder=151)
+ax1.plot(10.**post.T[0], 10**(post.T[0]+post.T[1]-3.-23.), linewidth=2.5, color='#52F856')
+ax1.plot(10.**compton.T[0], 10**(compton.T[0]+compton.T[1]-3.-23.), linewidth=2.5, color='#0102EE')
+ax1.plot(10.**total.T[0], 10**(total.T[0]+total.T[1]-3.-23.), linewidth=1.5, color='#0B0B0B')
+for j in range(139):
 	if (zones.T[0][i+1] - zones.T[0][i] < 0.):
 		i = i + 1
 	while(zones.T[0][i+1] > zones.T[0][i]):
@@ -35,50 +58,25 @@ for j in range(149):
 		sf[i-299*j] = zones.T[1][i]
 		cf[i-299*j] = zones.T[2][i]
 		i = i + 1
-	if ((j%10) == 0):
-		#print("xfig sucks")
-		plt.plot(10.**fr,10**(fr+sf-3.-23.),linewidth=2.5,color=colors[j],linestyle='dashed',zorder=150-j)
-		plt.plot(10.**fr,10**(fr+cf-3.-23.),linewidth=2.5,color=colors[j],linestyle='dashed',zorder=150-j)
-plt.xlim([1e9,1e26])
-plt.ylim([1.e-14,4.0e-10])
-plt.ylabel('Flux ($\\nu$F$\\nu$) ergs s$\\rm ^{-1}$ cm$\\rm ^{-2}$', fontsize=18)
-plt.xlabel('Frequency (Hz)', fontsize=18)
-plt.yscale('log', basey=10)
-plt.xscale('log', basex=10)
-plt.xticks([1.e12,1.e15,1.e18,1.e21,1.e24],fontsize=16)
-plt.yticks([1.e-14,1.e-13,1.e-12,1.e-11,1.e-10],fontsize=16)
+	if ((j%10) == 0): #this plots one in ten zones for clarity
+		ax1.plot(10.**fr,10.**(fr+sf-3.-23.),linewidth=3.5,color=colors[j],linestyle='dashed',zorder=150-j)
+		ax1.plot(10.**fr,10.**(fr+cf-3.-23.),linewidth=3.5,color=colors[j],linestyle='dashed',zorder=150-j)
+ax1.set_xlim([1e9,.99e26])
+ax1.set_ylim([1.e-14,3.0e-10])
+ax1.set_ylabel('$\\nu$F$\\nu$ (erg s$\\rm ^{-1}$ cm$\\rm ^{-2})$', fontsize=18)
+ax1.set_xlabel('Frequency (Hz)', fontsize=18)
+ax1.set_yscale('log', basey=10)
+ax1.set_xscale('log', basex=10)
+ax1.tick_params([1.e12,1.e15,1.e18,1.e21,1.e24],fontsize=16)
+ax1.tick_params([1.e-14,1.e-13,1.e-12,1.e-11,1.e-10],fontsize=16)
+
+fig.subplots_adjust(wspace=0)
 
 #We create the colorbar:
 sm  = plt.cm.ScalarMappable(cmap="jet")                                       # we use the color_map jet
 sm.set_array(colors)                                                          # based on the array 'colors'
-bar = plt.colorbar(sm,pad=0.01, ticks=[0, 0.25, 0.5, .75, 1])  # at distance pad from y axis
-bar.set_label('z ($r_g$)', fontsize=18)
-bar.ax.set_yticklabels(['$6.0\\times 10^0$', '$1.0\\times10^2$', '$1.8\\times10^3$', '$3.1\\times10^4$',
+bar = fig.colorbar(sm,pad=0.0, ax=[ax1], ticks=[0, 0.25, 0.5, .75, 1])  # at distance pad from y axis
+bar.set_label('z ($R_g$)', fontsize=18)
+bar.ax.set_yticklabels(['$2.0\\times 10^1$', '$2.6\\times10^2$', '$3.5\\times10^3$', '$4.6\\times10^4$',
                         ' $6.0\\times10^5$'], fontsize = 15)
-
-i = 0
-
-plt.figure(2)
-#plt.title('$\\gamma_{\\rm max} = 15$, $z_{\\rm acc} = 2.5*10^{5}$, $z_{\\rm sh} = 25$, $f_{\\rm heat} = 1$, $\\sigma(z_{\\rm diss}) = 1$, $N_{\\rm j} = 1*10^{-2}$',fontsize=24)
-plt.plot(bb.T[0], 10**bb.T[1], linewidth=1.5, color='#FB02ED', linestyle='dashed')
-plt.plot(pre.T[0], 10**pre.T[1], linewidth=2.5, color='#3AEFF4')
-plt.plot(post.T[0], 10**post.T[1], linewidth=2.5, color='#52F856')
-plt.plot(compton.T[0], 10**compton.T[1], linewidth=2.5, color='#0102EE')
-plt.plot(total.T[0], 10**total.T[1], linewidth=1.0, color='#0B0B0B')
-for j in range(149):
-	if (zones.T[0][i+1] - zones.T[0][i] < 0.):
-		i = i + 1
-	while(zones.T[0][i+1] > zones.T[0][i]):
-		fr[i-299*j] = zones.T[0][i]
-		sf[i-299*j] = zones.T[1][i]
-		cf[i-299*j] = zones.T[2][i]
-		i = i + 1					
-	plt.plot(fr,10**(sf),linewidth=1.5,color=colors[j],linestyle='dashed')
-	plt.plot(fr,10**(cf),linewidth=1.5,color=colors[j],linestyle='dashed')
-plt.xlim([8.9,20.])
-plt.ylim([1.e-6,3.e2])
-plt.ylabel('Flux (mJy)', fontsize=16)
-plt.xlabel('Freq (Hz)', fontsize=16)
-plt.yscale('log', basey=10)
-
 plt.show()

@@ -69,7 +69,7 @@ double gbx_vel2[],double gby_vel2[]){
 	if (velsw > 1 && r0 < 10.*r_g){
 		zcut = 5.*zcut;
 	}
-	
+
 	//Setting initial jet velocity
 	gad4_3  = 4./3.;
 	betas0  = sqrt(gad4_3*(gad4_3 - 1.)/(gad4_3 + 1.)); 
@@ -210,6 +210,7 @@ double average_ene(int flaglog,int N,double ndensity[],double energy[],double el
             elexdens[i]	= eldens[i];
         }
     }
+    delete[] elexdens;
 //    cout << i << " " << tmp1 << " " << tmp2 << " " << sum1 << " " << sum2 << endl;
     return sum1/sum2;
 }
@@ -230,16 +231,15 @@ double nutot[],double nubb[],double nurad[],double energ[],double ephot[],double
     
     //If aligned agn, extend Compton calculation and grid, disable multiple Compton, disable second jet.
     if (mbh > 1e4 || inclin*(180./pi) <= 20.){
-    	cnumin = 14;								//lower boundary Compton grid
+    	cnumin = 16;								//lower boundary Compton grid
     	cnumax = 27;								//upper boundary Compton grid
     	cnuinc = (cnumax-cnumin)/ncom;
-		zfrac = 100*zfrac;
 		njet = 1;
 		isSSC = true;
 	} else {		
-	    cnumin = 12;								//lower boundary Compton grid
-	    cnumax = 23;								//upper boundary Compton grid
-	    cnuinc = (cnumax-cnumin)/ncom;		
+	    cnumin = 13;								//lower boundary Compton grid
+	    cnumax = 26;								//upper boundary Compton grid
+	    cnuinc = (cnumax-cnumin)/ncom;	
 	}
 
     snuinc = (snumax-snumin)/nsyn;					//increment of Synchrotron grid

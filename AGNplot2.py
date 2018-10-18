@@ -26,7 +26,7 @@ n = 70
 colors = pl.cm.jet(np.linspace(0.25,1,n))
 
 zmin = 6.0
-zmax = 6.e5
+zmax = 3.e5
 #type in zmin/zmax from agnjet
 
 zheight=np.zeros(5) # the array that we use to print the labels in colorbar
@@ -48,12 +48,12 @@ for j in range(69):
 		sf[i-299*j] = zones.T[1][i]
 		cf[i-299*j] = zones.T[2][i]
 		i = i + 1
-	if ((j%5) == 0): #this plots one in ten zones for clarity
-		ax1.plot(10.**fr,10**(fr+sf-3.-23.),linewidth=2.5,color=colors[j],linestyle='dashed',zorder=150-j)
-		ax1.plot(10.**fr,10**(fr+cf-3.-23.),linewidth=2.5,color=colors[j],linestyle='dashed',zorder=150-j)
+	if ((j%10) == 0): #this plots one in ten zones for clarity
+		ax1.plot(10.**fr,10.**(fr+sf-3.-23.),linewidth=3.5,color=colors[j],linestyle='dashed',zorder=150-j)
+		ax1.plot(10.**fr,10.**(fr+cf-3.-23.),linewidth=3.5,color=colors[j],linestyle='dashed',zorder=150-j)
 ax1.set_xlim([1e9,.99e26])
-ax1.set_ylim([1.e-14,1.0e-9])
-ax1.set_ylabel('$\\nu$F$\\nu$ (ergs s$\\rm ^{-1}$ cm$\\rm ^{-2})$', fontsize=18)
+ax1.set_ylim([1.e-14,5.0e-11])
+ax1.set_ylabel('$\\nu$F$\\nu$ (erg s$\\rm ^{-1}$ cm$\\rm ^{-2})$', fontsize=18)
 ax1.set_xlabel('Frequency (Hz)', fontsize=18)
 ax1.set_yscale('log', basey=10)
 ax1.set_xscale('log', basex=10)
@@ -76,7 +76,7 @@ for j in range(69):
 		sf[i-299*j] = zones.T[1][i]
 		cf[i-299*j] = zones.T[2][i]
 		i = i + 1	
-	if ((j%5) == 0):					
+	if ((j%10) == 0):					
 		ax2.plot(10.**fr,10**(sf),linewidth=2.5,color=colors[j],linestyle='dashed')
 		ax2.plot(10.**fr,10**(cf),linewidth=2.5,color=colors[j],linestyle='dashed')
 ax2.yaxis.tick_right()
@@ -96,6 +96,6 @@ sm  = plt.cm.ScalarMappable(cmap="jet")                                       # 
 sm.set_array(colors)                                                          # based on the array 'colors'
 bar = fig.colorbar(sm,pad=0.10, ax=[ax1,ax2], ticks=[0, 0.25, 0.5, .75, 1])  # at distance pad from y axis
 bar.set_label('z ($r_g$)', fontsize=18)
-bar.ax.set_yticklabels(['$6.0\\times 10^0$', '$1.0\\times10^2$', '$1.8\\times10^3$', '$3.1\\times10^4$',
-                        ' $6.0\\times10^5$'], fontsize = 15)
+bar.ax.set_yticklabels(['$6.0\\times 10^0$', '$0.9\\times10^2$', '$1.3\\times10^3$', '$2.0\\times10^4$',
+                        ' $3.0\\times10^5$'], fontsize = 15)
 plt.show()

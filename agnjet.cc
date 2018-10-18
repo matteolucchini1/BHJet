@@ -36,24 +36,24 @@ using namespace std;
  
 void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
 
-    int i, k, m; 									//for-loop variables
-    double sum1, sum2, tmp1, tmp2;					//temporary stuff for numerics
+    int i, k, m; 										//for-loop variables
+    double sum1, sum2, tmp1, tmp2;						//temporary stuff for numerics
 
-    bool isShock         = false;					//flag for shock
-    bool isBreaknjetnsyn = false;					//flag for synchrotron for loop
-    bool isVerbose       = false;					//flag for verbose debug mode
-    bool isSSC           = false;					//when false: multiple SSC
-    bool isPair          = false;					//when false no pair rate is calculated
+    bool isShock         = false;						//flag for shock
+    bool isBreaknjetnsyn = false;						//flag for synchrotron for loop
+    bool isVerbose       = false;						//flag for verbose debug mode -- NOT MAINTAINED 
+    bool isSSC           = false;						//when false: multiple SSC
+    bool isPair          = false;						//when false no pair rate is calculated
 
     //Synchrotron - Compton - Gamma-ray grid [Hz]
-    int nsyn = 100;									//number of bins in Synchrotron grid
-    int ncom = 60;									//number of bins in Compton grid
-    double snumin;									//lower boundary Synchrotron grid
-    double snumax;									//upper boundary Synchrotron grid
-    double cnumin;									//lower boundary Compton grid
-    double cnumax;									//upper boundary Compton grid
-    double snuinc;									//increment of Synchrotron grid
-    double cnuinc;									//increment of Compton grid
+    int nsyn = 100;										//number of bins in Synchrotron grid
+    int ncom = 60;										//number of bins in Compton grid
+    double snumin;										//lower boundary Synchrotron grid
+    double snumax;										//upper boundary Synchrotron grid
+    double cnumin;										//lower boundary Compton grid
+    double cnumax;										//upper boundary Compton grid
+    double snuinc;										//increment of Synchrotron grid
+    double cnuinc;										//increment of Compton grid
 
     //Fixed quantities for computations
     int nz 			= 70;								//number of zones in jet
@@ -63,12 +63,12 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
     double thmfrac; 									//1-plfrac (see jet's parameter plfrac down)
     double zcut; 										//distance above which Compton is neglected
     double tbbeff;										//effective blackbody temperature
-    int zfrac       = 100;								//multiplier to set Comptonization region
+    int zfrac       = 10000;							//multiplier to set Comptonization region
     int disksw  	= 1;								//switch to get disk radiation
     double zmin;										//minimum distance from BH
     int nzdum   	= 200;								//size of jet's segment array    
-    int njet    	= 2;								//number of jets produced
-    int Niter		= 100;								//number of IC scatterings
+    int njet    	= 2;								//number of jets included in the spectrum
+    int Niter		= 100;								//Maximum number of IC scatterings
     int sizegb 		= 55;								//size of velocity/distance array before interpolation
     double zeta		= 1;								//Uj = n mc2, see Crumley et al. 2017
     double sig0;										//Initial magnetization for magnetic acceleration
@@ -104,7 +104,7 @@ void bhjet(double* ear,int ne,double *param,double *photeng,double *phot_spect){
     double elenmn;										//minimum electron energy for radiation integration
     double elenmx;										//maximum electron energy for radiation integration
     int nenpsw 		= 1;								//switch for change between normalizations when using
-    													//velsw = 0 or 1, leave to 0 if you dont have a good
+    													//velsw = 0 or 1, leave to 1 if you dont have a good
     													//reason not to do so. nenpsw = 1 sets Up = Ub + Ue,
     													//nenpsw=0 sets np = ne.
 

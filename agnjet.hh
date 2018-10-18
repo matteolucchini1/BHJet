@@ -221,7 +221,7 @@ void lost_ele(int &nw,int nelec,double etemp[],double dtemp[],double ntot,double
 double eled[],double lelec[],double ledens[]);
 
 //equipartition.cc
-void equipartition(double velsw,double mxsw,int nenpsw,double eta,double equip,double pspec,double nprot0,
+void equipartition(double velsw,double mxsw,int nenpsw,double &eta,double equip,double pspec,double nprot0,
 double emin,double emax,double endnsmj,double &cnorm,double &ntot0,double &b_en,double &b0);
 
 //max_ene.cc

@@ -142,9 +142,9 @@ gsl_interp_accel *acc_derivs, double &esum, double &asum){
     struct synemis_params F1params = {freq, bfield, spline_syn, acc_syn, spline_eldis1, acc_eldis1};
     F1.function     = &synemis;
     F1.params       = &F1params;
-    gsl_integration_qag(&F1, log(elenmn), log(elenmx), 1e-1, 1e-1, 1000, 1, w1, &result1, &error1);
+    gsl_integration_qag(&F1, log(elenmn), log(elenmx), 1e-1, 1e-1, 1000, 2, w1, &result1, &error1);
     esum    = result1;
-    gsl_integration_workspace_free(w1);      //<!-- FIXME should I free the workspace here? -->
+    gsl_integration_workspace_free(w1);     
     
     //asum
     gsl_integration_workspace *w2 = gsl_integration_workspace_alloc(1000);
@@ -153,7 +153,7 @@ gsl_interp_accel *acc_derivs, double &esum, double &asum){
     struct absfnc_params F2params = {freq, bfield, spline_syn, acc_syn, spline_derivs, acc_derivs};
     F2.function     = &absfnc;
     F2.params       = &F2params;
-    gsl_integration_qag(&F2, log(elenmn), log(elenmx), 1e-1, 1e-1, 1000, 1, w2, &result2, &error2);
+    gsl_integration_qag(&F2, log(elenmn), log(elenmx), 1e-1, 1e-1, 1000, 2, w2, &result2, &error2);
     asum    = result2;
     gsl_integration_workspace_free(w2);
 }

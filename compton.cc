@@ -228,9 +228,10 @@ gsl_interp_accel *acc_eldis1,gsl_spline *spline_com1,gsl_interp_accel *acc_com1)
     struct comint_params F1params   = {eph, ephmin, ephmax, spline_eldis1, acc_eldis1, spline_com1, acc_com1};
     F1.function     = &comint;
     F1.params       = &F1params;
-    gsl_integration_qag(&F1, blim, ulim, 1e-1, 1e-1, 1000, 1, w, &result, &error);
+    gsl_integration_qag(&F1, blim, ulim, 1e-1, 1e-1, 1000, 1, w, &result, &error); 
     gsl_integration_workspace_free(w);
-    
+    //NOTE: in some regimes, using a key of 2 in the gsl_integral_qag line instead of 1 makes for smoother 
+    //integrals. Not important for the final spectrum, but it makes for better-looking and more accurate plots
     return result;
 }
 
@@ -282,12 +283,9 @@ double &ephmax,double &ephmin){
     //This loop calculates sets up ssc (calculates synchrotron seed photon distribution)
     for(i=0; i<nsyn; i++){
         if(nphot[i] == 0){
-            nphot[i]= nphot[i-1]-4.;
-        }
-        else{
-            nphot[i]= log10(nphot[i]);
-        }
-        jetu[i]	= pow(10,nphot[i])/(cee*herg*energ[i]*pi*r*r);
+            nphot[i]= nphot[i-1]*pow(10,-4); //if the photon field is 0 set it to an arbitrary low number to
+        }									 //avoid numerical issues later
+        jetu[i]	= nphot[i]/(cee*herg*energ[i]*pi*r*r);
         if (jetu[i] == 0){ 
         	phodis[i]= -500;
         } else{
@@ -367,8 +365,8 @@ double &ephmax,double &ephmin){
                         peaksw	= 1.;
 					}
                     else{
-						bbfield	= pow(delta/gamv,2.)*normbb*2.*herg*pow(nurad[i],3)/((4.*pi*pow(rbb,2.)*cee*herg*
-						energ[i])*cee*cee*(exp(energ[i]/(kboltz*tbbeff))-1.));					
+						bbfield	= pow(delta/gamv,2.)*normbb*2.*herg*pow(nurad[i],3)/((4.*pi*pow(rbb,2.)*cee*
+						herg*energ[i])*cee*cee*(exp(energ[i]/(kboltz*tbbeff))-1.));					
 						photmx	= max(photmx,bbfield);
 						extu[i] = bbfield; //keep track of disk contribution for EC part						
                     }

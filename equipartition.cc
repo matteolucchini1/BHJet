@@ -18,15 +18,16 @@
 
 using namespace std;
 
-void equipartition(double velsw,double mxsw,int nenpsw,double eta,double equip,double pspec,double nprot0,
+void equipartition(double velsw,double mxsw,int nenpsw,double &eta,double equip,double pspec,double nprot0,
 double emin,double emax,double endnsmj,double &cnorm,double &ntot0,double &b_en,double &b0){
 	
 	cnorm   = 0;
 
     if(nenpsw==0){
+    	eta = 1;
        	if(mxsw==1){
 			if(equip==1){
-				ntot0 = nprot0;
+				ntot0 = nprot0;				
 				b_en = ntot0*endnsmj;
 			}
 			else if(equip==0){
@@ -66,7 +67,7 @@ double emin,double emax,double endnsmj,double &cnorm,double &ntot0,double &b_en,
 	} else{
 		if (velsw <= 1){
 			if(mxsw==1){
-				ntot0 = nprot0*pmgm*cee*cee/((1.+equip)*endnsmj);
+				ntot0 = nprot0*pmgm*cee*cee/((1.+equip)*endnsmj);			
 				b_en = equip*ntot0*endnsmj;
 			}else if(mxsw == 0){
 				if(pspec >= 1.99 && pspec <= 2.01){
@@ -83,6 +84,7 @@ double emin,double emax,double endnsmj,double &cnorm,double &ntot0,double &b_en,
            		b_en = equip * ntot0 * endnsmj;
            		cnorm = (ntot0*endnsmj*(1.-mxsw)*(2.-pspec))/(pow(emax,(2.-pspec))-pow(emin,(2.-pspec)));
 			}
+			eta = ntot0/nprot0;	
 		} else { 
 			ntot0 = nprot0*eta;
 			if(mxsw==1){
@@ -104,6 +106,6 @@ double emin,double emax,double endnsmj,double &cnorm,double &ntot0,double &b_en,
 			}
 		}
 	}
-		
+	
 	b0 = sqrt(8.*pi*b_en);
 }

@@ -39,6 +39,14 @@ append_to_isis_module_path(path+"path/to/your/agnjet/folder");
 
 --------------------------------------------------------------------------------------------------
 
+IMPORTANT PERFORMANCE NOTICES
+
+In order to reduce runtime, the code will automatically stop calculating the jet IC emission at a distance zcut = zfrac*r0 from the black hole. By default zfrac is set to a fairly large number, but this may not be necessary and is very much dependant on the source the model is being applied to. Make sure to test the c++ code and choose an appropriate value for zfrac if you're running a computationally intensive task (like mcmc fitting) and/or care about the gamma-ray emission of the jet.
+
+The Compton integral at line 231 in compton.cc is calculated to guarantee the fastest possible runtime. This results in some features in the Compton output that are numerical and not physical. To remove these features, set the key to "2" instead of "1" (7th parameter of the gsl_integrate_qag function); this reduces performance by ~15% so it is not recommended for long/complex fits, only do this if you need a specific plot or accurate Compton photon distribution. A similar thing happens in the synchrotron integrals (line 145 and 156 in synchrotron.cc), but increasing the numerical accuracy does not change the speed of the code so the key has been set to 2. For more information on the key parameter of gsl_integral_qag read the GSL Library manual.
+
+--------------------------------------------------------------------------------------------------
+
 CHANGES:
 
 A number of alterations have been made that mean the user must be aware of the case-dependent relevance of the model parameters. 
