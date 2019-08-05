@@ -1,1 +1,1 @@
-rm *.o; rm Makefile; slirp -ldflags "electrons.o pairs.o spectral_compnts.o plots.o equipartition.o dynamics.o synchrotron.o compton.o bb.o utilities.o norm_ele.o max_ene.o mj_aven.o thermal.o agnjet.o" -lgsl -lgslcblas -lm agnjet.hh
+rm Makefile; slirp -ldflags "bhjet.o utils.o jetpars.o BBody.o Cyclosyn.o Mixed.o Particles.o ShSDisk.o Compton.o Kappa.o Powerlaw.o Radiation.o Thermal.o" -lgsl -lgslcblas -lm bhjet.hh

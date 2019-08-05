@@ -1,29 +1,29 @@
-1e9		//black hole mass
-2.5				//viewing angle
-543e3				//distance (kpc)
-.9e-2		//jet power (Eddington units)	
-18			//r0 (rg)
+10	//black hole mass
+40				//viewing angle
+8				//distance (kpc)
+1.e-2		//jet power (Eddington units)	
+10			//r0 (rg)
 2				//nozzle aspect ratio - hratio
-600			//shock distance (rg)
-600			//magnetic acceleration distance (rg)
-6.6e5			//maximum distance (rg) - z_max
-3			//electron temperature (electron peak gamma) - eltemp
-1.95				//non-thermal slope - pspec   
-12				//shock heating
-10.				//dynamic time scale parameter
-3e-6			//particle acceleratino time scale - fsc
-10				//max g_e at base in case of pl injection - gamfac
-0.0		//plasma beta
-0.025				//acceleration sigma
+1e3			//shock distance (rg)
+1e3			//magnetic acceleration distance (rg)
+1e8		//maximum distance (rg) - z_max
+3.26			//electron temperature (electron peak gamma) - eltemp
+2				//non-thermal slope - pspec   
+1			//shock heating
+1				//dynamic time scale parameter
+1e-6			//particle acceleratino time scale - fsc
+100				//max g_e at base in case of pl injection - gamfac
+0.1		//plasma beta
+0.02				//acceleration sigma
 -0.01			//disk temperature/accretion rate
-50				//disk inner radius (rg)
-1e3				//disk outer radius (rg)
+20				//disk inner radius (rg)
+1e1				//disk outer radius (rg)
 3300				//compar1
 3e-10			//compar2
 3.e10			//compar3
 0.1				//plfrac
 1				//mxsw
-15				//velsw
+1				//velsw
 0				//compsw
 1				//plotsw
 1				//infosw
