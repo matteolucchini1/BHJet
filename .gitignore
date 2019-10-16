@@ -16,3 +16,4 @@ agnjet-test.sl
 bhwrap.x
 bhjet_glue.cc
 Makefile
+Output/*.dat

@@ -1,29 +1,28 @@
-10	//black hole mass
-40				//viewing angle
-8				//distance (kpc)
-1.e-2		//jet power (Eddington units)	
-10			//r0 (rg)
-2				//nozzle aspect ratio - hratio
-1e3			//shock distance (rg)
-1e3			//magnetic acceleration distance (rg)
-1e8		//maximum distance (rg) - z_max
-3.26			//electron temperature (electron peak gamma) - eltemp
-2				//non-thermal slope - pspec   
-1			//shock heating
-1				//dynamic time scale parameter
-1e-6			//particle acceleratino time scale - fsc
-100				//max g_e at base in case of pl injection - gamfac
-0.1		//plasma beta
-0.02				//acceleration sigma
--0.01			//disk temperature/accretion rate
-20				//disk inner radius (rg)
-1e1				//disk outer radius (rg)
-3300				//compar1
-3e-10			//compar2
-3.e10			//compar3
-0.1				//plfrac
-1				//mxsw
-1				//velsw
-0				//compsw
-1				//plotsw
-1				//infosw
+10				#bh mass
+40				#viewing angle
+8				#distance in kpc
+0			#redshift
+1.e-2			#injected power in Eddington units
+7				#radius in rg
+2				#nozzle aspect ratio 
+1e3				#non-thermal injectin distance in rg
+1e3				#end of bulk magnetic acceleration in rg
+1.e8			#maximum distance of jet in rg
+300				#temperature in kev
+0.1				#percentage of particles accelerated initially
+00				#reduction in accelerated particles over distance
+2				#non-thermal particle index
+1				#shock heating at dissipation location
+0.1				#effective adiabatic expansion speed
+1e-6			#particle acceleration efficiency
+0.01			#initial plasma beta
+1				#final sigma if using magnetic acceleration
+0.002			#disk luminosity/temperature in eddington units
+20				#inner disk radius in rg
+1.e3			#outer disk radius in rg
+0				#external compton parameter 1
+0				#external compton parameter 2
+0				#external compton parameter 3
+0				#external compton switch
+3				#velsw
+4			#infosw

@@ -262,7 +262,7 @@ void b_profile(double gam,double n,jet_dynpars &dyn,jet_enpars &en,double &field
 	//~a few 10^2 and/or the pair content of the jet is limited
 	w = 4./3.*en.av_gamma*n*emgm*pow(cee,2.);
 	sigma = (dyn.gam0/gam)*(1.+en.sig0)-1.;
-	field = sqrt(sigma*4.*pi*(n*pmgm*pow(cee,2.)+w));
+	field = sqrt(sigma*4.*pi*(n/en.eta*pmgm*pow(cee,2.)+w));
 }
 
 
