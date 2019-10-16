@@ -16,4 +16,12 @@ agnjet-test.sl
 bhwrap.x
 bhjet_glue.cc
 Makefile
-Output/*.dat
+Output/Compton_zones.dat
+Output/Cyclosyn_zones.dat
+Output/Disk.dat
+Output/Numdens.dat
+Output/Postcom.dat
+Output/Postsyn.dat
+Output/Precom.dat
+Output/Presyn.dat
+Output/Total.dat
