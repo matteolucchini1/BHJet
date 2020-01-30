@@ -6,6 +6,7 @@ import matplotlib.ticker as plticker
 from matplotlib import cm
 from matplotlib.colors import LogNorm
 
+
 kevconv = 1.
 #kevconv = 2.41*10**17
 
@@ -13,7 +14,7 @@ pars = np.genfromtxt("Input/ip.dat")
 
 #oj287 = np.genfromtxt("SEDs/oj287.txt")
 #threec273 = np.genfromtxt("SEDs/3c273.txt")
-#threec279 = np.genfromtxt("SEDs/3c279.txt")
+threec279 = np.genfromtxt("SEDs/3C279.txt")
 #pks2155 = np.genfromtxt("SEDs/2155-304.txt")
 #pks1424 = np.genfromtxt("SEDs/1424-418_alpha.dat")
 
@@ -24,20 +25,20 @@ pars = np.genfromtxt("Input/ip.dat")
 if (pars[0] >= 1.e3):
 	ulim_f = 1.e27
 	blim_f = 0.5e9
-	ulim_fl = 1.e-10
+	ulim_fl = 1.e-9
 	blim_fl = 1.e-14
 	ulim_fd = 1.e5
 	blim_fd = 1.e-13
 else:
-	ulim_f = 0.9e21
+	ulim_f = 0.9e20
 	blim_f = 0.5e9
-	ulim_fl = 1e-7
-	blim_fl = 1.e-18
-	ulim_fd = 1.e2
-	blim_fd = 1.e-3
+	ulim_fl = 1e-9
+	blim_fl = 1.e-16
+	ulim_fd = 5.e2
+	blim_fd = 0.2e-3
 	
 zmin = 3.0
-zmax = pars[8]
+zmax = pars[9]
 
 zheight=np.zeros(5)
 
@@ -50,8 +51,8 @@ zheight = np.around(zheight,decimals=2)
 z = pars[3]
 plotcheck = pars[27]
 
-#fluxconv = 4.*math.pi*(pars[2]*3.*10**21)**2
-fluxconv = 1.
+fluxconv = 4.*math.pi*(pars[2]*3.*10**21)**2
+#fluxconv = 1.
 
 if (plotcheck >= 1):
 	Presyn = np.genfromtxt("Output/Presyn.dat")
@@ -109,8 +110,9 @@ j = 0
 l = 0
 totindex1 = 0
 totindex2 = 0
-#plt.figure(1)
+
 fig, (ax1, ax2) = plt.subplots(1,2,figsize=(23,6))
+#fig, (ax1) = plt.subplots(1,1,figsize=(12,6))
 for i in range(nzones-1):
 	nu_cyclosyn = np.zeros(int(size_cyclo_arr[i]))
 	lnu_cyclosyn = np.zeros(int(size_cyclo_arr[i]))	
@@ -127,9 +129,9 @@ for i in range(nzones-1):
 	if ((i%1) == 0):
 		ax1.plot(nu_cyclosyn,lnu_cyclosyn*fluxconv,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
 		ax1.plot(nu_compton,lnu_compton*fluxconv,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
-ax1.plot(Presyn.T[0]/kevconv,Presyn.T[1]*Presyn.T[0]*mjy*fluxconv,linewidth=2.5,color='cyan',zorder=nzones+1)
+#ax1.plot(Presyn.T[0]/kevconv,Presyn.T[1]*Presyn.T[0]*mjy*fluxconv,linewidth=2.5,color='cyan',zorder=nzones+1)
 ax1.plot(Postsyn.T[0]/kevconv,Postsyn.T[1]*Postsyn.T[0]*mjy*fluxconv,linewidth=2.5,color='green',zorder=nzones+1)
-ax1.plot(Precom.T[0]/kevconv,Precom.T[1]*Precom.T[0]*mjy*fluxconv,linewidth=2.5,color='blue',zorder=nzones+1)
+#ax1.plot(Precom.T[0]/kevconv,Precom.T[1]*Precom.T[0]*mjy*fluxconv,linewidth=2.5,color='blue',zorder=nzones+1)
 ax1.plot(Postcom.T[0]/kevconv,Postcom.T[1]*Postcom.T[0]*mjy*fluxconv,linewidth=2.5,color='purple',zorder=nzones+1)
 #ax1.plot(Corona.T[0]/kevconv,Corona.T[1]*Corona.T[0]*mjy*fluxconv,linewidth=2.5,color='#0165fc',zorder=nzones+1)
 ax1.plot(Disk.T[0]/kevconv,Disk.T[1]*Disk.T[0]*mjy*fluxconv,linewidth=2.5,color='red',zorder=nzones+1)
@@ -137,13 +139,13 @@ ax1.plot(BB.T[0]/kevconv,BB.T[1]*BB.T[0]*mjy*fluxconv,linewidth=2.5,color='orang
 ax1.plot(Total.T[0]/kevconv,Total.T[1]*Total.T[0]*mjy*fluxconv,linewidth=1.5,color='black',zorder=nzones+1)
 #ax1.scatter(oj287.T[0]/kevconv,oj287.T[2],color='red',marker='s')
 #ax1.scatter(threec273.T[0]/kevconv,threec273.T[2],color='green',marker='o')
-#ax1.scatter(10**(threec279.T[0]/kevconv),10**(threec279.T[2]),color='blue',marker='p')
+ax1.scatter(threec279.T[0]/kevconv,threec279.T[2],color='#0504aa',marker='p')
 #ax1.scatter(pks2155.T[0]/kevconv,pks2155.T[2],color='black',marker='p')
 #ax1.errorbar(pks1424x,pks1424.T[2],yerr=pks1424.T[3],xerr=[pks1424xerrm,pks1424xerrp],color='black',fmt='o')
 ax1.set_ylim([blim_fl*fluxconv,ulim_fl*fluxconv])
 ax1.set_xlim([blim_f/kevconv,ulim_f/kevconv])
 ax1.set_xscale('log', basex=10)
-ax1.set_yscale('log', basex=10)
+ax1.set_yscale('log', basey=10)
 if (kevconv !=1):
 	ax1.set_xlabel('Energy (kev)',fontsize=18)
 else:
@@ -158,7 +160,7 @@ j = 0
 l = 0
 totindex1 = 0
 totindex2 = 0
-#plt.figure(2)
+#fig, (ax2) = plt.subplots(1,1,figsize=(12,6))
 for i in range(nzones-1):
 	nu_cyclosyn = np.zeros(int(size_cyclo_arr[i]))
 	lnu_cyclosyn = np.zeros(int(size_cyclo_arr[i]))
@@ -186,7 +188,7 @@ ax2.plot(Total.T[0]/kevconv,Total.T[1],linewidth=1.5,color='black',zorder=nzones
 ax2.set_ylim([blim_fd,ulim_fd])
 ax2.set_xlim([blim_f/kevconv,ulim_f/kevconv])
 ax2.set_xscale('log', basex=10)
-ax2.set_yscale('log', basex=10)
+ax2.set_yscale('log', basey=10)
 ax2.yaxis.tick_right()
 ax2.yaxis.set_label_position("right")
 if (kevconv !=1):
@@ -197,12 +199,12 @@ ax2.set_ylabel('Flux density (mJy)',fontsize=18)
 
 fig.subplots_adjust(wspace=0)
 
-#We create the colorbar:
-sm = plt.cm.ScalarMappable(cmap="magma")                                
-sm.set_array(colors)                                                
-bar = fig.colorbar(sm,pad=0.10,ax=[ax1,ax2],ticks=[0.01,0.25,0.5,.75,0.99])  
-bar.set_label('$log_{10}(z)\,(r_g$)', fontsize=18)
-bar.ax.set_yticklabels(zheight,fontsize = 15)
+if(plotcheck>=2):#We create the colorbar:
+	sm = plt.cm.ScalarMappable(cmap="magma")                                
+	sm.set_array(colors)                                                
+	bar = fig.colorbar(sm,pad=0.10,ax=[ax1,ax2],ticks=[0.01,0.25,0.5,.75,0.99])  
+	bar.set_label('$log_{10}(z)\,(r_g$)', fontsize=18)
+	bar.ax.set_yticklabels(zheight,fontsize = 15)
 
 i = 0
 j = 0
@@ -218,7 +220,7 @@ if(plotcheck>=2):
 	ax3.set_xlabel('Momentum (erg*s/cm)',fontsize=18)
 	ax3.set_ylabel('Number density (#/cm^3)',fontsize=18)		
 	ax3.set_xscale('log', basex=10)
-	ax3.set_yscale('log', basex=10)
+	ax3.set_yscale('log', basey=10)
 
 	i = 0
 	j = 0
@@ -232,7 +234,7 @@ if(plotcheck>=2):
 	ax4.set_xlabel('Electron $\\gamma$',fontsize=18)
 	ax4.set_ylabel('Number density (#/cm^3)',fontsize=18)	
 	ax4.set_xscale('log', basex=10)
-	ax4.set_yscale('log', basex=10)
+	ax4.set_yscale('log', basey=10)
 	ax4.yaxis.tick_right()
 	ax4.yaxis.set_label_position("right")
 	

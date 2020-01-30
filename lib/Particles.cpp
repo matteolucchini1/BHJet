@@ -73,7 +73,7 @@ void Particles::gdens_differentiate(){
 	double *temp = new double[size];
 	
 	for (int i=0;i<size;i++){
-		temp[i] = gdens[i]/(pow(gamma[i],2.)); 
+		temp[i] = gdens[i]/(pow(gamma[i],1.)); 
 	}
 	
 	for (int i=0;i<size-1;i++){

@@ -27,15 +27,15 @@ ShSDisk::ShSDisk(bool Tflag,double M,double T,double R1,double R2){
 	Rg = gconst*Mbh*msun/(cee*cee);
 	r = R1;					//note: for disk r is inner radius, z is the outer radius
 	z = R2;					//both are input in cm
-	eta = 0.04;				//note: this efficiency is tuned so that the estimated and total calculated 
-							//luminosity of the disk are the same.
-
+	
+	//NOTE: the constant factor to go between inner temperature Tin and disk lunminosity Eddrat is
+	//2 because the model uses the zero torque inner boundary condition, Kubota et al. 1998
 	if (Tflag == true){
 		Eddrat = T;
-		Tin =  pow(Eddrat*1.25e38*Mbh/(16.*pi*eta*sbconst*pow(r,2.)),0.25);
+		Tin =  pow(Eddrat*1.25e38*Mbh/(2.*sbconst*pow(r,2.)),0.25);
 	} else {
 		Tin = T*kboltz_kev2erg/kboltz;
-		Eddrat = 16.*pi*eta*sbconst*pow(Tin,4.)*pow(r,2.)/(1.25e38*Mbh);
+		Eddrat = 2.*sbconst*pow(Tin,4.)*pow(r,2.)/(1.25e38*Mbh);
 	}
 		
 	Hratio = std::max(0.1,Eddrat);

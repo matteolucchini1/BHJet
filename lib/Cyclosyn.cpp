@@ -130,7 +130,7 @@ double cyclosyn_abs(double gamma,void *p){
  	
  	ngamma_diff = gsl_spline_eval(derivs,gamma,acc_derivs);
 
-	return ngamma_diff*pow(gamma,3.)*emisfunc;
+	return ngamma_diff*pow(gamma,2.)*emisfunc;
 }
 
 //Integrals of single particle emissivity/absorption coefficient over particle distribution 

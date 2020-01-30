@@ -110,7 +110,7 @@ void equipartition(bool cj,double Nj,jet_dynpars &dyn,jet_enpars &en){
 		equip = 1./en.pbeta;
 		en.eta = (en.sig0*pmgm)/(en.av_gamma*emgm*(2.*equip-en.sig0*4./3.));
 	}
-	eq_fac = pmgm*pow(cee,2.)+en.av_gamma*emerg*(1.+equip);
+	eq_fac = pmgm*pow(cee,2.)+en.eta*en.av_gamma*emerg*(1.+equip);
 	dyn_fac = (cj+1.)*pi*pow(dyn.r0,2.)*dyn.gam0*dyn.beta0*cee;
 	en.protdens = Nj/(eq_fac*dyn_fac); 
 	//step two: calculate lepton number density and magnetic field

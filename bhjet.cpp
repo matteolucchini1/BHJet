@@ -23,15 +23,14 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 												//0: no protons
 												//1: Up = Ue+Ub
 												//2: ne = np	
-												//TODO: not implemented yet. Currently when velsw>1 the code
-												//always takes ne=np, otherwise it takes Up = Ue+Ub
+												//pair only jet not implemented yet.
 	
 	double Mbh;									//black hole mass in solar masses
 	double Eddlum;								//black hole Eddington luminosity
 	double Rg;									//black hole  gravitational radius in cm	
 	double theta;								//viewing angle	
 	double dist;								//distance in kpc	
-	double redsh;							//source redsh
+	double redsh;								//source redshift
 	double jetrat;								//injected power in Eddington units	
 	double zmin;								//jet launching point
 	double r0;									//initial jet radius in rg
@@ -143,9 +142,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 	velsw = param[26];
 	infosw = param[27];
 	
-	//initialize total energy/luminosity arrays, correcting for redshift TODO correct redshift; what needs to
-	//happen is tot_en doesn't change, but tot_lum is interpolated and evaluated at tot_en/(1+z). Changing tot_en
-	//makes no sense because in ISIS this is the array is always assumed to be in the observer frame
+	//initialize total energy/luminosity arrays
     for(int i=0;i<ne;i++){
        	tot_en[i] = (ear[i] + (ear[i+1]-ear[i])/2.)*herg/hkev;	
        	tot_syn_pre[i] = 1.e-50;
@@ -155,10 +152,9 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
        	tot_lum[i] = 1.e-50;	
 	}
 	
-	//TODO implement switch properly/check equipartition
 	npsw = 1;	
 	zmin = 2.*Rg;
-
+	
 	//Initialize disk+corona classes/objects
 	//TODO sort out implementation of disk temperature/luminosity
 	ShSDisk Disk(1,Mbh,Tin,Rin,Rout);
@@ -224,7 +220,11 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 			}
 			sum_ext(ncom,ne,Corona.get_energ_obs(),Corona.get_nphot_obs(),tot_en,tot_lum);	
 		}*/
-		sum_ext(50,ne,Disk.get_energ_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);   		
+		sum_ext(50,ne,Disk.get_energ_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);   	
+		if(infosw >= 3) {
+			Disk.test();
+			cout << endl;
+		}	
 	}	
 	
 	//Depending on the value of compsw, we either include a) an extra homogeneous black body in every zone or
@@ -283,11 +283,9 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     jet_dyn.gamf = velsw;
     jet_dyn.Rg = Rg;  
     
-    nozzle_ener.av_gamma = dummy_elec.av_gamma();
     nozzle_ener.pbeta = pbeta;
     nozzle_ener.Nj = jetrat;
    	nozzle_ener.sigf = sigmaf; 
-
 	//set up jet velocity profile depending on choice of adiabatic,isothermal,magnetically dominated jet   
 	//note: the adiabatic jet only runs correctly if the final temperature is above ~1kev, which means the
 	//initial temperature has to be ~10^4 kev
@@ -306,6 +304,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 		cout << "Jet base parameters: " << endl;
 		cout << "Pair content (ne/np): " << nozzle_ener.eta << endl;
 		cout << "Initial magnetization: " << nozzle_ener.sig0 << endl;
+		cout << "Particle average Lorenz factor: " << dummy_elec.av_gamma() << endl;
 	}	
 	
 	//STEP 5: TOTAL JET CALCULATIONS, LOOPING OVER EACH SEGMENT OF THE JET
