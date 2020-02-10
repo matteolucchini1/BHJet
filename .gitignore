@@ -9,13 +9,6 @@
 /Input/oj287_ssc.dat
 /Input/python.dat
 /Input/xrb.dat
-bhjet-module.so
-bhjet-test.sl
-agnjet-module.so
-agnjet-test.sl
-bhwrap.x
-bhjet_glue.cc
-Makefile
 /Output/Compton_zones.dat
 /Output/Cyclosyn_zones.dat
 /Output/Disk.dat
@@ -25,4 +18,11 @@ Makefile
 /Output/Precom.dat
 /Output/Presyn.dat
 /Output/Total.dat
+bhjet-module.so
+bhjet-test.sl
+agnjet-module.so
+agnjet-test.sl
+bhwrap.x
+bhjet_glue.cc
+Makefile
 /SEDs/

@@ -286,6 +286,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     nozzle_ener.pbeta = pbeta;
     nozzle_ener.Nj = jetrat;
    	nozzle_ener.sigf = sigmaf; 
+   	nozzle_ener.av_gamma = dummy_elec.av_gamma();
 	//set up jet velocity profile depending on choice of adiabatic,isothermal,magnetically dominated jet   
 	//note: the adiabatic jet only runs correctly if the final temperature is above ~1kev, which means the
 	//initial temperature has to be ~10^4 kev
