@@ -128,6 +128,8 @@ void sum_counterjet(int size,const double* input_en,const double* input_lum,doub
 void output_spectrum(int size,double* en,double* lum,double* spec,double redsh,double dist);
 void sum_zones(int size_in,int size_out,double* input_en,double* input_lum,double* en,double* lum);
 void sum_ext(int size_in,int size_out,const double* input_en,const double* input_lum,double* en,double* lum);
+double integrate_lum(int size,double numin,double numax,const double* input_en,const double* input_lum);
+double photon_index(int size,double numin,double numax,const double* input_en,const double* input_lum);
 
 void velprof_ad(gsl_spline *spline);
 void velprof_iso(gsl_spline *spline);

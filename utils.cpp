@@ -172,6 +172,39 @@ void sum_ext(int size_in,int size_out,const double* input_en,const double* input
 	gsl_spline_free(input_spline), gsl_interp_accel_free(acc);
 }
 
+//Simple numerical integral to calculate the luminosity between numin and numax of a given array; input units
+//are erg for the frequency/energy array, erg/s/Hz for the luminosity array to be integrated, Hz for the 
+//integration bounds; size is the dimension of the input arrays
+//Note: this uses a VERY rough method and wide bins, so thread carefully
+double integrate_lum(int size,double numin,double numax,const double* input_en,const double* input_lum){
+	double temp = 0.;
+	for (int i=0;i<size-1;i++){
+		if (input_en[i]/herg > numin && input_en[i+1]/herg < numax) {
+			temp = temp+(1./2.)*(input_en[i+1]/herg-input_en[i]/herg)*(input_lum[i+1]+input_lum[i]);
+		}		
+	}
+	return temp;
+}
+
+//Overly simplified estimate of the photon index between numin and numax of a given array; input is the same
+//as integrate_lum. Note that this assumes input_lum is a power-law in shape
+double photon_index(int size,double numin,double numax,const double* input_en,const double* input_lum){
+	int counter_1, counter_2 = 0;	
+	double delta_y, delta_x, gamma;	
+	for (int i=0;i<size;i++){
+		if (input_en[i]/herg < numin){
+			counter_1 = i;
+		}
+		if (input_en[i]/herg < numax){
+			counter_2 = i;
+		}
+	}	
+	delta_y = log10(input_lum[counter_2])-log10(input_lum[counter_1]);
+	delta_x = log10(input_en[counter_2]/herg)-log10(input_en[counter_1]/herg);
+	gamma = delta_y/delta_x - 1.;
+	return -gamma;
+}
+
 //Prepares files for above printing functions at the start of the run. There are two reasons this exists:
 //1) specifying the units of the output obviously makes things easier to read and
 //2) S-lang does not allow to pass ofstream objects to functions, so we need to pass a path and open the file

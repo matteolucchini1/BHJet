@@ -1,28 +1,28 @@
 10				#bh mass
-40				#viewing angle
-8				#distance in kpc
-0			#redshift
-1.e-2			#injected power in Eddington units
-7				#radius in rg
+10				#viewing angle
+7				#distance in kpc
+0.0		#redshift
+6.2e-2			#injected power in Eddington units
+12.0				#radius in rg
 2				#nozzle aspect ratio 
-1e3				#non-thermal injectin distance in rg
-1e3				#end of bulk magnetic acceleration in rg
-1.e8			#maximum distance of jet in rg
-300				#temperature in kev
+2.5e4				#non-thermal injectin distance in rg
+2.5e4			#end of bulk magnetic acceleration in rg
+1.e9			#maximum distance of jet in rg
+126				#temperature in kev
 0.1				#percentage of particles accelerated initially
-00				#reduction in accelerated particles over distance
-2				#non-thermal particle index
+17.5				#reduction in accelerated particles over distance
+4.0				#non-thermal particle index
 1				#shock heating at dissipation location
 0.1				#effective adiabatic expansion speed
-1e-6			#particle acceleration efficiency
-0.01			#initial plasma beta
-1				#final sigma if using magnetic acceleration
-0.002			#disk luminosity/temperature in eddington units
-20				#inner disk radius in rg
-1.e3			#outer disk radius in rg
-0				#external compton parameter 1
-0				#external compton parameter 2
+0.1				#particle acceleration efficiency
+0.02085			#initial plasma beta
+0.1				#final sigma if using magnetic acceleration
+0.15e-2			#disk luminosity/temperature in eddington units
+12.8				#inner disk radius in rg
+1.e1			#outer disk radius in rg
+0.0				#external compton parameter 1
+0.0				#external compton parameter 2
 0				#external compton parameter 3
 0				#external compton switch
 3				#velsw
-4			#infosw
+5			#infosw

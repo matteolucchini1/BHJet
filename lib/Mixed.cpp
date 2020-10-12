@@ -170,6 +170,7 @@ void Mixed::cooling_steadystate(double ucom, double n0,double bfield,double r,do
 		if (i < size-1) {
 			gsl_integration_qag(&F1, gamma[i], gamma[i+1], 1e1, 1e1, 100, 1, w1, &integral, &error);
 			ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass*cee)+pdot_rad*pow(p[i]/(mass*cee),2.));
+			//ndens[i] = (integral/tinj)/(pdot_ad*gamma[i]+pdot_rad*pow(gamma[i],2.));
 		}
 		else {
 			ndens[size-1] = ndens[size-2]*pow(p[size-1]/p[size-2],-pspec-1);

@@ -109,6 +109,8 @@ class Radiation {
 		const double *get_energ_obs()const	{ return en_phot_obs; }
 		const double *get_nphot_obs()const	{ return num_phot_obs; }
 		const int get_size() const			{ return size;}
+
+		double integrated_luminosity(double numin, double numax);
 		
 		void set_beaming(double theta,double speed,double doppler);
 		void set_inclination(double theta);

@@ -63,7 +63,7 @@ int main(){
 	end = omp_get_wtime();
     cout << "Total running time: " << end-start << " seconds" << endl;
     
-	system("python Plot.py");
+	system("python2.7 Plot.py");
 	
 	return EXIT_SUCCESS;
 }				// ----------  end of function main  ----------

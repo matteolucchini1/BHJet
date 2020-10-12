@@ -477,7 +477,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 			InvCompton.set_beaming(theta,zone.beta,zone.delta);
 			InvCompton.set_geometry(0,zone.r,zone.delz);
 			InvCompton.set_counterjet(IsCounterjet);	
-			InvCompton.set_tau(zone.lepdens,zone.r,Te/emerg);
+			InvCompton.set_tau(zone.lepdens,2.*zone.r,Te/emerg);
 			//Multiple scatters only if ypar and tau are large enough
 			if(InvCompton.get_ypar() > 1.e-2 && InvCompton.get_tau() > 1.e-2){
 				InvCompton.set_niter(15);		
@@ -552,6 +552,17 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 			plot_write(40,BlackBody.get_energ(),BlackBody.get_nphot(),"Output/BB.dat",dist,redsh);
 		}			
 		plot_write(ne,tot_en,tot_lum,"Output/Total.dat",dist,redsh);
+	}
+	if (infosw >=3) {
+		//this calculates the integrated luminosity at 1-10kev and at 3- GHz
+		cout << "Total 0.1-30 disk kev luminosity: "
+			 << integrate_lum(ne,0.1*2.41e17,30.*2.41e17,Disk.get_energ_obs(),Disk.get_nphot_obs()) << endl;
+		cout << "Total 0.1-300 IC kev luminosity: " 	
+			 << integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre) << endl; 
+		cout << "Total 0.1-300 continuum kev luminosity: " 
+			 << integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_lum) << endl; 
+		cout << "3-7 GHz luminosity: " << integrate_lum(ne,3e9,7e9,tot_en,tot_lum) << endl;
+		cout << "X-ray photon index estimate: " << photon_index(ne,3.*2.41e17,9.*2.41e17,tot_en,tot_lum) << endl;
 	}	
 	
 	gsl_spline_free(spline_eldis), gsl_interp_accel_free(acc_eldis);

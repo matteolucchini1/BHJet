@@ -14,7 +14,7 @@ pars = np.genfromtxt("Input/ip.dat")
 
 #oj287 = np.genfromtxt("SEDs/oj287.txt")
 #threec273 = np.genfromtxt("SEDs/3c273.txt")
-threec279 = np.genfromtxt("SEDs/3C279.txt")
+#threec279 = np.genfromtxt("SEDs/3C279.txt")
 #pks2155 = np.genfromtxt("SEDs/2155-304.txt")
 #pks1424 = np.genfromtxt("SEDs/1424-418_alpha.dat")
 
@@ -30,9 +30,9 @@ if (pars[0] >= 1.e3):
 	ulim_fd = 1.e5
 	blim_fd = 1.e-13
 else:
-	ulim_f = 0.9e20
+	ulim_f = 0.9e21
 	blim_f = 0.5e9
-	ulim_fl = 1e-9
+	ulim_fl = 1e-7
 	blim_fl = 1.e-16
 	ulim_fd = 5.e2
 	blim_fd = 0.2e-3
@@ -126,20 +126,20 @@ for i in range(nzones-1):
 		lnu_compton[l] = Compton_zones.T[1][totindex2+l]*nu_compton[l]*mjy*kevconv
 	totindex1 = totindex1 + int(size_cyclo_arr[i])
 	totindex2 = totindex2 + int(size_com_arr[i])	
-	if ((i%1) == 0):
-		ax1.plot(nu_cyclosyn,lnu_cyclosyn*fluxconv,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
-		ax1.plot(nu_compton,lnu_compton*fluxconv,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
-#ax1.plot(Presyn.T[0]/kevconv,Presyn.T[1]*Presyn.T[0]*mjy*fluxconv,linewidth=2.5,color='cyan',zorder=nzones+1)
+	#if ((i%1) == 0):
+	#	ax1.plot(nu_cyclosyn,lnu_cyclosyn*fluxconv,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
+	#	ax1.plot(nu_compton,lnu_compton*fluxconv,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
+ax1.plot(Presyn.T[0]/kevconv,Presyn.T[1]*Presyn.T[0]*mjy*fluxconv,linewidth=2.5,color='cyan',zorder=nzones+1)
 ax1.plot(Postsyn.T[0]/kevconv,Postsyn.T[1]*Postsyn.T[0]*mjy*fluxconv,linewidth=2.5,color='green',zorder=nzones+1)
-#ax1.plot(Precom.T[0]/kevconv,Precom.T[1]*Precom.T[0]*mjy*fluxconv,linewidth=2.5,color='blue',zorder=nzones+1)
+ax1.plot(Precom.T[0]/kevconv,Precom.T[1]*Precom.T[0]*mjy*fluxconv,linewidth=2.5,color='blue',zorder=nzones+1)
 ax1.plot(Postcom.T[0]/kevconv,Postcom.T[1]*Postcom.T[0]*mjy*fluxconv,linewidth=2.5,color='purple',zorder=nzones+1)
 #ax1.plot(Corona.T[0]/kevconv,Corona.T[1]*Corona.T[0]*mjy*fluxconv,linewidth=2.5,color='#0165fc',zorder=nzones+1)
 ax1.plot(Disk.T[0]/kevconv,Disk.T[1]*Disk.T[0]*mjy*fluxconv,linewidth=2.5,color='red',zorder=nzones+1)
-ax1.plot(BB.T[0]/kevconv,BB.T[1]*BB.T[0]*mjy*fluxconv,linewidth=2.5,color='orange',zorder=nzones+1)
+#ax1.plot(BB.T[0]/kevconv,BB.T[1]*BB.T[0]*mjy*fluxconv,linewidth=2.5,color='orange',zorder=nzones+1)
 ax1.plot(Total.T[0]/kevconv,Total.T[1]*Total.T[0]*mjy*fluxconv,linewidth=1.5,color='black',zorder=nzones+1)
 #ax1.scatter(oj287.T[0]/kevconv,oj287.T[2],color='red',marker='s')
 #ax1.scatter(threec273.T[0]/kevconv,threec273.T[2],color='green',marker='o')
-ax1.scatter(threec279.T[0]/kevconv,threec279.T[2],color='#0504aa',marker='p')
+#ax1.scatter(threec279.T[0]/kevconv,threec279.T[2],color='#0504aa',marker='p')
 #ax1.scatter(pks2155.T[0]/kevconv,pks2155.T[2],color='black',marker='p')
 #ax1.errorbar(pks1424x,pks1424.T[2],yerr=pks1424.T[3],xerr=[pks1424xerrm,pks1424xerrp],color='black',fmt='o')
 ax1.set_ylim([blim_fl*fluxconv,ulim_fl*fluxconv])
@@ -174,16 +174,16 @@ for i in range(nzones-1):
 		lnu_compton[l] = Compton_zones.T[1][totindex2+l]
 	totindex1 = totindex1 + int(size_cyclo_arr[i])
 	totindex2 = totindex2 + int(size_com_arr[i])	
-	if ((i%1)== 0):
-		ax2.plot(nu_cyclosyn,lnu_cyclosyn,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
-		ax2.plot(nu_compton,lnu_compton,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
+	#if ((i%1)== 0):
+		#ax2.plot(nu_cyclosyn,lnu_cyclosyn,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
+		#ax2.plot(nu_compton,lnu_compton,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
 ax2.plot(Presyn.T[0]/kevconv,Presyn.T[1],linewidth=2.5,color='cyan',zorder=nzones+1)
 ax2.plot(Postsyn.T[0]/kevconv,Postsyn.T[1],linewidth=2.5,color='green',zorder=nzones+1)
 ax2.plot(Precom.T[0]/kevconv,Precom.T[1],linewidth=2.5,color='blue',zorder=nzones+1)
 ax2.plot(Postcom.T[0]/kevconv,Postcom.T[1],linewidth=2.5,color='purple',zorder=nzones+1)
 #ax2.plot(Corona.T[0]/kevconv,Corona.T[1],linewidth=2.5,color='#0165fc',zorder=nzones+1)
 ax2.plot(Disk.T[0]/kevconv,Disk.T[1],linewidth=2.5,color='red',zorder=nzones+1)
-ax2.plot(BB.T[0]/kevconv,BB.T[1],linewidth=2.5,color='orange',zorder=nzones+1)
+#ax2.plot(BB.T[0]/kevconv,BB.T[1],linewidth=2.5,color='orange',zorder=nzones+1)
 ax2.plot(Total.T[0]/kevconv,Total.T[1],linewidth=1.5,color='black',zorder=nzones+1)
 ax2.set_ylim([blim_fd,ulim_fd])
 ax2.set_xlim([blim_f/kevconv,ulim_f/kevconv])
