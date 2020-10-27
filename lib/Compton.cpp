@@ -186,10 +186,10 @@ void Compton::compton_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_int
        		}
 			num_phot[i] = num_phot[i]+com*vol*en_phot[i]*herg;
 			en_phot_obs[i] = en_phot[i]*dopfac;
-			num_phot_obs[i] = num_phot[i]*pow(dopfac,2.);
+			num_phot_obs[i] = num_phot[i]*pow(dopfac,dopnum);
 			if(counterjet == true){ 
     			en_phot_obs[i+size] = en_phot[i]*dopfac_cj;
-    			num_phot_obs[i+size] = num_phot[i]*pow(dopfac_cj,2.);
+    			num_phot_obs[i+size] = num_phot[i]*pow(dopfac_cj,dopnum);
     		} else {
     			en_phot_obs[i+size] = 0;
     			num_phot_obs[i+size] = 0;

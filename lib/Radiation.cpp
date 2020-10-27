@@ -18,10 +18,12 @@ void Radiation::set_geometry(bool sphsw,double l1,double l2){
 		r = l1;
 		z = l2;
 		vol = pi*pow(r,2.)*z;
+		dopnum = 2.;
 	} else {
 		r = l1;
 		z = r;
 		vol = (4./3.)*pi*pow(r,3.);
+		dopnum = 3.;
 	}
 }
 

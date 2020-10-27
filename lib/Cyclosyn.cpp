@@ -207,7 +207,7 @@ void Cyclosyn::specific_luminosity(int k,double gmin,double gmax, gsl_spline *el
     }    
     
     num_phot[k]	= pi*r*r*absfac*epsasyn;    
-    num_phot_obs[k]	= 2.*r*z*absfac_obs*epsasyn*pow(dopfac,2.);
+    num_phot_obs[k]	= 2.*r*z*absfac_obs*epsasyn*pow(dopfac,dopnum);
     
     if(counterjet == true){    	
    		tsyn_obs = pi/2.*asyn*r/(dopfac_cj*sin(angle));    
@@ -217,7 +217,7 @@ void Cyclosyn::specific_luminosity(int k,double gmin,double gmax, gsl_spline *el
     	else{
         	absfac_obs	= tsyn_obs-pow(tsyn_obs,2.)/2.+pow(tsyn_obs,3.)/6.;
     	}
-    	num_phot_obs[k+size] = 2.*r*z*absfac_obs*epsasyn*pow(dopfac_cj,2.);
+    	num_phot_obs[k+size] = 2.*r*z*absfac_obs*epsasyn*pow(dopfac_cj,dopnum);
     } else {
     	num_phot_obs[k+size] = 0;
     }

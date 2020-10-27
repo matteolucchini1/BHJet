@@ -99,6 +99,7 @@ class Radiation {
 		double vol;					//Volume of emitting region
 		double beta;				//speed of the emitting region
 		double dopfac,angle;		//Viewing angle/Doppler factor of emitting region
+		double dopnum;				//Doppler boosting exponent, depends on geometry (see .cpp)
 		bool counterjet;			//boolean switch if user wants to include counterjet emission
 		
 		gsl_integration_workspace *w1;//workspace for any numerical integration
