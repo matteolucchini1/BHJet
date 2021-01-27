@@ -219,7 +219,7 @@ void Cyclosyn::specific_luminosity(int k,double gmin,double gmax, gsl_spline *el
     	}
     	num_phot_obs[k+size] = 2.*r*z*absfac_obs*epsasyn*pow(dopfac_cj,dopnum);
     } else {
-    	num_phot_obs[k+size] = 0;
+    	num_phot_obs[k+size] = 0.;
     }
 }
 
