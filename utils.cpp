@@ -205,7 +205,7 @@ double photon_index(int size,double numin,double numax,const double* input_en,co
     delta_y = log10(input_lum[counter_2])-log10(input_lum[counter_1]);
     delta_x = log10(input_en[counter_2]/herg)-log10(input_en[counter_1]/herg);
     gamma = delta_y/delta_x - 1.;
-    return -gamma;
+    return gamma;
 }
 
 //Prepares files for above printing functions at the start of the run. There are two reasons this exists:

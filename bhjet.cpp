@@ -46,14 +46,10 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     double betaeff;								//effective expansion velocity used to set adiabatic cooling
     double fsc;									//particle acceleration timescale parameter		
     double pbeta;								//plasma beta in the jet base
-    double sigmaf;								//final sigma when using magnetic acceleration
-    double Tin;									//disk inner temperature in keV/luminosity in Eddington units
+    double sig_acc;								//final sigma when using magnetic acceleration
+    double Ldisk;								//disk luminosity in Eddington units
     double Rin;									//disk inner radius in rg
     double Rout;								//disk outer radius in rg
-    //double Tcor;								//corona temperature in kev
-    //double taucor;							//corona optical depth
-    //double Rcor;								//corona effective radius/normalization, in units of Rg
-    //double cordens;							//corona lepton number density
     double compar1;								//external inverse Compton parameters; different meanings
     double compar2;								//depending on the value of compsw
     double compar3;	
@@ -115,32 +111,27 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     redsh = param[3];
     jetrat = param[4]*Eddlum;
     r0 = param[5]*Rg;
-    h = param[6]*r0;
-    zdiss = param[7]*Rg;
-    zacc = param[8]*Rg;	
-    zmax = param[9]*Rg;
-    Te = param[10]*kboltz_kev2erg;
-    plfrac = param[11];
-    pldist = param[12];
-    pspec = param[13];
-    heat = param[14];
-    betaeff = param[15];
-    fsc = param[16];
-    pbeta = param[17];
-    sigmaf = param[18];	
-    Tin = param[19];
-    Rin = param[20]*Rg;
-    Rout = param[21]*Rg;
-    //Tcor = param[20]*kboltz_kev2erg;
-    //taucor = param[21];
-    //Rcor = param[22]*Rg;
-    //cordens = taucor/(Rcor*sigtom);
-    compar1 = param[22];
-    compar2 = param[23];
-    compar3 = param[24];
-    compsw = param[25];
-    velsw = param[26];
-    infosw = param[27];
+    zdiss = param[6]*Rg;
+    zacc = param[7]*Rg;	
+    zmax = param[8]*Rg;
+    Te = param[9]*kboltz_kev2erg;
+    plfrac = param[10];
+    pldist = param[11];
+    pspec = param[12];
+    heat = param[13];
+    betaeff = param[14];
+    fsc = param[15];
+    pbeta = param[16];
+    sig_acc = param[17];	
+    Ldisk = param[18];
+    Rin = param[19]*Rg;
+    Rout = param[20]*Rg;
+    compar1 = param[21];
+    compar2 = param[22];
+    compar3 = param[23];
+    compsw = param[24];
+    velsw = param[25];
+    infosw = param[26];
 
     //initialize total energy/luminosity arrays
     for(int i=0;i<ne;i++){
@@ -155,14 +146,8 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     npsw = 1;	
     zmin = 2.*Rg;
 
-    //Initialize disk+corona classes/objects
-    //TODO sort out implementation of disk temperature/luminosity
-    ShSDisk Disk(1,Mbh,Tin,Rin,Rout);
-    //Thermal cor_elec(nel,1,Tcor);  
-    //ncom = int(log10(1.e21)-log10(1.e15))*com_res*3;
-    //Compton Corona(ncom,50,Niter,1.e15,1.e21,emgm);
-
-    //Initialize external photon classes	
+    //Initialize disk+external photon classes
+    ShSDisk Disk(1,Mbh,Ldisk,Rin,Rout);
     BBody BLR(0,0);
     BBody Torus(0,0);
     BBody BlackBody(0,0);
@@ -174,7 +159,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         clean_file("Output/Postcom.dat",1);
         clean_file("Output/Disk.dat",1);
         clean_file("Output/BB.dat",1);
-        //clean_file("Output/Corona.dat",1);
         clean_file("Output/Total.dat",1);	
     }
     if(infosw>=2){	
@@ -183,43 +167,13 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         clean_file("Output/Compton_zones.dat",1);			
     }
 
-    //OPTIONAL STEP 3: DISK/CORONA/EXTERNAL PHOTON CALCULATIONS
-    //----------------------------------------------------------------------------------------------
+    //STEP 3: DISK/EXTERNAL PHOTON CALCULATIONS
 
     //calculate disk+corona spectrum if desired
-    //The disk is disabled by setting Rin<Rout, the corona by setting tau <= 0
+    //The disk is disabled by setting Rin<Rout
     if(Rin<Rout){		
 	    Disk.set_inclination(theta);
 	    Disk.disk_spectrum();			
-        /*if(taucor>0){
-            cor_elec.set_p();    	
-            cor_elec.set_norm(cordens);
-            cor_elec.set_ndens();
-
-            gmin = cor_elec.get_gamma()[0];
-            gmax = cor_elec.get_gamma()[nel-1];
-                   
-            gsl_spline_init(spline_eldis,cor_elec.get_gamma(),cor_elec.get_gdens(),nel);
-
-            //calculate corona spectrum, scattering only disk photons	
-            Corona.set_beaming(theta,0.,1.);
-            Corona.set_geometry(1,Rcor,0);
-            Corona.set_tau(cordens,Rcor,cor_elec.av_gamma());
-            //Multiple scatters only if ypar and tau are large enough
-            if(Corona.get_ypar() > 1.e-2 && Corona.get_tau() > 1.e-2){
-                Corona.set_niter(15);    
-            }
-            Corona.shsdisk_seed(Disk.get_energ(),Disk.tin(),Rin,Rout,Disk.hdisk(),0);        
-            Corona.compton_spectrum(gmin,gmax,spline_eldis,acc_eldis);		
-            if (infosw>=3){
-                cout << "Disk and corona parameters: " << endl;
-                Disk.test();
-                Corona.test();
-                cout << "Power in the corona: " << pi*pow(Rcor,2.)*cordens*cor_elec.av_gamma()*emerg*cee;
-                cout << endl << endl;
-            }
-            sum_ext(ncom,ne,Corona.get_energ_obs(),Corona.get_nphot_obs(),tot_en,tot_lum);	
-        }*/
         sum_ext(50,ne,Disk.get_energ_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);   	
         if(infosw >= 3) {
             Disk.test();
@@ -275,7 +229,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 
     jet_dyn.min = zmin;
     jet_dyn.max = zmax;
-    jet_dyn.h0 = h+zmin;
+    jet_dyn.h0 = 2.*r0+zmin;
     jet_dyn.r0 = r0;
     jet_dyn.acc = zacc;
     jet_dyn.beta0 = sqrt(4./3.*(4./3.-1.)/(4./3.+1.));	//set initial jet speed for relativistic fluid, g=4/3 
@@ -285,7 +239,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 
     nozzle_ener.pbeta = pbeta;
     nozzle_ener.Nj = jetrat;
-    nozzle_ener.sigf = sigmaf; 
+    nozzle_ener.sig_acc = sig_acc; 
     nozzle_ener.av_gamma = dummy_elec.av_gamma();
     //set up jet velocity profile depending on choice of adiabatic,isothermal,magnetically dominated jet   
     //note: the adiabatic jet only runs correctly if the final temperature is above ~1kev, which means the
@@ -403,7 +357,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         }
 
         //Note: the energy density below assumes only cold protons!
-        if (infosw>=4){
+        if (infosw>=5){
             double Up,Ue,Ub;
             Ue = sqrt(zone.avgammasq)*zone.lepdens*emerg;
             Up = (zone.lepdens/nozzle_ener.eta)*pmgm*pow(cee,2.);
@@ -556,16 +510,24 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         plot_write(ne,tot_en,tot_lum,"Output/Total.dat",dist,redsh);
 }
     if (infosw >=3) {
-        //this calculates the integrated luminosity at 1-10kev and at 3- GHz
-        cout << "Total 0.1-30 disk kev luminosity: "
+        cout << "Observed 0.1-30 disk kev luminosity: "
              << integrate_lum(ne,0.1*2.41e17,30.*2.41e17,Disk.get_energ_obs(),Disk.get_nphot_obs()) << endl;
-        cout << "Total 0.1-300 IC kev luminosity: " 	
+        cout << "Observed 0.1-300 IC kev luminosity: " 	
              << integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre) << endl; 
-        cout << "Total 0.1-300 continuum kev luminosity: " 
+        cout << "Observed 0.1-300 kev luminosity: " 
              << integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_lum) << endl; 
-        cout << "3-7 GHz luminosity: " << integrate_lum(ne,3e9,7e9,tot_en,tot_lum) << endl;
-        cout << "X-ray photon index estimate: " << photon_index(ne,3.*2.41e17,9.*2.41e17,tot_en,tot_lum) << endl;
-        cout << "Radio photon index estimate: " << photon_index(ne,1e10,1e11,tot_en,tot_lum) << endl;
+        cout << "Observed 3-7 GHz luminosity: " << integrate_lum(ne,3e9,7e9,tot_en,tot_lum) << endl;
+        cout << "X-ray 5-30 keV photon index estimate: " 
+             << photon_index(ne,5.*2.41e17,30.*2.41e17,tot_en,tot_lum) << endl;
+        cout << "Radio 10-100 GHz spectral index estimate: " 
+             << 1.+photon_index(ne,1e10,1e11,tot_en,tot_lum) << endl;
+        double compactness = integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre)*sigtom
+                             /(r0*emerg*cee);      
+        cout << "Corona compactness: " << compactness << endl;
+            if (compactness >= 10.*(param[10]/511.)*exp(511./param[10])) {
+                cout << "Possible runaway pair production in the jet base!" << endl; 
+                cout << "Allowed compactness: " << 10.*(param[10]/511.)*exp(511./param[10]) << endl;
+            }
     }	
 
     gsl_spline_free(spline_eldis), gsl_interp_accel_free(acc_eldis);

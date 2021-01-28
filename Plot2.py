@@ -49,7 +49,7 @@ for n in range(0,len(zheight)):
 zheight = np.around(zheight,decimals=2)
 
 z = pars[3]
-plotcheck = pars[27]
+plotcheck = pars[26]
 
 if (plotcheck >= 1):
 	Presyn = np.genfromtxt("Output/Presyn.dat")

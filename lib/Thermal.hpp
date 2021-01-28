@@ -8,19 +8,19 @@
 //note: ndens is number density per unit momentum
 
 class Thermal: public Particles {
-	private:
-		double Temp, thnorm, theta;
-	public:
-		Thermal(int s,int type, double T);		
-			
-		void set_p();						
-		void set_ndens();
-		void set_temp(double T);
-		void set_norm(double n);
-		
-		double K2(double x);
-		
-		void test();		
+    private:
+        double Temp, thnorm, theta;
+    public:
+        Thermal(int s,int type, double T);		
+	
+        void set_p();						
+        void set_ndens();
+        void set_temp(double T);
+        void set_norm(double n);
+
+        double K2(double x);
+
+        void test();		
 };
 
 #endif

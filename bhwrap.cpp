@@ -39,7 +39,7 @@ int main(){
     double start = omp_get_wtime();
     double end; 
 
-    int npar = 28;
+    int npar = 27;
     int ne = 201;
     double emin	= -10;
     double emax	= 10;

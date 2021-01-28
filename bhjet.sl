@@ -15,7 +15,7 @@ define bhjet_fit(lo,hi,par)
    variable ear = [_A(hi),_A(lo[0])];
    variable nein = length(lo), photar=Double_Type[nein], photer=@photar;
    
-   variable pars = par[[1:28]];
+   variable pars = par[[1:27]];
 
    % !!!  It is important to match the type for arrays that are input, !!!
    % !!!  and recieve return values.  I.e., phot & energ go in and     !!!
@@ -45,26 +45,25 @@ define bhjet_fit(lo,hi,par)
 %change parameters here to not have corona and have inverted spectrum
 static variable jet_input = { 
 "norm",              1.,     0.,    10.,
-"mbh [msun]",      1.e9,     3.,  3.e10,
-"incl [deg]",       20.,     2.,    80.,
-"dkpc [kpc]",     16.e3,     1.,   1.e6,
-"redshift",			 0.,	 0.,	 5.,
+"mbh [msun]",      1.e6,     3.,  3.e10,
+"incl [deg]",       40.,     2.,    80.,
+"dkpc [kpc]",      3.e3,     1.,   1.e6,
+"redshift",			 0.,	 0.,	 7.,
 "jetrat [L_edd]", 5.e-3,  1.e-7,     1.,
 "r0 [r_g]",         20.,     2.,    80.,
-"hratio",	     	 2.,     1.,     5.,		
 "zdiss [r_g]",    1000.,    50.,   5.e5,
 "zacc [r_g]",     1000.,   3.e2,   5.e5,
-"zmax [r_g]",     1.e7,   1.e5,    1.e9,
+"zmax [r_g]",      1.e7,   1.e5,    1.e9,
 "Te [Kev]",        100.,    10.,   2.e3,
 "plfrac",           0.1,   0.05,   0.95,
-"pldist",            0.,     0.,   	10.,
+"f_pl",             0.,     0.,   	10.,
 "pspec",             2.,    1.5,     3.,
-"heat",              1.,     1.,    50.,
-"betaeff",	     	0.1,  0.001,     1.,
-"fsc",           1.5e-7,   1e-9,    0.1,
-"pbeta",          2.e-3,   1e-3,     1.,
-"sigf",		   	   1e-1,  1.e-2,     1.,
-"Tin [keV/-L_edd]",1.e-2,  1.e-6,    5.,
+"f_heat",            1.,     1.,    50.,
+"f_b",   	        0.1,  0.001,     1.,
+"f_sc",          1.5e-7,   1e-9,    0.1,
+"pbeta",          5.e-2,   1e-3,     1.,
+"sig_acc",	   	   1e-1,  1.e-2,     1.,
+"Tin [L_edd]",    1.e-2,  1.e-4,     1.,
 "rin [r_g]",         1.,     1.,   2.e2,
 "rout [r_g]",     1000.,    10.,   1.e5,
 "compar1",         1.e3,     3.,   1.e6,
@@ -94,7 +93,7 @@ static variable jet_frz = Integer_Type[npar];
 
 % Default above is no frozen parameters, now set the frozen ones
 
-jet_frz[[0,1,2,3,4,4,9,10,12,13,14,15,16,19,22,23,24,25,26,27,28]]=1;
+jet_frz[[0,1,2,3,4,8,9,11,12,14,15,18,21,22,23,24,25,26,27]]=1;
 
 add_slang_function("bhjet",jet_pars);
 
@@ -111,6 +110,6 @@ set_param_default_hook("bhjet","bhjet_defaults");
 % of the above
 
 variable par = @jet_def;
-variable pars = par[[1:28]];
+variable pars = par[[1:27]];
 variable lo = _A([-11.0:10.0:0.07]);
 variable hi = make_hi_grid(lo);
