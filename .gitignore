@@ -6,6 +6,6 @@ agnjet-test.sl
 bhwrap.x
 bhjet_glue.cc 
 Makefile
-Output/*
+Output/*.dat
 Input/*.dat
 *.dat
