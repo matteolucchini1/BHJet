@@ -115,6 +115,6 @@ const double BBody::Urad(double d){
 }
 
 void BBody::test(){
-    std::cout << "Black body temperature in K: " << temp_k() << " in Kev: " << temp_kev() << std::endl;
+    std::cout << "Black body temperature in K: " << temp_k() << " in keV: " << temp_kev() << std::endl;
     std::cout << "Black body bolometric luminosity in erg s^-1 " << Lbb << std::endl;
 }

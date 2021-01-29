@@ -3,7 +3,7 @@
 3				#distance in kpc
 0.0		        #redshift
 1e-2			#injected power in Eddington units
-10				#radius in rg
+5				#radius in rg
 1.e4			#non-thermal injection distance in rg
 1.e4			#end of bulk magnetic acceleration in rg
 1.e9			#maximum distance of jet in rg

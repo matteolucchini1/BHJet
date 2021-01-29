@@ -187,7 +187,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         BlackBody.set_temp_k(compar1);
         BlackBody.set_lum(compar2);
         Ubb1 = compar3;	
-        BlackBody.set_inclination(0.);
         BlackBody.bb_spectrum();
         sum_ext(40,ne,BlackBody.get_energ(),BlackBody.get_nphot(),tot_en,tot_lum);
     }
@@ -196,12 +195,10 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 
         BLR.set_temp_kev(agn_com.tblr);
         BLR.set_lum(agn_com.lblr);
-        BLR.set_inclination(0.);
         BLR.bb_spectrum();			
 
         Torus.set_temp_k(agn_com.tdt);
         Torus.set_lum(agn_com.ldt);	
-        Torus.set_inclination(0.);
         Torus.bb_spectrum();		
         if(infosw>=3){
             cout << "BLR radius in Rg: " << agn_com.rblr/Rg << endl;
@@ -324,12 +321,8 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 IsShock = true;
             }					
             Mixed acc_lep(nel,1,zone.eltemp,pspec,1);
-            //Mixed acc_lep(nel,1,tshift*Te,pspec,1);
             acc_lep.set_plfrac(plfrac*pow(log10(zdiss)/log10(z),pldist));
-            //some combination of plfrac*pow(log10(zdiss)/log10(z),pldist.) or
-            //tshift*Te*pow(log10(zdiss)/log10(z),pldist.)  might work for inverting spectra
-            //doing both is more consistent and makes physical sense
-
+            
             //if fsc < 10 it's the acceleration efficiency, else it's the desired maximum lorentz factor
             if (fsc<10.){
                 acc_lep.set_p(Urad,zone.bfield,betaeff,zone.r,fsc);
@@ -403,7 +396,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         //Set up the calculation by reading in magnetic field,beaming,volume,counterjet presence	
         Syncro.set_bfield(zone.bfield);
         Syncro.set_beaming(theta,zone.beta,zone.delta);
-        Syncro.set_geometry(0,zone.r,zone.delz);
+        Syncro.set_geometry("cylinder",zone.r,zone.delz);
         //IsCounterjet = true;
         Syncro.set_counterjet(IsCounterjet);
         Syncro.cycsyn_spectrum(gmin,gmax,spline_eldis,acc_eldis,spline_deriv,acc_deriv);
@@ -431,9 +424,9 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         //if(z>zmax){
             //Set up the calculation by reading in/calculating beaming,volume,counterjet presence,tau
             InvCompton.set_beaming(theta,zone.beta,zone.delta);
-            InvCompton.set_geometry(0,zone.r,zone.delz);
+            InvCompton.set_geometry("cylinder",zone.r,zone.delz);
             InvCompton.set_counterjet(IsCounterjet);	
-            InvCompton.set_tau(zone.lepdens,2.*zone.r,Te/emerg);
+            InvCompton.set_tau(zone.lepdens,Te/emerg);
             //Multiple scatters only if ypar and tau are large enough
             if(InvCompton.get_ypar() > 1.e-2 && InvCompton.get_tau() > 1.e-2){
                 InvCompton.set_niter(15);		
@@ -510,11 +503,11 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         plot_write(ne,tot_en,tot_lum,"Output/Total.dat",dist,redsh);
 }
     if (infosw >=3) {
-        cout << "Observed 0.1-30 disk kev luminosity: "
+        cout << "Observed 0.1-30 keV disk luminosity: "
              << integrate_lum(ne,0.1*2.41e17,30.*2.41e17,Disk.get_energ_obs(),Disk.get_nphot_obs()) << endl;
-        cout << "Observed 0.1-300 IC kev luminosity: " 	
+        cout << "Observed 0.1-300 keV Inverse Compton luminosity: " 	
              << integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre) << endl; 
-        cout << "Observed 0.1-300 kev luminosity: " 
+        cout << "Observed 0.1-300 keV total luminosity: " 
              << integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_lum) << endl; 
         cout << "Observed 3-7 GHz luminosity: " << integrate_lum(ne,3e9,7e9,tot_en,tot_lum) << endl;
         cout << "X-ray 5-30 keV photon index estimate: " 
@@ -524,10 +517,10 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         double compactness = integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre)*sigtom
                              /(r0*emerg*cee);      
         cout << "Corona compactness: " << compactness << endl;
-            if (compactness >= 10.*(param[10]/511.)*exp(511./param[10])) {
-                cout << "Possible runaway pair production in the jet base!" << endl; 
-                cout << "Allowed compactness: " << 10.*(param[10]/511.)*exp(511./param[10]) << endl;
-            }
+        if (compactness >= 10.*(param[9]/511.)*exp(511./param[9])) {
+            cout << "Possible runaway pair production in the jet base!" << endl; 
+            cout << "Lower limint on allowed compactness: " << 10.*(param[9]/511.)*exp(511./param[9]) << endl;
+        }
     }	
 
     gsl_spline_free(spline_eldis), gsl_interp_accel_free(acc_eldis);

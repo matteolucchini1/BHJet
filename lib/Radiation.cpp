@@ -13,17 +13,27 @@ void Radiation::set_inclination(double theta){
     angle = theta*pi/180.;
 }
 
-void Radiation::set_geometry(bool sphsw,double l1,double l2){
-    if (sphsw == false) {
+void Radiation::set_geometry(std::string geom,double l1,double l2){
+    if (geom == "cylinder") {
         r = l1;
         z = l2;
         vol = pi*pow(r,2.)*z;
         dopnum = 2.;
-    } else {
+        geometry = geom;
+    } else if (geom == "sphere"){
         r = l1;
         z = r;
         vol = (4./3.)*pi*pow(r,3.);
         dopnum = 3.;
+        geometry = geom;
+    } else {
+        std::cout << "Input wrong, assuming sphere of radius 1 cm" << std::endl;
+        std::cout << "Choose either sphere or cylinder!" << std::endl;
+        r = 1.;
+        z = 1.;
+        vol = 4.*pi/3.;
+        dopnum = 3.;
+        geometry = "wrong!";
     }
 }
 

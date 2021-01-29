@@ -197,8 +197,12 @@ void Cyclosyn::specific_luminosity(int k,double gmin,double gmax, gsl_spline *el
         absfac	= tsyn-pow(tsyn,2.)/2.+pow(tsyn,3.)/6.;
     }    
 
-    //This includes skin depth/viewing angle effects; the calculation differs from above by ~a few at most
-    tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
+    //This includes skin depth/viewing angle effects for cylinder case
+    if (geometry == "cylinder") {
+        tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
+    } else {
+        tsyn_obs = pi/2.*asyn*r/(dopfac);    
+    }
     if(tsyn_obs >= 1.){
         absfac_obs	= (1.-exp(-tsyn_obs));
     }
@@ -210,7 +214,11 @@ void Cyclosyn::specific_luminosity(int k,double gmin,double gmax, gsl_spline *el
     num_phot_obs[k]	= 2.*r*z*absfac_obs*epsasyn*pow(dopfac,dopnum);
 
     if(counterjet == true){    	
-        tsyn_obs = pi/2.*asyn*r/(dopfac_cj*sin(angle));    
+        if (geometry == "cylinder") {
+        tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
+        } else {
+            tsyn_obs = pi/2.*asyn*r/(dopfac);    
+        }        
         if(tsyn_obs >= 1.){
         	absfac_obs	= (1.-exp(-tsyn_obs));
         }

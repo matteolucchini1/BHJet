@@ -3,6 +3,47 @@
 
 #include <iostream>
 
+//radiative transfer tables vs tau and temperature. The limits are set an epsilon off the physical 
+//limits tested (20-2500 kev, tau 0.05 to 3) to avoid occasional weird GSL interoplation bugs.
+static double Te_table[15] = {19.999,30.,50.,70.,90.,120.,150.,200.,280.,400.,600.,900.,1300.,1800.,2500.001};
+static double tau_table[15]	= {0.04999,0.07,0.1,0.19,0.27,0.38,0.54,0.76,0.94,1.08,1.34,1.75,2.1,2.6,3.0001};
+    
+static double esc_table_sph[225] = {
+0.02,0.07,0.17,0.27,0.33,0.4,0.45,0.45,0.55,0.55,0.54,0.51,0.48,0.55,0.55,
+0.02,0.07,0.18,0.275,0.33,0.4,0.45,0.47,0.55,0.53,0.56,0.51,0.5,0.55,0.55,
+0.02,0.07,0.18,0.275,0.34,0.4,0.45,0.47,0.55,0.54,0.52,0.51,0.53,0.55,0.58,
+0.025,0.085,0.18,0.275,0.35,0.4,0.45,0.47,0.55,0.54,0.59,0.57,0.5,0.55,0.6,
+0.028,0.085,0.2,0.275,0.35,0.4,0.45,0.49,0.54,0.54,0.6,0.59,0.53,0.55,0.65,
+0.035,0.09,0.21,0.29,0.35,0.4,0.45,0.49,0.55,0.57,0.58,0.6,0.53,0.55,0.7,
+0.045,0.12,0.23,0.3,0.35,0.41,0.42,0.49,0.54,0.57,0.58,0.58,0.5,0.55,0.7,
+0.055,0.135,0.23,0.3,0.35,0.4,0.42,0.49,0.52,0.57,0.59,0.61,0.58,0.57,0.85,
+0.07,0.14,0.235,0.3,0.35,0.4,0.41,0.49,0.5,0.57,0.58,0.61,0.61,0.57,0.85,
+0.08,0.145,0.235,0.3,0.35,0.39,0.4,0.49,0.5,0.57,0.58,0.63,0.7,0.6,0.85,
+0.09,0.15,0.245,0.3,0.35,0.4,0.4,0.45,0.49,0.55,0.62,0.64,0.73,0.6,0.85,
+0.105,0.17,0.26,0.31,0.35,0.4,0.4,0.45,0.47,0.56,0.62,0.65,0.78,0.65,0.85,
+0.115,0.19,0.28,0.32,0.35,0.4,0.4,0.45,0.44,0.5,0.67,0.68,0.8,0.7,1.,
+0.14,0.215,0.3,0.34,0.38,0.4,0.4,0.45,0.42,0.48,0.68,0.73,0.85,0.8,1.,
+0.16,0.23,0.31,0.35,0.38,0.4,0.4,0.45,0.42,0.48,0.67,0.78,0.9,0.9,1.,
+};
+
+static double esc_table_cyl[225] = {
+0.02,0.06,0.22,0.3,0.5,0.5,0.57,0.7,0.75,0.75,0.75,0.77,0.75,0.76,0.7,
+0.02,0.06,0.19,0.28,0.4,0.5,0.57,0.65,0.65,0.75,0.7,0.75,0.7,0.7,0.75,
+0.017,0.04,0.17,0.27,0.32,0.5,0.57,0.6,0.6,0.7,0.65,0.65,0.73,0.67,0.7,
+0.01,0.04,0.12,0.17,0.23,0.35,0.4,0.55,0.5,0.55,0.55,0.65,0.7,0.67,0.68,
+0.01,0.04,0.1,0.17,0.19,0.28,0.32,0.4,0.45,0.5,0.5,0.5,0.68,0.66,0.68,
+0.015,0.04,0.09,0.17,0.19,0.25,0.25,0.35,0.45,0.4,0.45,0.5,0.64,0.64,0.68,
+0.02,0.05,0.09,0.15,0.17,0.22,0.24,0.3,0.35,0.35,0.45,0.4,0.62,0.61,0.64,
+0.02,0.05,0.095,0.15,0.17,0.22,0.22,0.25,0.3,0.35,0.4,0.38,0.4,0.4,0.6,
+0.024,0.05,0.095,0.14,0.16,0.21,0.21,0.25,0.27,0.32,0.4,0.42,0.4,0.4,0.5,
+0.025,0.055,0.1,0.15,0.17,0.21,0.21,0.25,0.27,0.3,0.35,0.4,0.35,0.4,0.43,
+0.03,0.065,0.11,0.15,0.18,0.21,0.21,0.25,0.27,0.3,0.35,0.4,0.4,0.45,0.47,
+0.045,0.085,0.135,0.17,0.19,0.22,0.24,0.27,0.3,0.35,0.4,0.45,0.5,0.5,0.55,
+0.06,0.1,0.16,0.2,0.22,0.25,0.26,0.29,0.33,0.35,0.45,0.5,0.5,0.55,0.65,
+0.09,0.14,0.2,0.23,0.26,0.29,0.29,0.33,0.4,0.4,0.48,0.55,0.6,0.65,0.75,
+0.11,0.165,0.23,0.26,0.29,0.31,0.33,0.36,0.4,0.45,0.52,0.6,0.65,0.75,0.8,
+};
+
 Compton::~Compton(){
     delete[] en_phot;
     delete[] num_phot;
@@ -15,6 +56,11 @@ Compton::~Compton(){
 	
     gsl_integration_workspace_free (w1);
     gsl_integration_workspace_free (w2);
+    
+    gsl_spline2d_free(esc_p_sph);
+    gsl_spline2d_free(esc_p_cyl);
+    gsl_interp_accel_free(acc_Te);
+    gsl_interp_accel_free(acc_tau);
 
     gsl_spline_free(seed_ph);
     gsl_interp_accel_free(acc_seed);
@@ -40,8 +86,17 @@ Compton::Compton(int s1,int s2,int n,double numin,double numax,double m){
 
     Niter = n;	
     ypar = 1.;
+    escape_corr = 1.;
 
     counterjet = false;
+    
+    acc_tau =  gsl_interp_accel_alloc();
+    acc_Te =  gsl_interp_accel_alloc();
+    esc_p_sph = gsl_spline2d_alloc(gsl_interp2d_bicubic,15,15);
+    esc_p_cyl = gsl_spline2d_alloc(gsl_interp2d_bicubic,15,15);
+
+    gsl_spline2d_init(esc_p_sph,Te_table,tau_table,esc_table_sph,15,15);
+    gsl_spline2d_init(esc_p_cyl,Te_table,tau_table,esc_table_cyl,15,15); 	
 
     seed_ph = gsl_spline_alloc(gsl_interp_steffen,seed_size);
     acc_seed = gsl_interp_accel_alloc();
@@ -184,7 +239,7 @@ void Compton::compton_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_int
        		} else {
                 com = comintegral(it,blim,ulim,en_phot[i],ephmin,ephmax,eldis,acc_eldis); 
        		}
-            num_phot[i] = num_phot[i]+com*vol*en_phot[i]*herg;
+            num_phot[i] = num_phot[i]+com*vol*en_phot[i]*herg;	
             en_phot_obs[i] = en_phot[i]*dopfac;
             num_phot_obs[i] = num_phot[i]*pow(dopfac,dopnum);
             if(counterjet == true){ 
@@ -197,7 +252,7 @@ void Compton::compton_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_int
             if(com == 0){
                 iter_urad[i] = -50;
             } else {
-                iter_urad[i] = log10(com*vol/(pi*pow(r,2.)*cee));
+                iter_urad[i] = log10(escape_corr*com*vol/(pi*pow(r,2.)*cee));
             }
         }
         ephmin = en_phot[0];
@@ -353,7 +408,6 @@ void Compton::shsdisk_seed(const double *seed_arr,double tin,double rin,double r
     } else {
         ulim = atan(rout/(z-h*rout/2.));
     }
-    //std::cout<<blim<<" "<<ulim<<std::endl;
     nulim = 1e1*tin*kboltz;
     seed_freq_array(seed_arr);
 
@@ -390,7 +444,7 @@ void Compton::set_niter(double nu0,double Te){
 
     x0 = herg*nu0/emerg;
     xf = Te/emerg;
-    k = log(xf/x0);///(16.*pow(xf,2.)+4.*xf);
+    k = log(xf/x0);
     Niter = int(k+0.5);
 }
 
@@ -398,11 +452,50 @@ void Compton::set_niter(int n){
     Niter = n;
 }
 
-//Calculates optical depth for given number density and radius of emitting region, and compton-Y for a given
-//electron average Lorentz factor
-void Compton::set_tau(double n,double r,double gam){
+//Sets optical depth for given number density of emitting region (assuming radius is set correctly), 
+//and compton-Y for a given electron average Lorentz factor. In some cases not covered by the radiative 
+//transfer tables, escape_corr reverts to the constructor default value of 1.
+void Compton::set_tau(double n,double theta){
+    double Te_kev = theta*511.;
+    
     tau = n*r*sigtom;
-    ypar = std::max(tau*tau,tau)*(pow(4.0*gam,1)+pow(4.0*gam,2));
+    ypar = std::max(tau*tau,tau)*(pow(4.0*theta,1)+pow(4.0*theta,2));
+    rphot = 1./(n*sigtom);
+    
+    //set up the radiative transfer correction (first two ifs), and handle out of range cases (all other ifs)
+    //if it's too low, avoid any problems by only doing one scattering    
+    //if tau is too high, assume the value for tau =3 (which is wrong!) and yell at the user
+    //if the temperature is too low or high, revert to the 20 or 2500 kev case and yell at the user
+    if (geometry == "sphere" && tau >= 0.05 && tau <= 3. && Te_kev >= 20. && Te_kev <= 2500.) {
+        escape_corr = gsl_spline2d_eval(esc_p_sph,Te_kev,tau,acc_Te,acc_tau);
+    } else if (geometry == "cylinder" && tau >= 0.05 && tau <= 3. && Te_kev >= 20. && Te_kev <= 2500.) {
+        escape_corr = gsl_spline2d_eval(esc_p_cyl,Te_kev,tau,acc_Te,acc_tau);
+    } else if (tau < 0.05){
+        Niter = 1;
+    } else if (tau > 3. && Te_kev >= 20. && Te_kev <= 2500.) {
+        std::cout << "Optical depth too high, assuming it's 3 for IC calculation!" << std::endl;
+        std::cout << "Don't trust the output spectrum slope and change parameters!" << std::endl;
+        escape_corr = gsl_spline2d_eval(esc_p_cyl,Te_kev,3.,acc_Te,acc_tau);        
+    } else if (Te_kev < 20.){
+        std::cout << "Temperature too low, assuming it's 20 kev for IC calculation!" << std::endl;
+        std::cout << "Don't trust the output spectrum slope and change parameters!" << std::endl;
+        escape_corr = gsl_spline2d_eval(esc_p_cyl,20.,tau,acc_Te,acc_tau);
+    } else if (Te_kev > 2500.) {
+        std::cout << "Temperature too low, assuming it's 2500 kev for IC calculation!" << std::endl;
+        std::cout << "Don't trust the output spectrum slope and change parameters!" << std::endl;
+        escape_corr = gsl_spline2d_eval(esc_p_cyl,2500.,tau,acc_Te,acc_tau);    
+    }
+    //set up the photopshere correction if optical depth greater than 1
+    if(geometry == "sphere" && tau>1.){
+        vol = (4./3.)*pi*(pow(r,3.)-pow(r-rphot,3.));
+    } else if (geometry == "cylinder" && tau>1.){
+        vol = pi*z*(pow(r,2.)-pow(r-rphot,2.));
+    }	
+}
+
+//This method is to hard-code an escape term, e.g. to implement a different geometry
+void Compton::set_escape(double escape){
+	escape_corr = escape;
 }
 
 //Method to set up seed frequency array

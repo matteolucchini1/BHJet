@@ -9,6 +9,8 @@ class Compton: public Radiation {
         int Niter;						//number of IC iterations
         double mass;					//Mass of radiating particles
         double tau,ypar;				//optical depth/comtpon Y of emitting region
+        double rphot; 					//photospheric radius when tau > 1, used to renormalize volume
+        double escape_corr;				//escape term, used to renormalize our spectra to CompPS		
 
         double *seed_energ;				//array of seed frequencies in Hz
         double *seed_urad; 				//array of seed photon number density in log10(#/erg/cm^3)
@@ -19,6 +21,11 @@ class Compton: public Radiation {
 
         gsl_spline *iter_ph;			//interpolation of photon field for multiple scatters
         gsl_interp_accel *acc_iter;		//accelerator of above spline
+        
+        gsl_spline2d *esc_p_sph;		//interpolation for escape calculation to mimic radiative transfer
+        gsl_spline2d *esc_p_cyl;		//interpolation for escape calculation to mimic radiative transfer
+        gsl_interp_accel *acc_tau;		//accelerator of above spline over tau
+        gsl_interp_accel *acc_Te;		//accelerator of above spline over Te
 
         gsl_integration_workspace *w2;	//workspace for second numerical integration		
     public:
@@ -39,7 +46,8 @@ class Compton: public Radiation {
         void shsdisk_seed(double tin,double rin,double rout,double h,double z);		
         void shsdisk_seed(const double *seed_arr,double tin,double rin,double rout,double h,double z);
 
-        void set_tau(double n,double r,double gam);		
+        void set_tau(double n,double gam);
+        void set_escape(double escape);		
         void set_niter(double nu0,double Te);
         void set_niter(int n);
         void seed_freq_array(const double *seed_energ);

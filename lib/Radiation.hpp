@@ -6,8 +6,11 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
+#include <gsl/gsl_interp2d.h>
+#include <gsl/gsl_spline2d.h>
 #include <gsl/gsl_sf_bessel.h>
 #include <gsl/gsl_integration.h>
+#include <string>
 
 #define kpc	            (1e3*GSL_CONST_CGSM_PARSEC)
 #define cee             GSL_CONST_CGSM_SPEED_OF_LIGHT
@@ -25,7 +28,7 @@
 #define mjy             1.e-26
 #define re0             2.81794e-13
 #define gconst          GSL_CONST_CGSM_GRAVITATIONAL_CONSTANT
-#define sbcons          GSL_CONST_CGSM_STEFAN_BOLTZMANN_CONSTANT
+#define sbconst         GSL_CONST_CGSM_STEFAN_BOLTZMANN_CONSTANT
 #define aconst          7.56e-15
 #define msun            GSL_CONST_CGSM_SOLAR_MASS
 
@@ -99,8 +102,9 @@ class Radiation {
         double vol;					//Volume of emitting region
         double beta;				//speed of the emitting region
         double dopfac,angle;		//Viewing angle/Doppler factor of emitting region
-        double dopnum;				//Doppler boosting exponent, depends on geometry (see .cpp)
+        double dopnum;				//Doppler boosting exponent, depends on geometry
         bool counterjet;			//boolean switch if user wants to include counterjet emission
+        std::string geometry;   	//string to track geometry of emitting region
 
         gsl_integration_workspace *w1;//workspace for any numerical integration
 
@@ -115,7 +119,7 @@ class Radiation {
 
         void set_beaming(double theta,double speed,double doppler);
         void set_inclination(double theta);
-        void set_geometry(bool sphsw,double l1,double l2);
+        void set_geometry(std::string geom,double l1,double l2);
 
         void set_counterjet(bool flag);
         void array_test();				

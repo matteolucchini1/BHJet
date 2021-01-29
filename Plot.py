@@ -38,7 +38,7 @@ else:
     blim_fd = 0.2e-3
 	
 zmin = 2.0
-zmax = pars[9]
+zmax = pars[8]
 
 zheight=np.zeros(5)
 
