@@ -214,15 +214,17 @@ double photon_index(int size,double numin,double numax,const double* input_en,co
 //from the path inside the write function. As a result, it's impossible to just truncate and clean the files
 //at the start of each iteration. This is only relevant for the cyclosyn_zones, compton_zones, and numdens
 //files
-void clean_file(char path[],bool check){
+void clean_file(char path[],int check){
     std::ofstream file;
     file.open(path,std::ios::trunc);
 
-    if (check==true){
+    if (check==2){
         file << std::left << std::setw(20) << "#nu [Hz] " << std::setw(20) << "Flux [mJy] " << std::endl;
-    } else {
+    } else if (check==4){
         file << std::left << std::setw(20) << "#p [g cm s-1] " << std::setw(20) << "g [] " << std::setw(20) << 
              " n(p) [# cm^-3 p^-1] " << std::setw(20) << " n(g) [# cm^-3 g^-1]" << std::setw(20)<<  std::endl;
+    } else {
+        std::cout << "File to be cleaned not supported" << std::endl;
     }	
 
     file.close();

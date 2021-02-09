@@ -283,25 +283,32 @@ void agn_photons_init(double lum,double f1,double f2,com_pars &agn_com){
 //beaming/debeaming into account. It sets the the total energy density in agn_com (used for cooling and for
 //the IC estimate), as well as the individual energy densities, used in the actual IC calculations.
 //The reason the last two are not part of agn_com is that agn_com.ublr and agn_com.udt are calculated in the 
-//observer frame while ublr_zone and udt_zone are in the jet comoving frame. The reason why they are
-//multiplied by delta^2 instead of gamma^2 is in Dermer, 1995.
+//observer frame while ublr_zone and udt_zone are in the jet comoving frame. The reason why ublr/udt are
+//multiplied by delta^2 instead of gamma^2 as in Dermer, 1995.
+//Because of this, when we compute urad_total (which goes to the cooling term) we sometimes need to convert
+//again with a factor gamma/delta^2
 void zone_agn_phfields(double z,zone_pars &zone,double &ublr_zone,double &udt_zone,com_pars &agn_com){
     //these are to calculate the conversion factor to account for z>zblr/zdt, when photons are deboosted. 
     //See Ghisellini&Tavecchio 2009
     double blr_conv,dt_conv,mu_blr1,mu_blr2,mu_dt1,mu_dt2,fr;
-    fr = 12./17.;		//the only reason this variable is here is to save space in the code to make it more
-					    //readable; physically, also see Ghisellini&Tavecchio 2009
+    fr = 12./17.;		//the only reason this variable is here is to save space in the code       
 
-    //Note: the calculation below assumes that the BLR and torus are two rings of set at a distance Rblr and
-    //Rdt respectively, with a radius 3Rblr and 3Rdt each. Therefore, the deboosting only begins after this
-    //3Rblr and 3Rdt. At large distances the corrections sometimes result in negative energy densities, so
-    //they are conservatively set to 0 when this happens.
-
-    if(z<3.*agn_com.rblr){			//for low z both photon fields are boosted
+    if(z<agn_com.rblr){			//for low z both photon fields are boosted
         ublr_zone = pow(zone.delta,2.)*agn_com.ublr;
         udt_zone = pow(zone.delta,2.)*agn_com.udt;
         agn_com.urad_total = pow(zone.gamma,2.)*(agn_com.udt+agn_com.ublr);
-    } else if (z<3.*agn_com.rdt){	//for intermediate z BLR is deboosted, torus is boosted				
+    } else if (z<3.*agn_com.rblr){ //BLR starts being slightly deboosted
+        double blr_boost, blr_interp;
+        mu_blr1 = pow(10./9.,-1./2.);
+        mu_blr2 = pow(8./9.,1./2.);
+        blr_conv = 2.*pow(1.-zone.beta*mu_blr1,3.)-pow(1.-zone.beta*mu_blr2,3.)-pow(1.-zone.beta,3.);
+        blr_boost = pow(zone.delta,2.)*agn_com.ublr;       
+        blr_interp = pow(zone.delta,2.)*agn_com.ublr*blr_conv/(3.*zone.beta);
+ 
+        ublr_zone = blr_boost + (z-agn_com.rblr)/(2.*agn_com.rblr)*(blr_interp-blr_boost);
+        udt_zone = pow(zone.delta,2.)*agn_com.udt;
+        agn_com.urad_total = pow(zone.gamma,2.)*(agn_com.udt+ublr_zone*pow(zone.gamma/zone.delta,2.));
+    } else if (z<agn_com.rdt){	//for intermediate z BLR is deboosted, torus is boosted				
         mu_blr1 = pow(1.+pow(agn_com.rblr/z,2.),-1./2.);//
         mu_blr2 = pow(1.-pow(agn_com.rblr/z,2.),1./2.);	
         blr_conv = 2.*pow(1.-zone.beta*mu_blr1,3.)-pow(1.-zone.beta*mu_blr2,3.)-pow(1.-zone.beta,3.);
@@ -309,7 +316,25 @@ void zone_agn_phfields(double z,zone_pars &zone,double &ublr_zone,double &udt_zo
         ublr_zone = pow(zone.delta,2.)*agn_com.ublr*blr_conv/(3.*zone.beta);
         udt_zone = pow(zone.delta,2.)*agn_com.udt;
         agn_com.urad_total = pow(zone.gamma,2.)*(agn_com.udt+fr*agn_com.ublr*blr_conv/(3.*zone.beta));	
-    } else {						//for high z both photon fields are deboosted
+    } else if (z<3.*agn_com.rdt) { //BLR fully deboosted, DT slightly deboosted
+        mu_blr1 = pow(1.+pow(agn_com.rblr/z,2.),-1./2.);
+        mu_blr2 = pow(1.-pow(agn_com.rblr/z,2.),1./2.);	
+        blr_conv = 2.*pow(1.-zone.beta*mu_blr1,3.)-pow(1.-zone.beta*mu_blr2,3.)-pow(1.-zone.beta,3.);
+
+        ublr_zone = pow(zone.delta,2.)*agn_com.ublr*blr_conv/(3.*zone.beta);
+        
+        double dt_boost, dt_interp;
+        mu_dt1 = pow(10./9.,-1./2.);
+        mu_dt2 = pow(8./9.,1./2.);
+        dt_conv = 2.*pow(1.-zone.beta*mu_dt1,3.)-pow(1.-zone.beta*mu_dt2,3.)-pow(1.-zone.beta,3.);
+        dt_boost = pow(zone.delta,2.)*agn_com.udt;
+        dt_interp = pow(zone.delta,2.)*agn_com.udt*dt_conv/(3.*zone.beta);
+   
+        udt_zone = dt_boost + (z-agn_com.rdt)/(2.*agn_com.rdt)*(dt_interp-dt_boost);
+        agn_com.urad_total = pow(zone.gamma,2.)*(udt_zone*pow(zone.gamma/zone.delta,2.)+fr*agn_com.ublr*
+                             blr_conv/(3.*zone.beta));
+        
+    } else {    //for high z both photon fields are deboosted
         mu_blr1 = pow(1.+pow(agn_com.rblr/z,2.),-1./2.);
         mu_blr2 = pow(1.-pow(agn_com.rblr/z,2.),1./2.);	
         blr_conv = 2.*pow(1.-zone.beta*mu_blr1,3.)-pow(1.-zone.beta*mu_blr2,3.)-pow(1.-zone.beta,3.);

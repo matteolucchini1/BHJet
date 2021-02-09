@@ -33,11 +33,10 @@ Bknpower::Bknpower(int s,int type,double s1,double s2,bool flag){
 }
 
 //Methods to set momentum/energy arrays
-void Bknpower::set_p(double min,double brk,double ucom,double bfield,double tshift,double bjet,double r,
-                     double fsc){	
+void Bknpower::set_p(double min,double brk,double ucom,double bfield,double betaeff,double r,double fsc){	
     pmin = min;
     pbrk = brk;
-    pmax = max_p(ucom,bfield,tshift,bjet,r,fsc);	
+    pmax = max_p(ucom,bfield,betaeff,r,fsc);	
 
     double pinc = (log10(pmax)-log10(pmin))/size;
 
@@ -176,10 +175,10 @@ void Bknpower::cooling_steadystate(double ucom, double n0,double bfield,double r
 //Method to calculate maximum momentum of non thermal particles based on acceleration and cooling timescales
 //The estimate is identical to the old agnjet but in momentum space; see Lucchini et al. 2019 for the math of
 //the old version
-double Bknpower::max_p(double ucom,double bfield,double tshift,double bjet,double r,double fsc){
+double Bknpower::max_p(double ucom,double bfield,double betaeff,double r,double fsc){
     double Urad, escom, accon, syncon, b, c, gmax;
     Urad = pow(bfield,2.)/(8.*pi)+ucom;
-    escom = bjet*cee*(1.-tshift)/r;
+    escom = betaeff*cee/r;
     syncon = (4.*sigtom*Urad)/(3.*mass*cee);
     accon = (3.*fsc*charg*bfield)/(4.*mass*cee);
 

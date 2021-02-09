@@ -15,6 +15,7 @@ rc('font',**{'family':'serif','serif':['Computer Modern']})
 plt.rcParams.update({'font.size': 18})
 
 pars = np.genfromtxt("Input/ip.dat")
+data = np.genfromtxt("1H0323342.dat")
 
 kevconv = 1.
 #kevconv = 2.41*10**17
@@ -132,8 +133,9 @@ ax1.plot(Precom.T[0]/kevconv,Precom.T[1]*Precom.T[0]*mjy*fluxconv,linewidth=2.5,
 ax1.plot(Postcom.T[0]/kevconv,Postcom.T[1]*Postcom.T[0]*mjy*fluxconv,linewidth=2.5,color='purple',zorder=nzones+1)
 #ax1.plot(Corona.T[0]/kevconv,Corona.T[1]*Corona.T[0]*mjy*fluxconv,linewidth=2.5,color='#0165fc',zorder=nzones+1)
 ax1.plot(Disk.T[0]/kevconv,Disk.T[1]*Disk.T[0]*mjy*fluxconv,linewidth=2.5,color='red',zorder=nzones+1)
-#ax1.plot(BB.T[0]/kevconv,BB.T[1]*BB.T[0]*mjy*fluxconv,linewidth=2.5,color='orange',zorder=nzones+1)
+ax1.plot(BB.T[0]/kevconv,BB.T[1]*BB.T[0]*mjy*fluxconv,linewidth=2.5,color='orange',zorder=nzones+1)
 ax1.plot(Total.T[0]/kevconv,Total.T[1]*Total.T[0]*mjy*fluxconv,linewidth=1.5,color='black',zorder=nzones+1)
+ax1.errorbar(data.T[0]/kevconv,data.T[2],yerr=data.T[3],color='black',fmt='o')
 ax1.set_xscale('log', basex=10)
 ax1.set_yscale('log', basey=10)
 ax1.set_ylim([blim_fl*fluxconv,ulim_fl*fluxconv])

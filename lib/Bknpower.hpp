@@ -11,8 +11,7 @@ class Bknpower: public Particles {
     public:
         Bknpower(int s,int type,double s1,double s2,bool flag);		
 
-        void set_p(double min,double brk,double ucom,double bfield,double tshift,double bjet,double r,
-                   double fsc);
+        void set_p(double min,double brk,double ucom,double bfield,double betaeff,double r,double fsc);
         void set_p(double min,double brk,double gmax);	
         void set_ndens();
         void set_pspec1(double s1);
@@ -24,7 +23,7 @@ class Bknpower: public Particles {
         friend double injection_bkn_int(double x,void *p);		
 
         void cooling_steadystate(double ucom,double n0,double bfield,double r,double betaeff);
-        double max_p(double ucom,double bfield,double tshift,double bjet,double r,double fsc);
+        double max_p(double ucom,double bfield,double bjet,double r,double fsc);
 
         void test();	
 };

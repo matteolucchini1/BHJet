@@ -153,18 +153,18 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     BBody BlackBody(0,0);
 
     if(infosw>=1){			
-        clean_file("Output/Presyn.dat",1);
-        clean_file("Output/Postsyn.dat",1);
-        clean_file("Output/Precom.dat",1);
-        clean_file("Output/Postcom.dat",1);
-        clean_file("Output/Disk.dat",1);
-        clean_file("Output/BB.dat",1);
-        clean_file("Output/Total.dat",1);	
+        clean_file("Output/Presyn.dat",2);
+        clean_file("Output/Postsyn.dat",2);
+        clean_file("Output/Precom.dat",2);
+        clean_file("Output/Postcom.dat",2);
+        clean_file("Output/Disk.dat",2);
+        clean_file("Output/BB.dat",2);
+        clean_file("Output/Total.dat",2);	
     }
     if(infosw>=2){	
-        clean_file("Output/Numdens.dat",0);
-        clean_file("Output/Cyclosyn_zones.dat",1);
-        clean_file("Output/Compton_zones.dat",1);			
+        clean_file("Output/Numdens.dat",4);
+        clean_file("Output/Cyclosyn_zones.dat",2);
+        clean_file("Output/Compton_zones.dat",2);			
     }
 
     //STEP 3: DISK/EXTERNAL PHOTON CALCULATIONS
@@ -212,7 +212,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 
     //Dummy particle distribution, needed for average lorentz factor in equipartition function
     //The parameters for the method to set the momentum array are set to dummy values that result in a fully
-    //thermal distribution
+    //thermal distribution 
     Mixed dummy_elec(nel,1,Te,10.,0);
     dummy_elec.set_plfrac(0);
     dummy_elec.set_temp(Te);
@@ -257,7 +257,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         cout << "Pair content (ne/np): " << nozzle_ener.eta << endl;
         cout << "Initial magnetization: " << nozzle_ener.sig0 << endl;
         cout << "Particle average Lorenz factor: " << dummy_elec.av_gamma() << endl;
-        cout << "Jet nozzle ends at: " << jet_dyn.h0/Rg << " Rg" << endl;
+        cout << "Jet nozzle ends at: " << jet_dyn.h0/Rg << " Rg" << endl << endl;
     }	
 
     //STEP 5: TOTAL JET CALCULATIONS, LOOPING OVER EACH SEGMENT OF THE JET
@@ -285,16 +285,26 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
         }
 
+        //Include the disk for radiative cooling if it's on;
         //if compsw==1 the boosting is the same in all zones, if compsw==2 we boost either blr,torus or both
         //depending on the distance from the BH of the jet region/seed photon production
-        if(compsw==1){			
-            Urad = pow(zone.gamma,2.)*Ubb1;
-        } else if (compsw==2 && Rin<Rout){
-            zone_agn_phfields(z,zone,Ubb1,Ubb2,agn_com);
-            Urad = agn_com.urad_total;
+        if (Rin < Rout) {
+            double Rdisk = pow(Rin,2.)+pow(z,2.);
+            double delta_disk, theta_disk;
+            theta_disk = pi-atan(Rin/z);
+            delta_disk = 1./(zone.gamma-zone.beta*cos(theta_disk));
+            Urad = pow(delta_disk,2.)*Ldisk*Eddlum/(4.*pi*Rdisk*cee);
         } else {
             Urad = 0.;
         }
+        
+        if(compsw==1){			
+            Urad = Urad + pow(zone.delta,2.)*Ubb1;
+        } else if (compsw==2 && Rin<Rout){
+            zone_agn_phfields(z,zone,Ubb1,Ubb2,agn_com);
+            Urad = Urad + agn_com.urad_total;
+        } 
+         
 
         //calculate particle distribution in each zone
         if(z<zdiss){		
@@ -315,9 +325,10 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 plot_write(nel,th_lep.get_p(),th_lep.get_gamma(),th_lep.get_pdens(),th_lep.get_gdens(),
                 "Output/Numdens.dat");
             }
-        } else {		
+        } else if (plfrac < 0.5){ 
             if (IsShock==false){
                 Te = heat*Te;
+                zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
                 IsShock = true;
             }					
             Mixed acc_lep(nel,1,zone.eltemp,pspec,1);
@@ -330,6 +341,43 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 acc_lep.set_p(fsc);
             }	
 
+            acc_lep.set_norm(zone.lepdens);	
+            acc_lep.set_ndens();
+            acc_lep.cooling_steadystate(Urad,zone.lepdens,zone.bfield,zone.r,betaeff);
+            //Note: this assumes sycnhrotron+ec cooling only, ssc+disk cooling negligible
+
+            gmin = acc_lep.get_gamma()[0];
+            gmax = acc_lep.get_gamma()[nel-1];
+
+            zone.avgammasq = pow(acc_lep.av_gamma(),2.);
+
+            gsl_spline_init(spline_eldis,acc_lep.get_gamma(),acc_lep.get_gdens(),nel);
+            gsl_spline_init(spline_deriv,acc_lep.get_gamma(),acc_lep.get_gdens_diff(),nel); 
+             	
+            if(infosw>=2){
+                plot_write(nel,acc_lep.get_p(),acc_lep.get_gamma(),acc_lep.get_pdens(),acc_lep.get_gdens(),
+                "Output/Numdens.dat");
+            }
+        } else if (plfrac <= 1.) {
+            if (IsShock==false){
+                Te = heat*Te;
+                zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
+                IsShock = true;
+            }
+            Thermal dummy_elec(nel,1,zone.eltemp);
+            dummy_elec.set_p();
+            dummy_elec.set_norm(zone.lepdens);
+            dummy_elec.set_ndens();
+            double pbrk = dummy_elec.av_p();
+            
+            Bknpower acc_lep(nel,1,-2.,pspec,1);
+                        
+            if (fsc<10.){
+                acc_lep.set_p(0.1*pbrk,pbrk,Urad,zone.bfield,betaeff,zone.r,fsc);
+            } else{
+                acc_lep.set_p(0.1*pbrk,pbrk,fsc);
+            }	
+            
             acc_lep.set_norm(zone.lepdens);	
             acc_lep.set_ndens();
             acc_lep.cooling_steadystate(Urad,zone.lepdens,zone.bfield,zone.r,betaeff);
@@ -445,7 +493,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             if(compsw==2 && Rin<Rout){
                 InvCompton.bb_seed(Syncro.get_energ(),Ubb1,zone.delta*BLR.temp_kev());
                 InvCompton.bb_seed(Syncro.get_energ(),Ubb2,zone.delta*Torus.temp_kev());
-        }
+            }
             //Calculate the spectrum with whichever fields have been invoked		
             InvCompton.compton_spectrum(gmin,gmax,spline_eldis,acc_eldis);
 
@@ -516,10 +564,11 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
              << 1.+photon_index(ne,1e10,1e11,tot_en,tot_lum) << endl;
         double compactness = integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre)*sigtom
                              /(r0*emerg*cee);      
-        cout << "Corona compactness: " << compactness << endl;
+        cout << "Jet base compactness: " << compactness << endl;
         if (compactness >= 10.*(param[9]/511.)*exp(511./param[9])) {
             cout << "Possible runaway pair production in the jet base!" << endl; 
-            cout << "Lower limint on allowed compactness: " << 10.*(param[9]/511.)*exp(511./param[9]) << endl;
+            cout << "Lower limit on allowed compactness: " << 10.*(param[9]/511.)*exp(511./param[9]) << endl;
+            cout << "Note: this is for a slab, a cylinder allows higher l by a factor of a few" << std::endl;
         }
     }	
 

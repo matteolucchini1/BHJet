@@ -22,7 +22,7 @@
 #include "lib/Thermal.hpp"
 #include "lib/Powerlaw.hpp"
 #include "lib/Mixed.hpp"
-#include "lib/Kappa.hpp"
+#include "lib/Bknpower.hpp"
 
 #include "lib/Radiation.hpp"
 #include "lib/ShSDisk.hpp"
@@ -150,5 +150,5 @@ void b_profile(double g,double n,jet_dynpars &dyn,jet_enpars &en,double &field);
 void agn_photons_init(double lum,double f1,double f2,com_pars &agn_com);
 void zone_agn_phfields(double z,zone_pars &zone,double &ublr_zone,double &udt_zone,com_pars &agn_com);
 
-void clean_file(char path[],bool check);
+void clean_file(char path[],int check);
 void jetinterp(double *ear,double *energ,double *phot,double *photar,int ne,int newne);
