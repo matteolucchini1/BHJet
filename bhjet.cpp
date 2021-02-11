@@ -341,7 +341,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         } else if (zone.nth_frac < 0.5){ 
             if (IsShock==false){
                 Te = heat*Te;
-                zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
                 IsShock = true;
             }					
             Mixed acc_lep(nel);
