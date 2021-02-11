@@ -11,7 +11,7 @@ class Thermal: public Particles {
     private:
         double Temp, thnorm, theta;
     public:
-        Thermal(int s,int type, double T);		
+        Thermal(int s);		
 	
         void set_p();						
         void set_ndens();

@@ -1,7 +1,7 @@
 #include "Thermal.hpp"
 
 //Class constructor to initialize object
-Thermal::Thermal(int s,int type, double T) {
+Thermal::Thermal(int s) {
     size = s;
 
     p = new double[size];
@@ -10,11 +10,6 @@ Thermal::Thermal(int s,int type, double T) {
     gdens = new double[size];
     gdens_diff = new double[size];
 	
-    if (type==1) {mass = emgm;}
-    else  {mass = pmgm;}
-	
-    Temp = T;
-    theta = Temp/(mass*cee*cee);
     thnorm = 1.;
 
     for (int i=0;i<size;i++){
@@ -24,25 +19,21 @@ Thermal::Thermal(int s,int type, double T) {
 }
 
 //Method to initialize momentum array a with default interval
-void Thermal::set_p(){						//TODO: check that the proton case is handled correctly
+void Thermal::set_p(){						        //
     double emin = (1./100.)*(Temp/kboltz_kev2erg);	//minimum energy in kev, 1/50 lower than peak
     double emax = 20.*(Temp/kboltz_kev2erg); 		//maximum energy in kev, 20 higher than peak
     double gmin, gmax, pmin, pmax, pinc;
 
-    if (mass == emgm){
-        gmin = emin/me_kev+1.;
-        gmax = emax/me_kev+1.;
-    } else if (mass == pmgm) {
-        std::cout << "Error! Protons currently unsupported!" <<std:: endl;
-    }
-
-    pmin = pow(pow(gmin,2.)-1.,1./2.)*mass*cee;
-    pmax = pow(pow(gmax,2.)-1.,1./2.)*mass*cee;	
+    gmin = emin/mass_kev+1.;
+    gmax = emax/mass_kev+1.;
+   
+    pmin = pow(pow(gmin,2.)-1.,1./2.)*mass_gr*cee;
+    pmax = pow(pow(gmax,2.)-1.,1./2.)*mass_gr*cee;	
     pinc = (log10(pmax)-log10(pmin))/size;
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin)+i*pinc);
-        gamma[i] = pow(pow(p[i]/(mass*cee),2.)+1.,1./2.);
+        gamma[i] = pow(pow(p[i]/(mass_gr*cee),2.)+1.,1./2.);
     }	
 }
 
@@ -58,11 +49,11 @@ void Thermal::set_ndens(){
 //methods to set the temperature and normalization. NOTE: temperature must be in ergs, no factor kb
 void Thermal::set_temp(double T){
     Temp = T;
-    theta = Temp/(mass*cee*cee);
+    theta = Temp/(mass_gr*cee*cee);
 }
 
 void Thermal::set_norm(double n){
-    thnorm = n/(pow(mass*cee,3.)*theta*K2(1./theta));
+    thnorm = n/(pow(mass_gr*cee,3.)*theta*K2(1./theta));
 }
 
 //Evaluate Bessel function as in old agnjet
@@ -85,6 +76,7 @@ void Thermal::test(){
     std::cout << "Temperature: " << Temp << " erg, " << Temp/kboltz_kev2erg << " kev" << std::endl;
     std::cout << "Array size: " << size <<std:: endl;
     std::cout << "Normalization: " << thnorm << std::endl;
-    std::cout << "Particle mass: " << mass <<std:: endl;
+    std::cout << "Particle mass in grams: " << mass_gr <<std:: endl;
+    std::cout << "Particle mass in keV: " << mass_kev <<std:: endl;
     std::cout << "kT/mc^2: " << theta << std::endl;	
 }

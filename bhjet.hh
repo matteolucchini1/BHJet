@@ -22,6 +22,7 @@
 #include "lib/Thermal.hpp"
 #include "lib/Powerlaw.hpp"
 #include "lib/Mixed.hpp"
+#include "lib/Kappa.hpp"
 #include "lib/Bknpower.hpp"
 
 #include "lib/Radiation.hpp"
@@ -99,6 +100,7 @@ typedef struct zone_pars{
     double lepdens;			//number density of zone
     double avgammasq;		//avg lorentz factor squared in zone
     double eltemp;			//particle temperature in zone
+    double nth_frac;        //fraction of non-thermal particles in the zone
 } zone_pars;
 
 //Structure with parameters needed for external inverse Compton photon fields

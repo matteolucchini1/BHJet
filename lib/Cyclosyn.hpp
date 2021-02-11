@@ -6,13 +6,12 @@
 class Cyclosyn: public Radiation {
     private:
         double bfield;					//Magnetic field in emitting region
-        double mass;					//Mass of radiating particles
         gsl_spline *syn_f;
         gsl_interp_accel *syn_acc;
 
     public:
         ~Cyclosyn();
-        Cyclosyn(int s,double numin,double numax, double m);
+        Cyclosyn(int s);
 
         friend double emis(double gamma,void *p); 
         friend double abs(double gamma,void *p);
@@ -29,6 +28,7 @@ class Cyclosyn: public Radiation {
         double nu_syn(double gamma);
         double nu_syn();
 	                              
+	    void set_frequency(double numin,double numax);                           
         void set_bfield(double b);
 
         void test();	

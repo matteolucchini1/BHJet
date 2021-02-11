@@ -26,7 +26,7 @@ Cyclosyn::~Cyclosyn(){
 
 //This constructor initializes the arrays and interpolations. In this case, calculations are done in frequency
 //space, not in photon energies.
-Cyclosyn::Cyclosyn(int s,double numin,double numax,double m){
+Cyclosyn::Cyclosyn(int s){
     size = s;
 
     en_phot = new double[size];
@@ -41,14 +41,10 @@ Cyclosyn::Cyclosyn(int s,double numin,double numax,double m){
 
     gsl_spline_init(syn_f,arg,var,47); 
 
-    double nuinc = (log10(numax)-log10(numin))/(size-1);
-
     for(int i=0;i<size;i++){
-        en_phot[i] = pow(10.,log10(numin)+i*nuinc)*herg;
+        en_phot[i] = 0;
         num_phot[i] = 0;
     }	
-
-    mass = m;
 }
 
 //Single particle emissivity/absorption coefficient calculations
@@ -56,7 +52,6 @@ double cyclosyn_emis(double gamma,void *p){
     struct cyclosyn_emis_params *params = (struct cyclosyn_emis_params *)p;
     double nu = (params -> nu);
     double b = (params -> b);
-    double mass = (params -> mass);
     gsl_spline *syn = (params -> syn);
     gsl_interp_accel *acc_syn = (params -> acc_syn);
     gsl_spline *eldis = (params -> eldis);
@@ -66,7 +61,7 @@ double cyclosyn_emis(double gamma,void *p){
     gamma = exp(gamma); 
     //this is in the synchrotron regime
     if (gamma > 2.) {
-        nu_c = (3.*charg*b*pow(gamma,2.))/(4.*pi*mass*cee);
+        nu_c = (3.*charg*b*pow(gamma,2.))/(4.*pi*emgm*cee);
         x = nu/nu_c;
         if(x <= 1.e-4){
         	emisfunc = 4.*pi*pow(x/2.,(1./3.))/(sqrt(3.)*2.68);
@@ -78,7 +73,7 @@ double cyclosyn_emis(double gamma,void *p){
         	emisfunc = pow(10.,gsl_spline_eval(syn, x, acc_syn));
         }
     } else { //cyclotron regime
-        nu_larmor = (charg*b)/(2.*pi*mass*cee);
+        nu_larmor = (charg*b)/(2.*pi*emgm*cee);
         x = nu/nu_larmor;
         psquared = pow(gamma,2.)-1.;
         emisfunc = (2.*psquared)/(1.+3.*psquared)*exp((2.*(1.-x))/(1.+3.*psquared));
@@ -92,7 +87,6 @@ double cyclosyn_abs(double gamma,void *p){
     struct cyclosyn_abs_params *params = (struct cyclosyn_abs_params *)p;
     double nu = (params -> nu);
     double b = (params -> b);
-    double mass = (params -> mass);
     gsl_spline *syn = (params -> syn);
     gsl_interp_accel *acc_syn = (params -> acc_syn);
     gsl_spline *derivs = (params -> derivs);
@@ -102,7 +96,7 @@ double cyclosyn_abs(double gamma,void *p){
     gamma = exp(gamma);
     //this is in the synchrotron regime
     if (gamma > 2.) {
-        nu_c = (3.*charg*b*pow(gamma,2.))/(4.*pi*mass*cee);
+        nu_c = (3.*charg*b*pow(gamma,2.))/(4.*pi*emgm*cee);
         x = nu/nu_c;
         if(x <= 1.e-4){
         	emisfunc = 4.*pi*pow(x/2.,(1./3.))/(sqrt(3.)*2.68);
@@ -114,7 +108,7 @@ double cyclosyn_abs(double gamma,void *p){
         	emisfunc = pow(10.,gsl_spline_eval(syn, x, acc_syn));
         }
     } else { //cyclotron regime
-        nu_larmor = (charg*b)/(2.*pi*mass*cee);
+        nu_larmor = (charg*b)/(2.*pi*emgm*cee);
         x = nu/nu_larmor;
         psquared = pow(gamma,2.)-1.;
         emisfunc = (2.*psquared)/(1.+3.*psquared)*exp((2.*(1.-x))/(1.+3.*psquared));
@@ -131,7 +125,7 @@ double Cyclosyn::emis_integral(double nu,double gmin,double gmax,gsl_spline *eld
     gsl_integration_workspace *w1;
     w1 = gsl_integration_workspace_alloc(100);
     gsl_function F1;
-    struct cyclosyn_emis_params F1params = {nu,bfield,mass,syn_f,syn_acc,eldis,acc_eldis};
+    struct cyclosyn_emis_params F1params = {nu,bfield,syn_f,syn_acc,eldis,acc_eldis};
     F1.function     = &cyclosyn_emis;
     F1.params       = &F1params;
     gsl_integration_qag(&F1,log(gmin),log(gmax),1e1,1e1,100,2,w1,&result1,&error1);
@@ -146,7 +140,7 @@ double Cyclosyn::abs_integral(double nu,double gmin,double gmax,gsl_spline *deri
     gsl_integration_workspace *w1;
     w1 = gsl_integration_workspace_alloc(100);
     gsl_function F1;
-    struct cyclosyn_abs_params F1params = {nu,bfield,mass,syn_f,syn_acc,derivs,acc_derivs};
+    struct cyclosyn_abs_params F1params = {nu,bfield,syn_f,syn_acc,derivs,acc_derivs};
     F1.function     = &cyclosyn_abs;
     F1.params       = &F1params;
     gsl_integration_qag(&F1,log(gmin),log(gmax),1e1,1e1,100,2,w1,&result1,&error1);
@@ -233,7 +227,7 @@ void Cyclosyn::cycsyn_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_int
 //of L_nu. Unlike the simple way, this accounts for the fact that the peak may be caused by synchrotron self
 //absorption rather than coinciding with the scale frequency
 double Cyclosyn::nu_syn(double gamma){
-    return (3.*charg*bfield*pow(gamma,2.))/(4.*pi*mass*cee);
+    return (3.*charg*bfield*pow(gamma,2.))/(4.*pi*emgm*cee);
 }
 
 double Cyclosyn::nu_syn(){
@@ -246,6 +240,15 @@ double Cyclosyn::nu_syn(){
         }
     }
     return en_phot[temp]/herg;
+}
+
+//Method to set up the frequency array over desired range
+void Cyclosyn::set_frequency(double numin,double numax){
+    double nuinc = (log10(numax)-log10(numin))/(size-1);
+
+    for(int i=0;i<size;i++){
+        en_phot[i] = pow(10.,log10(numin)+i*nuinc)*herg;
+    }	
 }
 
 //Method to set magnetic field

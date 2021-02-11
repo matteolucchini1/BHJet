@@ -18,7 +18,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     int syn_res = 10;							//number of bins per decade in synch frequency;
     int com_res = 6;							//number of bins per decade in compton frequency;
     int nsyn,ncom;								//number of bins in synch/compton frequency;
-    int Niter = 1;								//number of IC interactions
     int npsw;									//switch to define number of protons calculations
 											    //0: no protons
 											    //1: Up = Ue+Ub
@@ -39,7 +38,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     double zdiss;								//dissipation/nonthermal particle injection region in rg	
     double zmax;								//distance from bh up to which calculation continues
     double Te;									//temperature in kev, converted to erg	
-    double plfrac;								//percentage of nonthermal particles post dissipation region
+    double plfrac_0;							//percentage of nonthermal particles at the dissipation region
     double pldist;								//parameter to change plfrac over distance
     double pspec;								//slope of nonthermal distribution
     double heat;								//shock heating paramter
@@ -115,7 +114,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     zacc = param[7]*Rg;	
     zmax = param[8]*Rg;
     Te = param[9]*kboltz_kev2erg;
-    plfrac = param[10];
+    plfrac_0 = param[10];
     pldist = param[11];
     pspec = param[12];
     heat = param[13];
@@ -148,9 +147,9 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 
     //Initialize disk+external photon classes
     ShSDisk Disk;
-    BBody BLR(0,0);
-    BBody Torus(0,0);
-    BBody BlackBody(0,0);
+    BBody BLR;
+    BBody Torus;
+    BBody BlackBody;
 
     if(infosw>=1){			
         clean_file("Output/Presyn.dat",2);
@@ -179,7 +178,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 	    Disk.set_inclination(theta);
 	    Disk.disk_spectrum();
 	    if (compsw != 2) {
-	        sum_ext(50,ne,Disk.get_energ_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);   	    
+	        sum_ext(50,ne,Disk.get_energy_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);   	    
 	    }			
         if(infosw >= 3) {
             Disk.test();
@@ -195,7 +194,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         BlackBody.set_lum(compar2);
         Ubb1 = compar3;	
         BlackBody.bb_spectrum();
-        sum_ext(40,ne,BlackBody.get_energ(),BlackBody.get_nphot(),tot_en,tot_lum);
+        sum_ext(40,ne,BlackBody.get_energy_obs(),BlackBody.get_nphot_obs(),tot_en,tot_lum);
     }
     else if (compsw==2 && Rin<Rout){
         agn_photons_init(Disk.total_luminosity(),compar1,compar2,agn_com);
@@ -213,8 +212,8 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             cout << "BLR radius in Rg: " << agn_com.rblr/Rg << endl;
             cout << "DT radius in Rg: " << agn_com.rdt/Rg << endl;
         }
-        sum_ext(40,ne,Torus.get_energ(),Torus.get_nphot(),tot_en,tot_lum);
-        sum_ext(50,ne,Disk.get_energ_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);   		
+        sum_ext(40,ne,Torus.get_energy_obs(),Torus.get_nphot_obs(),tot_en,tot_lum);
+        sum_ext(50,ne,Disk.get_energy_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);   		
     }	
 	
     //STEP 4: JET BASE EQUIPARTITION CALCULATIONS AND SETUP
@@ -223,7 +222,9 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     //Dummy particle distribution, needed for average lorentz factor in equipartition function
     //The parameters for the method to set the momentum array are set to dummy values that result in a fully
     //thermal distribution 
-    Thermal dummy_elec(nel,1,Te);
+    Thermal dummy_elec(nel);
+    dummy_elec.set_mass(emgm);
+    dummy_elec.set_temp(Te);
     dummy_elec.set_p();	
     dummy_elec.set_norm(1.);	
     dummy_elec.set_ndens();
@@ -284,15 +285,17 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         }
         zone.delta = 1./(zone.gamma*(1.-zone.beta*cos(theta*pi/180.)));
 
-        //Before the dissipation/particle acceleration region follow the temperature profile from the jetpars
-        //function. Afterwards do the same, but include an extra dissipation term as a function of distance
-        //pow(log10(zdiss)/log10(z),pldist) in order to obtain an inverted radio spectrum. The max() use is
-        //to because the particle distrubution code currently crashes for temperatures below 1kev
-        if(z<zdiss){
-            zone.eltemp = tshift*Te;
+        //This is to avoid crashes due to low (sub 1 kev) particle temperatures
+        zone.eltemp = max(tshift*Te,kboltz_kev2erg);
+        
+        //This is to evolve the fraction of non thermal particles along the jet, and change the distribution 
+        //of non thermal particles appropriately
+        if (z < zdiss) {
+            zone.nth_frac = 0.;
         } else {
-            zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
+            zone.nth_frac = plfrac_0*pow(log10(zdiss)/log10(z),pldist);            
         }
+
 
         //Include the disk for radiative cooling if it's on;
         //if compsw==1 the boosting is the same in all zones, if compsw==2 we boost either blr,torus or both
@@ -315,8 +318,10 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         }          
 
         //calculate particle distribution in each zone
-        if(z<zdiss){		
-            Thermal th_lep(nel,1,zone.eltemp);
+        if(zone.nth_frac == 0.){		
+            Thermal th_lep(nel);
+            th_lep.set_mass(emgm);
+            th_lep.set_temp(zone.eltemp);
             th_lep.set_p();
             th_lep.set_norm(zone.lepdens);
             th_lep.set_ndens();
@@ -333,14 +338,17 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 plot_write(nel,th_lep.get_p(),th_lep.get_gamma(),th_lep.get_pdens(),th_lep.get_gdens(),
                 "Output/Numdens.dat");
             }
-        } else if (plfrac < 0.5){ 
+        } else if (zone.nth_frac < 0.5){ 
             if (IsShock==false){
                 Te = heat*Te;
                 zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
                 IsShock = true;
             }					
-            Mixed acc_lep(nel,1,zone.eltemp,pspec);
-            acc_lep.set_plfrac(plfrac*pow(log10(zdiss)/log10(z),pldist));
+            Mixed acc_lep(nel);
+            acc_lep.set_mass(emgm);
+            acc_lep.set_temp(zone.eltemp);
+            acc_lep.set_pspec(pspec);
+            acc_lep.set_plfrac(zone.nth_frac);
             
             //if fsc < 10 it's the acceleration efficiency, else it's the desired maximum lorentz factor
             if (fsc<10.){
@@ -366,19 +374,24 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 plot_write(nel,acc_lep.get_p(),acc_lep.get_gamma(),acc_lep.get_pdens(),acc_lep.get_gdens(),
                 "Output/Numdens.dat");
             }
-        } else if (plfrac < 1.) {
+        } else if (zone.nth_frac < 1.) {
             if (IsShock==false){
                 Te = heat*Te;
                 zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
                 IsShock = true;
             }
-            Thermal dummy_elec(nel,1,zone.eltemp);
+            Thermal dummy_elec(nel);
+            dummy_elec.set_mass(emgm);
+            dummy_elec.set_temp(zone.eltemp);
             dummy_elec.set_p();
             dummy_elec.set_norm(zone.lepdens);
             dummy_elec.set_ndens();
             double pbrk = dummy_elec.av_p();
             
-            Bknpower acc_lep(nel,1,-2.,pspec);
+            Bknpower acc_lep(nel);
+            acc_lep.set_mass(emgm);
+            acc_lep.set_pspec1(-2.);
+            acc_lep.set_pspec2(pspec);
                         
             if (fsc<10.){
                 acc_lep.set_p(0.1*pbrk,pbrk,Urad,zone.bfield,betaeff,zone.r,fsc);
@@ -403,19 +416,23 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 plot_write(nel,acc_lep.get_p(),acc_lep.get_gamma(),acc_lep.get_pdens(),acc_lep.get_gdens(),
                 "Output/Numdens.dat");
             }
-        } else if (plfrac == 1.) {
+        } else if (zone.nth_frac == 1.) {
             if (IsShock==false){
                 Te = heat*Te;
                 zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
                 IsShock = true;
             }
-            Thermal dummy_elec(nel,1,zone.eltemp);
+            Thermal dummy_elec(nel);
+            dummy_elec.set_mass(emgm);
+            dummy_elec.set_temp(zone.eltemp);
             dummy_elec.set_p();
             dummy_elec.set_norm(zone.lepdens);
             dummy_elec.set_ndens();
             double pmin = dummy_elec.av_p();
             
-            Powerlaw acc_lep(nel,1,pspec);
+            Powerlaw acc_lep(nel);
+            acc_lep.set_mass(emgm);
+            acc_lep.set_pspec(pspec);
                         
             if (fsc<10.){
                 acc_lep.set_p(pmin,Urad,zone.bfield,betaeff,zone.r,fsc);
@@ -470,20 +487,25 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         nsyn = int(log10(syn_max)-log10(syn_min))*syn_res;
         syn_en = new double[nsyn];			
         syn_lum = new double[nsyn];	
-        Cyclosyn Syncro(nsyn,syn_min,syn_max,emgm);	
+        Cyclosyn Syncro(nsyn);
+        Syncro.set_frequency(syn_min,syn_max);	
 
         com_min = 0.1*Syncro.nu_syn();
         com_max = ear[ne-1]/hkev;
         ncom = int(log10(com_max)-log10(com_min))*com_res;
         com_en = new double[ncom];			
         com_lum = new double[ncom];		
-        Compton InvCompton(ncom,nsyn,Niter,com_min,com_max,emgm);		
-        for (int k=0;k<ncom;k++){
-            com_lum[k] = 0;
-            com_en[k] = InvCompton.get_energ()[k];
-        }
-        //Note: initializing these two arrays is not stricly necessary for running the code correctly, but it
-        //avoids messing up the color scale for the zone plots done by Plots.py
+        Compton InvCompton(ncom,nsyn);
+        InvCompton.set_frequency(com_min,com_max);	
+        
+        if(infosw > 1) {
+            for (int k=0;k<ncom;k++){
+                com_lum[k] = 0;
+                com_en[k] = InvCompton.get_energy()[k];
+            }
+        }	        
+        //Note: initializing these two arrays is only done to plot each zone correctly using the colorscale in
+        //Plot.py
 
         //calculate cyclosynchrotron spectrum
         //Set up the calculation by reading in magnetic field,beaming,volume,counterjet presence	
@@ -499,10 +521,10 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         }
         //Sum counterjet if present, then save emission from the zone in syn_en/syn_lum
         if (IsCounterjet==true){
-            sum_counterjet(nsyn,Syncro.get_energ_obs(),Syncro.get_nphot_obs(),syn_en,syn_lum);			
+            sum_counterjet(nsyn,Syncro.get_energy_obs(),Syncro.get_nphot_obs(),syn_en,syn_lum);			
         } else {
             for(int k=0;k<nsyn;k++){
-                syn_en[k] = Syncro.get_energ_obs()[k];
+                syn_en[k] = Syncro.get_energy_obs()[k];
                 syn_lum[k] = Syncro.get_nphot_obs()[k];		
             }
         }
@@ -525,19 +547,19 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 InvCompton.set_niter(15);		
             }
             //Cyclosynchrotron photons are always considered in the scattering						
-            InvCompton.cyclosyn_seed(Syncro.get_energ(),Syncro.get_nphot());
+            InvCompton.cyclosyn_seed(Syncro.get_energy(),Syncro.get_nphot());
             //Disk photons are included only if the disk is present
             if(Rin<Rout){
-                InvCompton.shsdisk_seed(Syncro.get_energ(),Disk.tin(),Rin,Rout,Disk.hdisk(),z+zone.delz/2.);
+                InvCompton.shsdisk_seed(Syncro.get_energy(),Disk.tin(),Rin,Rout,Disk.hdisk(),z+zone.delz/2.);
             }
             //Black body photons included only if compsw==1
             if(compsw==1){						
-                InvCompton.bb_seed(Syncro.get_energ(),Ubb1,zone.delta*BlackBody.temp_kev());
+                InvCompton.bb_seed(Syncro.get_energy(),Ubb1,zone.delta*BlackBody.temp_kev());
             }
             //AGN photon fields photons are considered only if disk is present and compsw==2
             if(compsw==2 && Rin<Rout){
-                InvCompton.bb_seed(Syncro.get_energ(),Ubb1,zone.delta*BLR.temp_kev());
-                InvCompton.bb_seed(Syncro.get_energ(),Ubb2,zone.delta*Torus.temp_kev());
+                InvCompton.bb_seed(Syncro.get_energy(),Ubb1,zone.delta*BLR.temp_kev());
+                InvCompton.bb_seed(Syncro.get_energy(),Ubb2,zone.delta*Torus.temp_kev());
             }
             //Calculate the spectrum with whichever fields have been invoked		
             InvCompton.compton_spectrum(gmin,gmax,spline_eldis,acc_eldis);
@@ -547,10 +569,10 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             }
             //Sum counterjet if present, then save emission from the zone in com_en/com_lum		
             if (IsCounterjet==true){
-                sum_counterjet(ncom,InvCompton.get_energ_obs(),InvCompton.get_nphot_obs(),com_en,com_lum);
+                sum_counterjet(ncom,InvCompton.get_energy_obs(),InvCompton.get_nphot_obs(),com_en,com_lum);
             } else {
                 for(int k=0;k<ncom;k++){
-    	            com_en[k] = InvCompton.get_energ_obs()[k];
+    	            com_en[k] = InvCompton.get_energy_obs()[k];
                     com_lum[k] = InvCompton.get_nphot_obs()[k];
 	            }			
             }
@@ -586,18 +608,18 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         plot_write(ne,tot_en,tot_syn_post,"Output/Postsyn.dat",dist,redsh);
         plot_write(ne,tot_en,tot_com_pre,"Output/Precom.dat",dist,redsh);
         plot_write(ne,tot_en,tot_com_post,"Output/Postcom.dat",dist,redsh);
-        plot_write(50,Disk.get_energ_obs(),Disk.get_nphot_obs(),"Output/Disk.dat",dist,redsh);
-        //plot_write(ncom,Corona.get_energ_obs(),Corona.get_nphot_obs(),"Output/Corona.dat",dist,redsh);
+        plot_write(50,Disk.get_energy_obs(),Disk.get_nphot_obs(),"Output/Disk.dat",dist,redsh);
+        //plot_write(ncom,Corona.get_energy_obs(),Corona.get_nphot_obs(),"Output/Corona.dat",dist,redsh);
         if(compsw==2){
-            plot_write(40,Torus.get_energ(),Torus.get_nphot(),"Output/BB.dat",dist,redsh);
+            plot_write(40,Torus.get_energy_obs(),Torus.get_nphot_obs(),"Output/BB.dat",dist,redsh);
         } else {
-            plot_write(40,BlackBody.get_energ(),BlackBody.get_nphot(),"Output/BB.dat",dist,redsh);
+            plot_write(40,BlackBody.get_energy_obs(),BlackBody.get_nphot_obs(),"Output/BB.dat",dist,redsh);
         }			
         plot_write(ne,tot_en,tot_lum,"Output/Total.dat",dist,redsh);
     }
     if (infosw >=3) {
         cout << "Observed 0.1-5 keV disk luminosity: "
-             << integrate_lum(50,0.1*2.41e17,5.*2.41e17,Disk.get_energ_obs(),Disk.get_nphot_obs()) << endl;
+             << integrate_lum(50,0.1*2.41e17,5.*2.41e17,Disk.get_energy_obs(),Disk.get_nphot_obs()) << endl;
         cout << "Observed 0.1-300 keV Inverse Compton luminosity: " 	
              << integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre) << endl; 
         cout << "Observed 0.1-300 keV total luminosity: " 

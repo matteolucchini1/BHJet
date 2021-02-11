@@ -7,7 +7,6 @@ class Compton: public Radiation {
     private:
         int seed_size;					//size of seed photon field
         int Niter;						//number of IC iterations
-        double mass;					//Mass of radiating particles
         double tau,ypar;				//optical depth/comtpon Y of emitting region
         double rphot; 					//photospheric radius when tau > 1, used to renormalize volume
         double escape_corr;				//escape term, used to renormalize our spectra to CompPS		
@@ -29,7 +28,7 @@ class Compton: public Radiation {
 
     public:
         ~Compton();
-        Compton(int s1,int s2,int Niter,double numin,double numax,double m);	
+        Compton(int s1,int s2);	
 
         friend double comfnc(double ein,void *p);
         friend double comint(double gam,void *p);
@@ -37,7 +36,7 @@ class Compton: public Radiation {
         double comintegral(int it,double blim,double ulim,double nu,double numin, double numax,gsl_spline 
                            *eldis,gsl_interp_accel *acc_eldis);
         void compton_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_interp_accel *acc_eldis);
-        //double compton_spectrum_parallel();//same as above but handle integration workspaces differently
+        //double compton_spectrum_parallel();//WIP
 
         void cyclosyn_seed(const double *seed_energ,const double *seed_lum);
         void bb_seed(const double *seed_energ,double Urad,double Tbb);
@@ -45,6 +44,7 @@ class Compton: public Radiation {
         void shsdisk_seed(double tin,double rin,double rout,double h,double z);		
         void shsdisk_seed(const double *seed_arr,double tin,double rin,double rout,double h,double z);
 
+        void set_frequency(double numin,double numax); 
         void set_tau(double n,double gam);
         void set_escape(double escape);		
         void set_niter(double nu0,double Te);

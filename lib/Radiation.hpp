@@ -38,7 +38,6 @@
 typedef struct cyclosyn_emis_params{
     double nu;
     double b;
-    double mass;
     gsl_spline *syn;
     gsl_interp_accel *acc_syn;
     gsl_spline *eldis;
@@ -48,7 +47,6 @@ typedef struct cyclosyn_emis_params{
 typedef struct cyclosyn_abs_params{
     double nu;
     double b;
-    double mass;
     gsl_spline *syn;
     gsl_interp_accel *acc_syn;
     gsl_spline *derivs;
@@ -106,9 +104,9 @@ class Radiation {
         std::string geometry;   	//string to track geometry of emitting region
 
     public:
-        const double *get_energ()const      { return en_phot; }
+        const double *get_energy()const      { return en_phot; }
         const double *get_nphot()const      { return num_phot; }
-        const double *get_energ_obs()const  { return en_phot_obs; }
+        const double *get_energy_obs()const  { return en_phot_obs; }
         const double *get_nphot_obs()const  { return num_phot_obs; }
         const int get_size() const          { return size;}
 

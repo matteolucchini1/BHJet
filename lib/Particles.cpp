@@ -37,7 +37,7 @@ double Particles::av_p(){
 }
 
 double Particles::av_gamma(){
-    return pow(pow(av_p()/(mass*cee),2.)+1.,1./2.);
+    return pow(pow(av_p()/(mass_gr*cee),2.)+1.,1./2.);
 }
 
 double Particles::av_psq(){
@@ -49,20 +49,20 @@ double Particles::av_psq(){
 }
 
 double Particles::av_gammasq(){
-    return pow(av_psq()/pow(mass*cee,2.)+1.,1./2.);
+    return pow(av_psq()/pow(mass_gr*cee,2.)+1.,1./2.);
 }
 
 //Methods to set up energy space number density, as a function of momentum space number density
 void Particles::initialize_gdens(){
     for (int i=0;i<size;i++){
-        gdens[i] = ndens[i]*gamma[i]*mass*cee/(pow(pow(gamma[i],2.)-1.,1./2.));
+        gdens[i] = ndens[i]*gamma[i]*mass_gr*cee/(pow(pow(gamma[i],2.)-1.,1./2.));
     }
 }
 
 //Same as above but the other way around
 void Particles::initialize_pdens(){
     for (int i=0;i<size;i++){
-        ndens[i] = gdens[i]*p[i]/(pow(mass*cee,2.)*pow(pow(p[i]/(mass*cee),2.)+1.,1./2.));
+        ndens[i] = gdens[i]*p[i]/(pow(mass_gr*cee,2.)*pow(pow(p[i]/(mass_gr*cee),2.)+1.,1./2.));
     }
 }
 
@@ -75,12 +75,17 @@ void Particles::gdens_differentiate(){
     }
 
     for (int i=0;i<size-1;i++){
-        gdens_diff[i] =  (temp[i+1]-temp[i])/(mass*pow(cee,2.)*(gamma[i+1]-gamma[i]));
+        gdens_diff[i] =  (temp[i+1]-temp[i])/(mass_gr*pow(cee,2.)*(gamma[i+1]-gamma[i]));
     }
 
     gdens_diff[size-1] = gdens_diff[size-2];
 
     delete[] temp;
+}
+
+void Particles::set_mass(double m){
+    mass_gr = m;
+    mass_kev = m*gr_to_kev;
 }
 
 //simple method to check arrays; only meant for debugging

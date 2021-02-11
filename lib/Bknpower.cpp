@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-Bknpower::Bknpower(int s,int type,double s1,double s2){
+Bknpower::Bknpower(int s){
     size = s;
 
     p = new double[size];
@@ -12,11 +12,6 @@ Bknpower::Bknpower(int s,int type,double s1,double s2){
     gdens = new double[size];
     gdens_diff = new double[size];
 
-    if (type==1) {mass = emgm;}
-    else  {mass = pmgm;}
-
-    pspec1 = s1;
-    pspec2 = s2;
     norm = 1.;
 
     for (int i=0;i<size;i++){
@@ -38,20 +33,20 @@ void Bknpower::set_p(double min,double brk,double ucom,double bfield,double beta
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin)+i*pinc);
-        gamma[i] = pow(pow(p[i]/(mass*cee),2.)+1.,1./2.);
+        gamma[i] = pow(pow(p[i]/(mass_gr*cee),2.)+1.,1./2.);
     }
 }
 
 void Bknpower::set_p(double min,double brk,double gmax){
     pmin = min;
     pbrk = brk;
-    pmax = pow(pow(gmax,2.)-1.,1./2.)*mass*cee;
+    pmax = pow(pow(gmax,2.)-1.,1./2.)*mass_gr*cee;
 
     double pinc = (log10(pmax)-log10(pmin))/size;
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin)+i*pinc);
-        gamma[i] = pow(pow(p[i]/(mass*cee),2.)+1.,1./2.);
+        gamma[i] = pow(pow(p[i]/(mass_gr*cee),2.)+1.,1./2.);
     }	
 }
 
@@ -95,19 +90,19 @@ double norm_bkn_int(double x,void *p){
 void Bknpower::set_norm(double n){
     double norm_integral, error, min, max;
 
-    min = pow(pow(pmin/(mass*cee),2.)+1.,1./2.);
-    max = pow(pow(pmax/(mass*cee),2.)+1.,1./2.);
+    min = pow(pow(pmin/(mass_gr*cee),2.)+1.,1./2.);
+    max = pow(pow(pmax/(mass_gr*cee),2.)+1.,1./2.);
 
     gsl_integration_workspace *w1;
     w1 = gsl_integration_workspace_alloc (100);
     gsl_function F1;	
-    struct bkn_params params = {pspec1,pspec2,pbrk,pmax,mass};
+    struct bkn_params params = {pspec1,pspec2,pbrk,pmax,mass_gr};
     F1.function = &norm_bkn_int;
     F1.params   = &params;
     gsl_integration_qag(&F1,min,max,0,1e-7,100,1,w1,&norm_integral,&error);
     gsl_integration_workspace_free (w1);
 
-    norm = n/(norm_integral*mass*cee);
+    norm = n/(norm_integral*mass_gr*cee);
 }
 
 //Injection function to be integrated in cooling
@@ -131,12 +126,12 @@ double injection_bkn_int(double x,void *p){
 void Bknpower::cooling_steadystate(double ucom, double n0,double bfield,double r,double betaeff){
     double Urad = pow(bfield,2.)/(8.*pi)+ucom;
     double pdot_ad = betaeff*cee/r;
-    double pdot_rad = (4.*sigtom*cee*Urad)/(3.*mass*pow(cee,2.));
+    double pdot_rad = (4.*sigtom*cee*Urad)/(3.*mass_gr*pow(cee,2.));
     double tinj = r/(cee);
 
     double integral, error;
     gsl_function F1;	
-    struct injection_bkn_params params = {pspec1,pspec2,pbrk,pmax,mass,n0};
+    struct injection_bkn_params params = {pspec1,pspec2,pbrk,pmax,mass_gr,n0};
     F1.function = &injection_bkn_int;
     F1.params   = &params;
 
@@ -147,7 +142,7 @@ void Bknpower::cooling_steadystate(double ucom, double n0,double bfield,double r
             gsl_integration_qag(&F1,gamma[i],gamma[i+1],1e1,1e1,100,1,w1,&integral,&error);
             gsl_integration_workspace_free (w1);
 
-            ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass*cee)+pdot_rad*(gamma[i]*p[i]/(mass*cee)));
+            ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass_gr*cee)+pdot_rad*(gamma[i]*p[i]/(mass_gr*cee)));
         }
         else {
             ndens[size-1] = ndens[size-2]*pow(p[size-1]/p[size-2],-pspec2)*exp(-1.);
@@ -177,15 +172,15 @@ double Bknpower::max_p(double ucom,double bfield,double betaeff,double r,double 
     double Urad, escom, accon, syncon, b, c, gmax;
     Urad = pow(bfield,2.)/(8.*pi)+ucom;
     escom = betaeff*cee/r;
-    syncon = (4.*sigtom*Urad)/(3.*mass*cee);
-    accon = (3.*fsc*charg*bfield)/(4.*mass*cee);
+    syncon = (4.*sigtom*Urad)/(3.*mass_gr*cee);
+    accon = (3.*fsc*charg*bfield)/(4.*mass_gr*cee);
 
     b = escom/syncon;
     c = accon/syncon;
 
     gmax = (-b+pow(pow(b,2.)+4.*c,1./2.))/2.;
 
-    return pow(pow(gmax,2.)-1.,1./2.)*mass*cee;
+    return pow(pow(gmax,2.)-1.,1./2.)*mass_gr*cee;
 }
 
 //simple method to check quantities.
@@ -196,5 +191,5 @@ void Bknpower::test(){
     std::cout << "pbreak: " << pbrk << std::endl;
     std::cout << "Array size: " << size << std::endl;
     std::cout << "Default normalization: " << norm << std::endl;
-    std::cout << "Particle mass: " << mass << std::endl;
+    std::cout << "Particle mass: " << mass_gr << std::endl;
 }

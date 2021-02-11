@@ -22,7 +22,7 @@ class Mixed: public Particles {
         double pmin_th, pmax_th, pmin_pl, pmax_pl;
         double plfrac;
     public:
-        Mixed(int s,int type,double T,double s1);			
+        Mixed(int s);			
 
         void set_p(double ucom,double bfield,double betaeff,double r,double fsc);
         void set_p(double gmax);	

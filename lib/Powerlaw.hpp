@@ -9,16 +9,16 @@ class Powerlaw: public Particles {
         double pspec, plnorm;
         double pmin, pmax;
     public:
-        Powerlaw(int s,int type,double s1,bool flag);		
+        Powerlaw(int s);		
 
-        void set_p(double min,double ucom,double bfield,double tshift,double bjet,double r,double fsc);
+        void set_p(double min,double ucom,double bfield,double betaeff,double r,double fsc);
         void set_p(double min,double gmax);		
         void set_ndens();
         void set_pspec(double s1);
         void set_norm(double n);			
 
         void cooling_steadystate(double ucom,double n0,double bfield,double r,double tshift);
-        double max_p(double ucom,double bfield,double tshift,double bjet,double r,double fsc);
+        double max_p(double ucom,double bfield,double betaeff,double r,double fsc);
 
         void test();	
 };

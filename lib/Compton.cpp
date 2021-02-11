@@ -66,9 +66,7 @@ Compton::~Compton(){
     gsl_interp_accel_free(acc_iter);
 }
 
-//This constructor initializes the arrays and interpolations. In this case, calculations are done in frequency
-//space, not in photon energies.
-Compton::Compton(int s1,int s2,int n,double numin,double numax,double m){
+Compton::Compton(int s1,int s2){
     size = s1;
     seed_size = s2;
 
@@ -81,8 +79,8 @@ Compton::Compton(int s1,int s2,int n,double numin,double numax,double m){
     seed_energ = new double[seed_size];
     seed_urad = new double[seed_size]; 		
 
-    Niter = n;	
-    ypar = 1.;
+    Niter = 1;	
+    ypar = 0;
     escape_corr = 1.;
 
     counterjet = false;
@@ -101,24 +99,19 @@ Compton::Compton(int s1,int s2,int n,double numin,double numax,double m){
     iter_ph = gsl_spline_alloc(gsl_interp_steffen,size);
     acc_iter = gsl_interp_accel_alloc();			
 
-    double nuinc = (log10(numax)-log10(numin))/(size-1);
-
     for(int i=0;i<size;i++){
-        en_phot[i] = pow(10.,log10(numin)+i*nuinc)*herg;
-        en_phot_obs[i] = en_phot[i];
-        en_phot_obs[i+size] = en_phot[i];
+        en_phot[i] = 0;
+        en_phot_obs[i] = 0;
+        en_phot_obs[i+size] = 0;
         num_phot[i] = 0;
         num_phot_obs[i] = 0;
         num_phot_obs[i+size] = 0;
         iter_urad[i] = 0;
     }	
-
     for(int i=0;i<seed_size;i++){
         seed_energ[i] = 0;
         seed_urad[i] = 0;
     }
-
-    mass = m;	
 }
 
 //This function is the kernel of eq 2.48 in Blumenthal & Gould(1970), represents the scattered photon spectrum
@@ -496,6 +489,15 @@ void Compton::set_tau(double n,double theta){
         vol = (4./3.)*pi*(pow(r,3.)-pow(r-rphot,3.));
     } else if (geometry == "cylinder" && tau>1.){
         vol = pi*z*(pow(r,2.)-pow(r-rphot,2.));
+    }	
+}
+
+//Method to set up the frequency array over desired range
+void Compton::set_frequency(double numin,double numax){
+    double nuinc = (log10(numax)-log10(numin))/(size-1);
+
+    for(int i=0;i<size;i++){
+        en_phot[i] = pow(10.,log10(numin)+i*nuinc)*herg;
     }	
 }
 

@@ -14,7 +14,8 @@
 #define pmgm            GSL_CONST_CGSM_MASS_PROTON
 #define kboltz          GSL_CONST_CGSM_BOLTZMANN
 #define kboltz_kev2erg  1.6022e-9
-#define me_kev          511
+#define gr_to_kev       5.6095883571872e+29
+#define me_kev          511.
 #define emerg           (GSL_CONST_CGSM_MASS_ELECTRON*pow(GSL_CONST_CGSM_SPEED_OF_LIGHT,2.))
 #define pi              M_PI
 #define charg           4.8e-10
@@ -91,8 +92,11 @@ typedef struct injection_bkn_params {
 
 class Particles {
     protected:
-        double mass;
-        int size, type;
+        int size;
+        
+        double mass_gr;         //particle mass in grams
+        double mass_kev;        //same as above but in keV, using electrons as "reference"
+        
         double *p;				//array of particle momenta
         double *ndens;			//array of number density per unit volume, per unit momentum
         double *gamma;			//array of particle kinetic energies for each momentum
@@ -101,7 +105,8 @@ class Particles {
 						        
     public:
         ~Particles();
-
+        
+        void set_mass(double m);
         void initialize_gdens();	
         void initialize_pdens();
         void gdens_differentiate();

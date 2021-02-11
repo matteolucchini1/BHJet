@@ -4,7 +4,7 @@
 #include <iostream>
 
 //Class constructor to initialize object
-Kappa::Kappa(int s,int type,double T,double k){
+Kappa::Kappa(int s){
     size = s;
 
     p = new double[size];
@@ -13,26 +13,7 @@ Kappa::Kappa(int s,int type,double T,double k){
     gdens = new double[size];
     gdens_diff = new double[size];
 
-    if (type==1) {mass = emgm;}
-    else  {mass = pmgm;}
-
-    theta = T/(mass*cee*cee);
-    kappa = k;
     knorm = 1.;	
-
-    double emin = (1./100.)*(T/kboltz_kev2erg);	//minimum energy in kev, 1/50 lower than peak
-    double emax = 20.*(T/kboltz_kev2erg); 		//maximum energy in kev, 20 higher than peak
-    double gmin, gmax;
-
-    if (mass == emgm){
-        gmin = emin/me_kev+1.;
-        gmax = emax/me_kev+1.;
-    } else if (mass == pmgm) {
-        std::cout << "Error! Protons currently unsupported!" << std::endl;
-    }
-
-    pmin = pow(pow(gmin,2.)-1.,1./2.)*mass*cee;
-    pmax = pow(pow(gmax,2.)-1.,1./2.)*mass*cee;
 
     for (int i=0;i<size;i++){
         p[i] = 0;
@@ -43,6 +24,24 @@ Kappa::Kappa(int s,int type,double T,double k){
     }
 }
 
+//Method to set the temperature, using ergs as input
+void Kappa::set_temp(double T){
+    theta = T/(mass_gr*cee*cee);
+
+    double emin = (1./100.)*(T/kboltz_kev2erg);	//minimum energy in kev, 1/50 lower than peak
+    double emax = 20.*(T/kboltz_kev2erg); 		//maximum energy in kev, 20 higher than peak
+    double gmin, gmax;
+
+    gmin = emin/mass_kev+1.;
+    gmax = emax/mass_kev+1.;
+    pmin = pow(pow(gmin,2.)-1.,1./2.)*mass_gr*cee;
+    pmax = pow(pow(gmax,2.)-1.,1./2.)*mass_gr*cee;	
+}
+
+void Kappa::set_kappa(double k){
+    kappa = k;
+}
+
 //Methods to set momentum/energy arrays and number density arrays
 void Kappa::set_p(double ucom,double bfield,double betaeff,double r,double fsc){	
     pmax = std::max(max_p(ucom,bfield,betaeff,r,fsc),pmax);	
@@ -51,19 +50,19 @@ void Kappa::set_p(double ucom,double bfield,double betaeff,double r,double fsc){
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin)+i*pinc);
-        gamma[i] = pow(pow(p[i]/(mass*cee),2.)+1.,1./2.);
+        gamma[i] = pow(pow(p[i]/(mass_gr*cee),2.)+1.,1./2.);
     }
 }
 
 //Same as above, but assuming a fixed maximum Lorentz factor
 void Kappa::set_p(double gmax){
-    pmax = pow(pow(gmax,2.)-1.,1./2.)*mass*cee;
+    pmax = pow(pow(gmax,2.)-1.,1./2.)*mass_gr*cee;
 
     double pinc = (log10(pmax)-log10(pmin))/size;
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin)+i*pinc);
-        gamma[i] = pow(pow(p[i]/(mass*cee),2.)+1.,1./2.);
+        gamma[i] = pow(pow(p[i]/(mass_gr*cee),2.)+1.,1./2.);
     }	
 }
 
@@ -74,28 +73,6 @@ void Kappa::set_ndens(){
     }
     initialize_pdens();
     gdens_differentiate();	
-}
-
-void Kappa::set_temp(double T){
-    theta = T/(mass*cee*cee);
-
-    double emin = (1./100.)*(T/kboltz_kev2erg);	//minimum energy in kev, 1/50 lower than peak
-    double emax = 20.*(T/kboltz_kev2erg); 		//maximum energy in kev, 20 higher than peak
-    double gmin, gmax;
-
-    if (mass == emgm){
-        gmin = emin/me_kev+1.;
-        gmax = emax/me_kev+1.;
-    } else if (mass == pmgm) {
-        std::cout << "Error! Protons currently unsupported!" << std::endl;
-    }
-
-    pmin = pow(pow(gmin,2.)-1.,1./2.)*mass*cee;
-    pmax = pow(pow(gmax,2.)-1.,1./2.)*mass*cee;	
-}
-
-void Kappa::set_kappa(double k){
-    kappa = k;
 }
 
 //Methods to calculate the normalization of the function
@@ -111,8 +88,8 @@ double norm_kappa_int(double x,void *p){
 void Kappa::set_norm(double n){
     double norm_integral, error, min, max;
 
-    min = pow(pow(pmin/(mass*cee),2.)+1.,1./2.);
-    max = pow(pow(pmax/(mass*cee),2.)+1.,1./2.);
+    min = pow(pow(pmin/(mass_gr*cee),2.)+1.,1./2.);
+    max = pow(pow(pmax/(mass_gr*cee),2.)+1.,1./2.);
 
     gsl_function F1;	
     struct k_params params = {theta,kappa};
@@ -144,12 +121,12 @@ double injection_kappa_int(double x,void *p){
 void Kappa::cooling_steadystate(double ucom, double n0,double bfield,double r,double betaeff){
     double Urad = pow(bfield,2.)/(8.*pi)+ucom;
     double pdot_ad = betaeff*cee/r;
-    double pdot_rad = (4.*sigtom*cee*Urad)/(3.*mass*pow(cee,2.));
+    double pdot_rad = (4.*sigtom*cee*Urad)/(3.*mass_gr*pow(cee,2.));
     double tinj = r/(cee);
 
     double integral, error;
     gsl_function F1;	
-    struct injection_kappa_params params = {theta,kappa,knorm,mass};
+    struct injection_kappa_params params = {theta,kappa,knorm,mass_gr};
     F1.function = &injection_kappa_int;
     F1.params   = &params;
 
@@ -160,7 +137,7 @@ void Kappa::cooling_steadystate(double ucom, double n0,double bfield,double r,do
     	    gsl_integration_qag(&F1,gamma[i],gamma[i+1],1e1,1e1,100,1,w1,&integral,&error);
             gsl_integration_workspace_free (w1);
 
-    	    ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass*cee)+pdot_rad*(gamma[i]*p[i]/(mass*cee)));
+    	    ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass_gr*cee)+pdot_rad*(gamma[i]*p[i]/(mass_gr*cee)));
         }
         else {
             ndens[size-1] = ndens[size-2]*pow(p[size-1]/p[size-2],-kappa);
@@ -188,15 +165,15 @@ double Kappa::max_p(double ucom,double bfield,double betaeff,double r,double fsc
     double Urad, escom, accon, syncon, b, c, gmax;
     Urad = pow(bfield,2.)/(8.*pi)+ucom;
     escom = betaeff*cee/r;
-    syncon = (4.*sigtom*Urad)/(3.*mass*cee);
-    accon = (3.*fsc*charg*bfield)/(4.*mass*cee);
+    syncon = (4.*sigtom*Urad)/(3.*mass_gr*cee);
+    accon = (3.*fsc*charg*bfield)/(4.*mass_gr*cee);
 
     b = escom/syncon;
     c = accon/syncon;
 
     gmax = (-b+pow(pow(b,2.)+4.*c,1./2.))/2.;
 
-    return pow(pow(gmax,2.)-1.,1./2.)*mass*cee;
+    return pow(pow(gmax,2.)-1.,1./2.)*mass_gr*cee;
 }
 
 void Kappa::test(){
@@ -205,5 +182,5 @@ void Kappa::test(){
     std::cout << "dimensionless temperature: " << theta << std::endl;
     std::cout << "Array size: " << size << std::endl;
     std::cout << "Default normalization: " << knorm << std::endl;
-    std::cout << "Particle mass: " << mass << std::endl;
+    std::cout << "Particle mass in grams: " << mass_gr << std::endl;
 }

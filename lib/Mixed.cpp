@@ -4,7 +4,7 @@
 #include <iostream>
 
 //Class constructors to initialize object
-Mixed::Mixed(int s,int type,double T,double s1){
+Mixed::Mixed(int s){
     size = s;
 
     p = new double[size];
@@ -13,27 +13,7 @@ Mixed::Mixed(int s,int type,double T,double s1){
     gdens = new double[size];
     gdens_diff = new double[size];
 
-    if (type==1) {mass = emgm;}
-    else  {mass = pmgm;}
-
-    theta = T/(mass*cee*cee);
-    thnorm = 1.;										
-
-    double emin_th = (1./100.)*(T/kboltz_kev2erg);	//minimum energy in kev, 1/50 lower than peak
-    double emax_th = 20.*(T/kboltz_kev2erg); 		//maximum energy in kev, 20 higher than peak
-    double gmin_th, gmax_th;
-
-    if (mass == emgm){
-        gmin_th = emin_th/me_kev+1.;
-        gmax_th = emax_th/me_kev+1.;
-    } else if (mass == pmgm) {
-        std::cout << "Error! Protons currently unsupported!" << std::endl;
-    }
-
-    pmin_th = pow(pow(gmin_th,2.)-1.,1./2.)*mass*cee;
-    pmax_th = pow(pow(gmax_th,2.)-1.,1./2.)*mass*cee;
-
-    pspec = s1;
+    thnorm = 1.;									
     plnorm = 1.;	
 
     for (int i=0;i<size;i++){
@@ -55,20 +35,20 @@ void Mixed::set_p(double ucom,double bfield,double betaeff,double r,double fsc){
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin_th)+i*pinc);
-        gamma[i] = pow(pow(p[i]/(mass*cee),2.)+1.,1./2.);
+        gamma[i] = pow(pow(p[i]/(mass_gr*cee),2.)+1.,1./2.);
     }
 }
 
 //Same as above, but assuming a fixed maximum Lorentz factor
 void Mixed::set_p(double gmax){
     pmin_pl = av_th_p();
-    pmax_pl = pow(pow(gmax,2.)-1.,1./2.)*mass*cee;
+    pmax_pl = pow(pow(gmax,2.)-1.,1./2.)*mass_gr*cee;
 
     double pinc = (log10(pmax_pl)-log10(pmin_th))/size;
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin_th)+i*pinc);
-        gamma[i] = pow(pow(p[i]/(mass*cee),2.)+1.,1./2.);
+        gamma[i] = pow(pow(p[i]/(mass_gr*cee),2.)+1.,1./2.);
     }	
 }
 
@@ -88,21 +68,15 @@ void Mixed::set_ndens(){
 
 //methods to set the temperature, pl fraction, and normalizations. Temperature must be in ergs, no factor kb
 void Mixed::set_temp(double T){
-    theta = T/(mass*cee*cee);
-
+    theta = T/(mass_gr*cee*cee);
     double emin_th = (1./100.)*(T/kboltz_kev2erg);	//minimum energy in kev, 1/50 lower than peak
     double emax_th = 20.*(T/kboltz_kev2erg); 		//maximum energy in kev, 20 higher than peak
     double gmin_th, gmax_th;
 
-    if (mass == emgm){
-        gmin_th = emin_th/me_kev+1.;
-        gmax_th = emax_th/me_kev+1.;
-    } else if (mass == pmgm) {
-        std::cout << "Error! Protons currently unsupported!" << std::endl;
-    }
-
-    pmin_th = pow(pow(gmin_th,2.)-1.,1./2.)*mass*cee;
-    pmax_th = pow(pow(gmax_th,2.)-1.,1./2.)*mass*cee;	
+    gmin_th = emin_th/mass_kev+1.;
+    gmax_th = emax_th/mass_kev+1.;
+    pmin_th = pow(pow(gmin_th,2.)-1.,1./2.)*mass_gr*cee;
+    pmax_th = pow(pow(gmax_th,2.)-1.,1./2.)*mass_gr*cee;	
 }
 
 void Mixed::set_pspec(double s1){
@@ -114,7 +88,7 @@ void Mixed::set_plfrac(double f){
 }
 
 void Mixed::set_norm(double n){
-    thnorm = (1.-plfrac)*n/(pow(mass*cee,3.)*theta*K2(1./theta));
+    thnorm = (1.-plfrac)*n/(pow(mass_gr*cee,3.)*theta*K2(1./theta));
     plnorm = plfrac*n*(1.-pspec)/(pow(pmax_pl,(1.-pspec))-pow(pmin_pl,(1.-pspec)));	
 }
 
@@ -146,16 +120,16 @@ double injection_mixed_int(double x,void *p){
 void Mixed::cooling_steadystate(double ucom, double n0,double bfield,double r,double betaeff){
     double Urad = pow(bfield,2.)/(8.*pi)+ucom;
     double pdot_ad = betaeff*cee/r;
-    double pdot_rad = (4.*sigtom*cee*Urad)/(3.*mass*pow(cee,2.));
+    double pdot_rad = (4.*sigtom*cee*Urad)/(3.*mass_gr*pow(cee,2.));
     double tinj = r/(cee);
 
     double gam_min, gam_max;
-    gam_min = pow(pow(pmin_pl/(mass*cee),2.)+1.,1./2.);
-    gam_max = pow(pow(pmax_th/(mass*cee),2.)+1.,1./2.);		
+    gam_min = pow(pow(pmin_pl/(mass_gr*cee),2.)+1.,1./2.);
+    gam_max = pow(pow(pmax_th/(mass_gr*cee),2.)+1.,1./2.);		
 
     double integral, error;
     gsl_function F1;	
-    struct injection_mixed_params params = {pspec,theta,thnorm,plnorm,mass,gam_min,gam_max,pmax_pl};
+    struct injection_mixed_params params = {pspec,theta,thnorm,plnorm,mass_gr,gam_min,gam_max,pmax_pl};
     F1.function = &injection_mixed_int;
     F1.params   = &params;
 
@@ -166,7 +140,7 @@ void Mixed::cooling_steadystate(double ucom, double n0,double bfield,double r,do
             gsl_integration_qag(&F1, gamma[i], gamma[i+1], 1e1, 1e1, 100, 1, w1, &integral, &error);
             gsl_integration_workspace_free (w1);
 
-            ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass*cee)+pdot_rad*(gamma[i]*p[i]/(mass*cee)));
+            ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass_gr*cee)+pdot_rad*(gamma[i]*p[i]/(mass_gr*cee)));
         }
         else {
             ndens[size-1] = ndens[size-2]*pow(p[size-1]/p[size-2],-pspec-1);
@@ -189,21 +163,19 @@ void Mixed::cooling_steadystate(double ucom, double n0,double bfield,double r,do
 }
 
 //Method to calculate maximum momentum of non thermal particles based on acceleration and cooling timescales
-//The estimate is identical to the old agnjet but in momentum space; see Lucchini et al. 2019 for the math of
-//the old version
 double Mixed::max_p(double ucom,double bfield,double betaeff,double r,double fsc){
     double Urad, escom, accon, syncon, b, c, gmax;
     Urad = pow(bfield,2.)/(8.*pi)+ucom;
     escom = betaeff*cee/r;
-    syncon = (4.*sigtom*Urad)/(3.*mass*cee);
-    accon = (3.*fsc*charg*bfield)/(4.*mass*cee);
+    syncon = (4.*sigtom*Urad)/(3.*mass_gr*cee);
+    accon = (3.*fsc*charg*bfield)/(4.*mass_gr*cee);
 
     b = escom/syncon;
     c = accon/syncon;
 
     gmax = (-b+pow(pow(b,2.)+4.*c,1./2.))/2.;
 
-    return pow(pow(gmax,2.)-1.,1./2.)*mass*cee;
+    return pow(pow(gmax,2.)-1.,1./2.)*mass_gr*cee;
 }
 
 //Evaluate Bessel function for MJ normalization
@@ -248,7 +220,7 @@ double Mixed::count_th_particles(){
     gsl_integration_workspace *w1;
     w1 = gsl_integration_workspace_alloc (100);
     gsl_function F1;	
-    struct th_params params = {theta,thnorm,mass};
+    struct th_params params = {theta,thnorm,mass_gr};
     F1.function = &th_num_dens_int;
     F1.params   = &params;
     gsl_integration_qag(&F1,pmin_th,pmax_th,0,1e-7,100,1,w1,&integral1,&error1);
@@ -262,7 +234,7 @@ double Mixed::av_th_p(){
     gsl_integration_workspace *w1;
     w1 = gsl_integration_workspace_alloc (100);
     gsl_function F1;	
-    struct th_params params = {theta,thnorm,mass};
+    struct th_params params = {theta,thnorm,mass_gr};
     F1.function = av_th_p_int;
     F1.params   = &params;
     gsl_integration_qag(&F1,pmin_th,pmax_th,0, 1e-7,100,1,w1,&integral1,&error1);
@@ -276,7 +248,7 @@ double Mixed::av_th_gamma(){
     double avp;	
     avp=av_th_p();
 
-    return pow(pow(avp/(mass*cee),2.)+1.,1./2.);
+    return pow(pow(avp/(mass_gr*cee),2.)+1.,1./2.);
 }
 
 //Methods to calculate number density and average energy in non-thermal part
@@ -329,13 +301,13 @@ double Mixed::av_pl_gamma(){
     double avp;	
     avp=av_pl_p();
 
-    return pow(pow(avp/(mass*cee),2.)+1.,1./2.);
+    return pow(pow(avp/(mass_gr*cee),2.)+1.,1./2.);
 }
 
 //simple method to check quantities.
 void Mixed::test(){
     std::cout << "Mixed distribution;" << std::endl;
-    std::cout << "Temperature: " << theta*mass*cee*cee/kboltz_kev2erg << " kev" << std::endl;
+    std::cout << "Temperature: " << theta*mass_gr*cee*cee/kboltz_kev2erg << " kev" << std::endl;
     std::cout << "Number density: " << count_particles() << std::endl;	
     std::cout << "Thermal monetum limits: " << pmin_th << " " << pmax_th << std::endl;
     std::cout << "Non-thermal momentum limits: " << pmin_pl << " " << pmax_pl << std::endl;
