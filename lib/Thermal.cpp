@@ -9,8 +9,6 @@ Thermal::Thermal(int s,int type, double T) {
     gamma = new double[size];
     gdens = new double[size];
     gdens_diff = new double[size];
-
-    w1 = gsl_integration_workspace_alloc (100);
 	
     if (type==1) {mass = emgm;}
     else  {mass = pmgm;}

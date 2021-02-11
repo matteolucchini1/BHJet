@@ -27,7 +27,6 @@ class Compton: public Radiation {
         gsl_interp_accel *acc_tau;		//accelerator of above spline over tau
         gsl_interp_accel *acc_Te;		//accelerator of above spline over Te
 
-        gsl_integration_workspace *w2;	//workspace for second numerical integration		
     public:
         ~Compton();
         Compton(int s1,int s2,int Niter,double numin,double numax,double m);	

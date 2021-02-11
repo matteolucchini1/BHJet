@@ -9,7 +9,7 @@ class Bknpower: public Particles {
         double pspec1, pspec2, norm;
         double pmin, pbrk, pmax;
     public:
-        Bknpower(int s,int type,double s1,double s2,bool flag);		
+        Bknpower(int s,int type,double s1,double s2);		
 
         void set_p(double min,double brk,double ucom,double bfield,double betaeff,double r,double fsc);
         void set_p(double min,double brk,double gmax);	

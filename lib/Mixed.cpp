@@ -4,7 +4,7 @@
 #include <iostream>
 
 //Class constructors to initialize object
-Mixed::Mixed(int s,int type,double T,double s1,bool flag){
+Mixed::Mixed(int s,int type,double T,double s1){
     size = s;
 
     p = new double[size];
@@ -12,8 +12,6 @@ Mixed::Mixed(int s,int type,double T,double s1,bool flag){
     gamma = new double[size];
     gdens = new double[size];
     gdens_diff = new double[size];
-
-    w1 = gsl_integration_workspace_alloc (100);
 
     if (type==1) {mass = emgm;}
     else  {mass = pmgm;}
@@ -37,8 +35,6 @@ Mixed::Mixed(int s,int type,double T,double s1,bool flag){
 
     pspec = s1;
     plnorm = 1.;	
-
-    FP_flag = flag;	
 
     for (int i=0;i<size;i++){
         p[i] = 0;
@@ -86,10 +82,8 @@ void Mixed::set_ndens(){
 	        ndens[i] = plnorm*pow(p[i],-pspec)*exp(-p[i]/pmax_pl);
         }
     }
-    if (FP_flag == false){
-        initialize_gdens();
-        gdens_differentiate();	
-    }
+    initialize_gdens();
+    gdens_differentiate();	
 }
 
 //methods to set the temperature, pl fraction, and normalizations. Temperature must be in ergs, no factor kb
@@ -159,17 +153,20 @@ void Mixed::cooling_steadystate(double ucom, double n0,double bfield,double r,do
     gam_min = pow(pow(pmin_pl/(mass*cee),2.)+1.,1./2.);
     gam_max = pow(pow(pmax_th/(mass*cee),2.)+1.,1./2.);		
 
+    double integral, error;
     gsl_function F1;	
     struct injection_mixed_params params = {pspec,theta,thnorm,plnorm,mass,gam_min,gam_max,pmax_pl};
     F1.function = &injection_mixed_int;
     F1.params   = &params;
 
-    double integral, error;
-
     for (int i=0;i<size;i++){
         if (i < size-1) {
+            gsl_integration_workspace *w1;
+            w1 = gsl_integration_workspace_alloc (100);
             gsl_integration_qag(&F1, gamma[i], gamma[i+1], 1e1, 1e1, 100, 1, w1, &integral, &error);
-            ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass*cee)+pdot_rad*pow(p[i]/(mass*cee),2.));
+            gsl_integration_workspace_free (w1);
+
+            ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass*cee)+pdot_rad*(gamma[i]*p[i]/(mass*cee)));
         }
         else {
             ndens[size-1] = ndens[size-2]*pow(p[size-1]/p[size-2],-pspec-1);
@@ -187,7 +184,6 @@ void Mixed::cooling_steadystate(double ucom, double n0,double bfield,double r,do
     for (int i=0;i<size;i++){
         ndens[i] = ndens[i]/renorm;
     }
-
     initialize_gdens();
     gdens_differentiate();	
 }
@@ -226,8 +222,7 @@ double Mixed::K2(double x){
 
 //Methods to calculate number density and average energy in thermal part
 double th_num_dens_int(double x,void *p){
-    struct th_params * params = (struct th_params*)p; 	 
-
+    struct th_params * params = (struct th_params*)p; 
     double t = (params->t); 
     double n = (params->n);  
     double m = (params->m); 	
@@ -238,8 +233,7 @@ double th_num_dens_int(double x,void *p){
 }
 
 double av_th_p_int(double x,void *p){
-    struct th_params * params = (struct th_params *)p; 	 
-
+    struct th_params * params = (struct th_params *)p;
     double t = (params->t); 
     double n = (params->n);  
     double m = (params->m); 	
@@ -250,39 +244,36 @@ double av_th_p_int(double x,void *p){
 }
 
 double Mixed::count_th_particles(){
-
     double integral1, error1;
-
+    gsl_integration_workspace *w1;
+    w1 = gsl_integration_workspace_alloc (100);
     gsl_function F1;	
     struct th_params params = {theta,thnorm,mass};
     F1.function = &th_num_dens_int;
     F1.params   = &params;
-
     gsl_integration_qag(&F1,pmin_th,pmax_th,0,1e-7,100,1,w1,&integral1,&error1);
+    gsl_integration_workspace_free (w1);
 
     return integral1;
 }
 
 double Mixed::av_th_p(){
-
     double integral1, error1, integral2;
-
+    gsl_integration_workspace *w1;
+    w1 = gsl_integration_workspace_alloc (100);
     gsl_function F1;	
     struct th_params params = {theta,thnorm,mass};
-
     F1.function = av_th_p_int;
     F1.params   = &params;
-
     gsl_integration_qag(&F1,pmin_th,pmax_th,0, 1e-7,100,1,w1,&integral1,&error1);
-
+    gsl_integration_workspace_free (w1);
     integral2 = count_th_particles();
 
     return integral1/integral2;
 }
 
 double Mixed::av_th_gamma(){
-    double avp;
-	
+    double avp;	
     avp=av_th_p();
 
     return pow(pow(avp/(mass*cee),2.)+1.,1./2.);
@@ -290,8 +281,7 @@ double Mixed::av_th_gamma(){
 
 //Methods to calculate number density and average energy in non-thermal part
 double pl_num_dens_int(double x,void *p){
-    struct pl_params * params = (struct pl_params *)p; 	 
-
+    struct pl_params * params = (struct pl_params *)p; 
     double s = (params->s); 
     double n = (params->n);  
 
@@ -299,8 +289,7 @@ double pl_num_dens_int(double x,void *p){
 }
 
 double av_pl_p_int(double x,void *p){
-    struct pl_params * params = (struct pl_params *)p; 	 
-
+    struct pl_params * params = (struct pl_params *)p; 	
     double s = (params->s); 
     double n = (params->n);  
 
@@ -309,35 +298,35 @@ double av_pl_p_int(double x,void *p){
 
 double Mixed::count_pl_particles(){
     double integral1, error1;
-
+    gsl_integration_workspace *w1;
+    w1 = gsl_integration_workspace_alloc (100);
     gsl_function F1;	
     struct pl_params params = {pspec,plnorm};
     F1.function = &pl_num_dens_int;
     F1.params   = &params;
-
     gsl_integration_qag(&F1,pmin_pl,pmax_pl,0,1e-7,100,1,w1,&integral1,&error1);
+    gsl_integration_workspace_free (w1);
 
     return integral1;
 }
 
 double Mixed::av_pl_p(){
     double integral1, error1, integral2;
-
+    gsl_integration_workspace *w1;
+    w1 = gsl_integration_workspace_alloc (100);
     gsl_function F1;	
     struct pl_params params =  {pspec,plnorm};
     F1.function = &av_pl_p_int;
     F1.params   = &params;
-
     gsl_integration_qag(&F1,pmin_pl,pmax_pl,0,1e-7,100,1,w1,&integral1,&error1);
-
+    gsl_integration_workspace_free (w1);
     integral2 = count_pl_particles();
 
     return integral1/integral2;
 }
 
 double Mixed::av_pl_gamma(){
-    double avp;
-	
+    double avp;	
     avp=av_pl_p();
 
     return pow(pow(avp/(mass*cee),2.)+1.,1./2.);

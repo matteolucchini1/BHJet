@@ -147,7 +147,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     zmin = 2.*Rg;
 
     //Initialize disk+external photon classes
-    ShSDisk Disk(1,Mbh,Ldisk,Rin,Rout);
+    ShSDisk Disk;
     BBody BLR(0,0);
     BBody Torus(0,0);
     BBody BlackBody(0,0);
@@ -169,12 +169,18 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 
     //STEP 3: DISK/EXTERNAL PHOTON CALCULATIONS
 
-    //calculate disk+corona spectrum if desired
-    //The disk is disabled by setting Rin<Rout
-    if(Rin<Rout){		
+    //The disk is disabled by setting Rin<Rout; its contribution is summed to the total only if there are no 
+    //AGN photon fields that reprocess part of the luminosity, otherwise it is done later
+    if(Rin<Rout){
+    	Disk.set_mbh(Mbh);
+	    Disk.set_rin(Rin);
+	    Disk.set_rout(Rout);
+	    Disk.set_luminosity(Ldisk);		
 	    Disk.set_inclination(theta);
-	    Disk.disk_spectrum();			
-        sum_ext(50,ne,Disk.get_energ_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);   	
+	    Disk.disk_spectrum();
+	    if (compsw != 2) {
+	        sum_ext(50,ne,Disk.get_energ_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);   	    
+	    }			
         if(infosw >= 3) {
             Disk.test();
             cout << endl;
@@ -182,7 +188,8 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     }	
 
     //Depending on the value of compsw, we either include a) an extra homogeneous black body in every zone or
-    //b) the radiation field of the broad line region/torus of a bright AGN
+    //b) the radiation field of the broad line region/torus of a bright AGN. For bright AGN, the reprocessed
+    //fraction of disk luminosity is removed from the observed disk luminosity
     if (compsw==1){
         BlackBody.set_temp_k(compar1);
         BlackBody.set_lum(compar2);
@@ -199,12 +206,15 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 
         Torus.set_temp_k(agn_com.tdt);
         Torus.set_lum(agn_com.ldt);	
-        Torus.bb_spectrum();		
+        Torus.bb_spectrum();
+        
+        Disk.cover_disk(compar1+compar2);		
         if(infosw>=3){
             cout << "BLR radius in Rg: " << agn_com.rblr/Rg << endl;
             cout << "DT radius in Rg: " << agn_com.rdt/Rg << endl;
         }
-        sum_ext(40,ne,Torus.get_energ(),Torus.get_nphot(),tot_en,tot_lum);	
+        sum_ext(40,ne,Torus.get_energ(),Torus.get_nphot(),tot_en,tot_lum);
+        sum_ext(50,ne,Disk.get_energ_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);   		
     }	
 	
     //STEP 4: JET BASE EQUIPARTITION CALCULATIONS AND SETUP
@@ -213,10 +223,8 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     //Dummy particle distribution, needed for average lorentz factor in equipartition function
     //The parameters for the method to set the momentum array are set to dummy values that result in a fully
     //thermal distribution 
-    Mixed dummy_elec(nel,1,Te,10.,0);
-    dummy_elec.set_plfrac(0);
-    dummy_elec.set_temp(Te);
-    dummy_elec.set_p(0.,1.,0.0,r0,1.e-16);	
+    Thermal dummy_elec(nel,1,Te);
+    dummy_elec.set_p();	
     dummy_elec.set_norm(1.);	
     dummy_elec.set_ndens();
 
@@ -257,7 +265,8 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         cout << "Pair content (ne/np): " << nozzle_ener.eta << endl;
         cout << "Initial magnetization: " << nozzle_ener.sig0 << endl;
         cout << "Particle average Lorenz factor: " << dummy_elec.av_gamma() << endl;
-        cout << "Jet nozzle ends at: " << jet_dyn.h0/Rg << " Rg" << endl << endl;
+        cout << "Jet nozzle ends at: " << jet_dyn.h0/Rg << " Rg" << endl ;
+        cout << "Jet nozzle optical depth: " << jet_dyn.r0*nozzle_ener.lepdens*sigtom << endl << endl;
     }	
 
     //STEP 5: TOTAL JET CALCULATIONS, LOOPING OVER EACH SEGMENT OF THE JET
@@ -303,8 +312,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         } else if (compsw==2 && Rin<Rout){
             zone_agn_phfields(z,zone,Ubb1,Ubb2,agn_com);
             Urad = Urad + agn_com.urad_total;
-        } 
-         
+        }          
 
         //calculate particle distribution in each zone
         if(z<zdiss){		
@@ -331,7 +339,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
                 IsShock = true;
             }					
-            Mixed acc_lep(nel,1,zone.eltemp,pspec,1);
+            Mixed acc_lep(nel,1,zone.eltemp,pspec);
             acc_lep.set_plfrac(plfrac*pow(log10(zdiss)/log10(z),pldist));
             
             //if fsc < 10 it's the acceleration efficiency, else it's the desired maximum lorentz factor
@@ -344,7 +352,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             acc_lep.set_norm(zone.lepdens);	
             acc_lep.set_ndens();
             acc_lep.cooling_steadystate(Urad,zone.lepdens,zone.bfield,zone.r,betaeff);
-            //Note: this assumes sycnhrotron+ec cooling only, ssc+disk cooling negligible
+            //Note: this assumes ssc cooling is negligible
 
             gmin = acc_lep.get_gamma()[0];
             gmax = acc_lep.get_gamma()[nel-1];
@@ -358,7 +366,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 plot_write(nel,acc_lep.get_p(),acc_lep.get_gamma(),acc_lep.get_pdens(),acc_lep.get_gdens(),
                 "Output/Numdens.dat");
             }
-        } else if (plfrac <= 1.) {
+        } else if (plfrac < 1.) {
             if (IsShock==false){
                 Te = heat*Te;
                 zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
@@ -370,7 +378,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             dummy_elec.set_ndens();
             double pbrk = dummy_elec.av_p();
             
-            Bknpower acc_lep(nel,1,-2.,pspec,1);
+            Bknpower acc_lep(nel,1,-2.,pspec);
                         
             if (fsc<10.){
                 acc_lep.set_p(0.1*pbrk,pbrk,Urad,zone.bfield,betaeff,zone.r,fsc);
@@ -381,7 +389,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             acc_lep.set_norm(zone.lepdens);	
             acc_lep.set_ndens();
             acc_lep.cooling_steadystate(Urad,zone.lepdens,zone.bfield,zone.r,betaeff);
-            //Note: this assumes sycnhrotron+ec cooling only, ssc+disk cooling negligible
+            //Note: this assumes ssc cooling is negligible
 
             gmin = acc_lep.get_gamma()[0];
             gmax = acc_lep.get_gamma()[nel-1];
@@ -395,9 +403,46 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 plot_write(nel,acc_lep.get_p(),acc_lep.get_gamma(),acc_lep.get_pdens(),acc_lep.get_gdens(),
                 "Output/Numdens.dat");
             }
-        }
+        } else if (plfrac == 1.) {
+            if (IsShock==false){
+                Te = heat*Te;
+                zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
+                IsShock = true;
+            }
+            Thermal dummy_elec(nel,1,zone.eltemp);
+            dummy_elec.set_p();
+            dummy_elec.set_norm(zone.lepdens);
+            dummy_elec.set_ndens();
+            double pmin = dummy_elec.av_p();
+            
+            Powerlaw acc_lep(nel,1,pspec);
+                        
+            if (fsc<10.){
+                acc_lep.set_p(pmin,Urad,zone.bfield,betaeff,zone.r,fsc);
+            } else{
+                acc_lep.set_p(pmin,fsc);
+            }	
+            
+            acc_lep.set_norm(zone.lepdens);	
+            acc_lep.set_ndens();
+            acc_lep.cooling_steadystate(Urad,zone.lepdens,zone.bfield,zone.r,betaeff);
+            //Note: this assumes ssc cooling is negligible
 
-        //Note: the energy density below assumes only cold protons!
+            gmin = acc_lep.get_gamma()[0];
+            gmax = acc_lep.get_gamma()[nel-1];
+
+            zone.avgammasq = pow(acc_lep.av_gamma(),2.);
+
+            gsl_spline_init(spline_eldis,acc_lep.get_gamma(),acc_lep.get_gdens(),nel);
+            gsl_spline_init(spline_deriv,acc_lep.get_gamma(),acc_lep.get_gdens_diff(),nel); 
+             	
+            if(infosw>=2){
+                plot_write(nel,acc_lep.get_p(),acc_lep.get_gamma(),acc_lep.get_pdens(),acc_lep.get_gdens(),
+                "Output/Numdens.dat");
+            }
+        }        
+
+        //Note: the energy density below assumes only cold protons
         if (infosw>=5){
             double Up,Ue,Ub;
             Ue = sqrt(zone.avgammasq)*zone.lepdens*emerg;
@@ -476,7 +521,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             InvCompton.set_counterjet(IsCounterjet);	
             InvCompton.set_tau(zone.lepdens,Te/emerg);
             //Multiple scatters only if ypar and tau are large enough
-            if(InvCompton.get_ypar() > 1.e-2 && InvCompton.get_tau() > 1.e-2){
+            if(InvCompton.get_ypar() > 1.e-2 && InvCompton.get_tau() > 5.e-2){
                 InvCompton.set_niter(15);		
             }
             //Cyclosynchrotron photons are always considered in the scattering						
@@ -549,17 +594,17 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             plot_write(40,BlackBody.get_energ(),BlackBody.get_nphot(),"Output/BB.dat",dist,redsh);
         }			
         plot_write(ne,tot_en,tot_lum,"Output/Total.dat",dist,redsh);
-}
+    }
     if (infosw >=3) {
-        cout << "Observed 0.1-30 keV disk luminosity: "
-             << integrate_lum(ne,0.1*2.41e17,30.*2.41e17,Disk.get_energ_obs(),Disk.get_nphot_obs()) << endl;
+        cout << "Observed 0.1-5 keV disk luminosity: "
+             << integrate_lum(50,0.1*2.41e17,5.*2.41e17,Disk.get_energ_obs(),Disk.get_nphot_obs()) << endl;
         cout << "Observed 0.1-300 keV Inverse Compton luminosity: " 	
              << integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre) << endl; 
         cout << "Observed 0.1-300 keV total luminosity: " 
              << integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_lum) << endl; 
         cout << "Observed 3-7 GHz luminosity: " << integrate_lum(ne,3e9,7e9,tot_en,tot_lum) << endl;
-        cout << "X-ray 5-30 keV photon index estimate: " 
-             << photon_index(ne,5.*2.41e17,30.*2.41e17,tot_en,tot_lum) << endl;
+        cout << "X-ray 10-100 keV photon index estimate: " 
+             << photon_index(ne,10.*2.41e17,100.*2.41e17,tot_en,tot_lum) << endl;
         cout << "Radio 10-100 GHz spectral index estimate: " 
              << 1.+photon_index(ne,1e10,1e11,tot_en,tot_lum) << endl;
         double compactness = integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre)*sigtom

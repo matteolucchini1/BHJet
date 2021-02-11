@@ -4,8 +4,6 @@
 
 //Class destructor to de-allocate arrays
 Particles::~Particles(){
-    gsl_integration_workspace_free (w1);
-
     delete[] p;
     delete[] ndens;
     delete[] gamma;
@@ -86,7 +84,7 @@ void Particles::gdens_differentiate(){
 }
 
 //simple method to check arrays; only meant for debugging
-void Particles::array_test(){
+void Particles::test_arrays(){
     for (int i=0;i<size;i++){
         std::cout << p[i] << " "  << gamma[i] << " " << ndens[i] << " " << ndens[i]*p[i] << std::endl;
     }

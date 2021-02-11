@@ -124,7 +124,7 @@ for i in range(nzones-1):
         lnu_compton[l] = Compton_zones.T[1][totindex2+l]*nu_compton[l]*mjy*kevconv
     totindex1 = totindex1 + int(size_cyclo_arr[i])
     totindex2 = totindex2 + int(size_com_arr[i])	
-    if ((i%5) == 0):
+    if ((i%1) == 0):
         ax1.plot(nu_cyclosyn,lnu_cyclosyn*fluxconv,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
         ax1.plot(nu_compton,lnu_compton*fluxconv,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
 ax1.plot(Presyn.T[0]/kevconv,Presyn.T[1]*Presyn.T[0]*mjy*fluxconv,linewidth=2.5,color='cyan',zorder=nzones+1)

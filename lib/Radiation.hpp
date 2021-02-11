@@ -63,7 +63,6 @@ typedef struct comint_params{
     gsl_interp_accel *acc_eldis;
     gsl_spline *phodis;
     gsl_interp_accel *acc_phodis;
-    gsl_integration_workspace *w;
 } comint_params;
 
 typedef struct comfnc_params{
@@ -106,8 +105,6 @@ class Radiation {
         bool counterjet;			//boolean switch if user wants to include counterjet emission
         std::string geometry;   	//string to track geometry of emitting region
 
-        gsl_integration_workspace *w1;//workspace for any numerical integration
-
     public:
         const double *get_energ()const      { return en_phot; }
         const double *get_nphot()const      { return num_phot; }
@@ -122,7 +119,7 @@ class Radiation {
         void set_geometry(std::string geom,double l1,double l2);
 
         void set_counterjet(bool flag);
-        void array_test();				
+        void test_arrays();				
 };
 
 #endif

@@ -5,7 +5,8 @@ BBody::~BBody(){
     delete[] num_phot;
 }
 
-//By default the constructor uses only kev as unit for input temperature
+//By default the constructor uses only kev as unit for input temperature. This is fucking awful and needs to 
+//be redone, goddamn
 BBody::BBody(double T,double L){
     double emin,emax,einc;
 
@@ -26,6 +27,7 @@ BBody::BBody(double T,double L){
 
     for(int i=0;i<size;i++){
         en_phot[i] = pow(10.,log10(emin)+i*einc);
+        num_phot[i] = 0.;       
     }	
 }
 

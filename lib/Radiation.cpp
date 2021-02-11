@@ -55,7 +55,7 @@ void Radiation::set_counterjet(bool flag){
 }
 
 //simple method to check arrays; only meant for debugging
-void Radiation::array_test(){
+void Radiation::test_arrays(){
     for (int i=0;i<size;i++){
         std::cout << en_phot[i] << " "  << num_phot[i] << " " << num_phot[i]*en_phot[i]*herg << std::endl;
     }

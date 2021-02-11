@@ -53,10 +53,7 @@ Compton::~Compton(){
     delete[] seed_energ;
     delete[] seed_urad;
     delete[] iter_urad;
-	
-    gsl_integration_workspace_free (w1);
-    gsl_integration_workspace_free (w2);
-    
+	    
     gsl_spline2d_free(esc_p_sph);
     gsl_spline2d_free(esc_p_cyl);
     gsl_interp_accel_free(acc_Te);
@@ -103,9 +100,6 @@ Compton::Compton(int s1,int s2,int n,double numin,double numax,double m){
 
     iter_ph = gsl_spline_alloc(gsl_interp_steffen,size);
     acc_iter = gsl_interp_accel_alloc();			
-
-    w1 = gsl_integration_workspace_alloc (100);
-    w2 = gsl_integration_workspace_alloc (100);
 
     double nuinc = (log10(numax)-log10(numin))/(size-1);
 
@@ -170,29 +164,29 @@ double comint(double gam,void *p){
     gsl_interp_accel *acc_eldis = (params -> acc_eldis);
     gsl_spline *phodis = (params -> phodis);
     gsl_interp_accel *acc_phodis = (params -> acc_phodis);
-    gsl_integration_workspace *w = (params -> w);
 
     double game,econst,blim,ulim,e1,den;
     double result, error;
 
     game = exp(gam);
-
     e1 = eph/(game*emerg);
-
     econst = 2.*pi*re0*re0*cee;
-
     blim = log(std::max(eph/(4.*game*(game-eph/emerg)),ephmin));
     ulim = log(std::min(eph,ephmax));
 
     if(ulim <= blim){
         return 0;
     } else {    
+        gsl_integration_workspace *w2;
+        w2 = gsl_integration_workspace_alloc (100);
         gsl_function F2;
         struct comfnc_params F2params = {game,e1,phodis,acc_phodis};
         F2.function     = &comfnc;
         F2.params       = &F2params;
-        gsl_integration_qag(&F2,blim,ulim,1e0,1e0,100,2,w,&result,&error);
-        den = gsl_spline_eval(eldis,game,acc_eldis);
+        gsl_integration_qag(&F2,blim,ulim,1e0,1e0,100,2,w2,&result,&error);
+        gsl_integration_workspace_free (w2);
+
+        den = gsl_spline_eval(eldis,game,acc_eldis);        
         return econst*den*result/game;
     }
 }
@@ -201,19 +195,23 @@ double comint(double gam,void *p){
 double Compton::comintegral(int it,double blim,double ulim,double enphot,double enphmin,double enphmax,gsl_spline 
                             *eldis,gsl_interp_accel *acc_eldis){
     double result, error;
+    gsl_integration_workspace *w1;
+    w1 = gsl_integration_workspace_alloc(100);    
+
     gsl_function F1;
-    struct comint_params F1params = {enphot,enphmin,enphmax,eldis,acc_eldis,seed_ph,acc_seed,w2};
-    struct comint_params F1params_it = {enphot,enphmin,enphmax,eldis,acc_eldis,iter_ph,acc_iter,w2};
+    struct comint_params F1params = {enphot,enphmin,enphmax,eldis,acc_eldis,seed_ph,acc_seed};
+    struct comint_params F1params_it = {enphot,enphmin,enphmax,eldis,acc_eldis,iter_ph,acc_iter};
     F1.function = &comint;
     if (it == 0){
         F1.params = &F1params;
     } else {
         F1.params = &F1params_it;
     }
-
-    gsl_integration_qag(&F1,blim,ulim,1e0,1e0,100,2,w1,&result,&error); 
     //NOTE: in some regimes, using a key of 2 in the gsl_integral_qag line instead of 1 makes for smoother 
     //integrals. Not important for the final spectrum, but it makes for better-looking and more accurate plots
+    gsl_integration_qag(&F1,blim,ulim,1e0,1e0,100,2,w1,&result,&error); 
+    gsl_integration_workspace_free (w1);
+        
     return result;
 }
 
@@ -376,12 +374,16 @@ void Compton::shsdisk_seed(double tin,double rin,double rout,double h,double z){
     nulim = 1e1*tin*kboltz;
 
     for(int i=0;i<seed_size;i++){
-        if (seed_energ[i] < nulim){	
+        if (seed_energ[i] < nulim){
+            gsl_integration_workspace *w1;	
+            w1 = gsl_integration_workspace_alloc (100); 
             gsl_function F;
         	struct disk_ic_params Fparams = {Gamma,beta,tin,rin,rout,h,z,seed_energ[i]/herg};
         	F.function     = &disk_integral;
         	F.params       = &Fparams;       
         	gsl_integration_qag(&F,blim,ulim,0,1e-7,100,2,w1,&result,&error); 
+            gsl_integration_workspace_free (w1);
+            
             diskfield = result;
         } else {
             diskfield = 1.e-100;
@@ -412,12 +414,16 @@ void Compton::shsdisk_seed(const double *seed_arr,double tin,double rin,double r
     seed_freq_array(seed_arr);
 
     for(int i=0;i<seed_size;i++){
-        if (seed_energ[i] < nulim){	
+        if (seed_energ[i] < nulim){
+            gsl_integration_workspace *w1;	
+            w1 = gsl_integration_workspace_alloc (100); 
             gsl_function F;
         	struct disk_ic_params Fparams = {Gamma,beta,tin,rin,rout,h,z,seed_energ[i]/herg};
         	F.function     = &disk_integral;
         	F.params       = &Fparams;       
         	gsl_integration_qag(&F,blim,ulim,0,1e-5,100,2,w1,&result,&error);        
+            gsl_integration_workspace_free (w1);
+            
             diskfield = result;
         }else {
             diskfield = 1.e-100;
@@ -528,7 +534,5 @@ void Compton::test(){
     std::cout << "Optical depth: " << tau << " Compton-Y: " << ypar <<  " r: " << r << " z: " << z <<
      " angle: " << angle << " speed: " << beta << " delta: " << dopfac << std::endl;	
     std::cout << "Number of scatters: " << Niter << std::endl;
-    std::cout << "Optically thin slope: " << -log10(tau)/(log10(ypar)-log10(tau)) << std::endl;
-    std::cout << "Kompaneets' slope: " << -3./2.+pow(9./4.+4./ypar,1./2.) << std::endl;
 }
 

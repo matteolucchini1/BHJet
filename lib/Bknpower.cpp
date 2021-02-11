@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-Bknpower::Bknpower(int s,int type,double s1,double s2,bool flag){
+Bknpower::Bknpower(int s,int type,double s1,double s2){
     size = s;
 
     p = new double[size];
@@ -12,16 +12,12 @@ Bknpower::Bknpower(int s,int type,double s1,double s2,bool flag){
     gdens = new double[size];
     gdens_diff = new double[size];
 
-    w1 = gsl_integration_workspace_alloc (100);
-
     if (type==1) {mass = emgm;}
     else  {mass = pmgm;}
 
     pspec1 = s1;
     pspec2 = s2;
     norm = 1.;
-
-    FP_flag = flag;	
 
     for (int i=0;i<size;i++){
         p[i] = 0;
@@ -64,10 +60,8 @@ void Bknpower::set_ndens(){
     for (int i=0;i<size;i++){
         ndens[i] = norm*pow(p[i]/pbrk,-pspec1)/(1.+pow(p[i]/pbrk,-pspec1+pspec2))*exp(-p[i]/pmax);
     }
-    if (FP_flag == false){
-        initialize_gdens();
-        gdens_differentiate();	
-    }	
+    initialize_gdens();
+    gdens_differentiate();		
 }
 
 //methods to set the slopes, break and normalization
@@ -104,13 +98,14 @@ void Bknpower::set_norm(double n){
     min = pow(pow(pmin/(mass*cee),2.)+1.,1./2.);
     max = pow(pow(pmax/(mass*cee),2.)+1.,1./2.);
 
+    gsl_integration_workspace *w1;
+    w1 = gsl_integration_workspace_alloc (100);
     gsl_function F1;	
     struct bkn_params params = {pspec1,pspec2,pbrk,pmax,mass};
-
     F1.function = &norm_bkn_int;
     F1.params   = &params;
-
     gsl_integration_qag(&F1,min,max,0,1e-7,100,1,w1,&norm_integral,&error);
+    gsl_integration_workspace_free (w1);
 
     norm = n/(norm_integral*mass*cee);
 }
@@ -139,17 +134,20 @@ void Bknpower::cooling_steadystate(double ucom, double n0,double bfield,double r
     double pdot_rad = (4.*sigtom*cee*Urad)/(3.*mass*pow(cee,2.));
     double tinj = r/(cee);
 
+    double integral, error;
     gsl_function F1;	
     struct injection_bkn_params params = {pspec1,pspec2,pbrk,pmax,mass,n0};
     F1.function = &injection_bkn_int;
     F1.params   = &params;
 
-    double integral, error;
-
     for (int i=0;i<size;i++){
         if (i < size-1) {
+            gsl_integration_workspace *w1;
+            w1 = gsl_integration_workspace_alloc (100);
             gsl_integration_qag(&F1,gamma[i],gamma[i+1],1e1,1e1,100,1,w1,&integral,&error);
-            ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass*cee)+pdot_rad*pow(p[i]/(mass*cee),2.));
+            gsl_integration_workspace_free (w1);
+
+            ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass*cee)+pdot_rad*(gamma[i]*p[i]/(mass*cee)));
         }
         else {
             ndens[size-1] = ndens[size-2]*pow(p[size-1]/p[size-2],-pspec2)*exp(-1.);

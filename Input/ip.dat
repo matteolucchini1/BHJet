@@ -8,7 +8,7 @@
 1.e4			#end of bulk magnetic acceleration in rg
 1.e9			#maximum distance of jet in rg
 200				#temperature in kev
-0.1				#percentage of particles accelerated initially
+0.1				#fraction of particles accelerated initially
 0				#reduction in accelerated particles over distance
 2.				#non-thermal particle index
 1				#shock heating at dissipation location
@@ -24,4 +24,4 @@
 0				#external compton parameter 3
 0				#external compton switch
 1				#velsw
-4				#infosw
+2				#infosw

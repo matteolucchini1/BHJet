@@ -4,7 +4,7 @@
 #include <iostream>
 
 //Class constructor to initialize object
-Kappa::Kappa(int s,int type,double T,double k,bool flag){
+Kappa::Kappa(int s,int type,double T,double k){
     size = s;
 
     p = new double[size];
@@ -13,16 +13,12 @@ Kappa::Kappa(int s,int type,double T,double k,bool flag){
     gdens = new double[size];
     gdens_diff = new double[size];
 
-    w1 = gsl_integration_workspace_alloc (100);
-
     if (type==1) {mass = emgm;}
     else  {mass = pmgm;}
 
     theta = T/(mass*cee*cee);
     kappa = k;
     knorm = 1.;	
-
-    FP_flag = flag;	
 
     double emin = (1./100.)*(T/kboltz_kev2erg);	//minimum energy in kev, 1/50 lower than peak
     double emax = 20.*(T/kboltz_kev2erg); 		//maximum energy in kev, 20 higher than peak
@@ -77,10 +73,7 @@ void Kappa::set_ndens(){
 				
     }
     initialize_pdens();
-
-    if (FP_flag == false){
-        gdens_differentiate();	
-    }
+    gdens_differentiate();	
 }
 
 void Kappa::set_temp(double T){
@@ -123,11 +116,12 @@ void Kappa::set_norm(double n){
 
     gsl_function F1;	
     struct k_params params = {theta,kappa};
-
+    gsl_integration_workspace *w1;    
+    w1 = gsl_integration_workspace_alloc (100);
     F1.function = &norm_kappa_int;
     F1.params   = &params;
-
     gsl_integration_qag(&F1,min,max,0,1e-7,100,1,w1,&norm_integral,&error);
+    gsl_integration_workspace_free (w1);
 
     knorm = n/norm_integral;
 }
@@ -153,17 +147,20 @@ void Kappa::cooling_steadystate(double ucom, double n0,double bfield,double r,do
     double pdot_rad = (4.*sigtom*cee*Urad)/(3.*mass*pow(cee,2.));
     double tinj = r/(cee);
 
+    double integral, error;
     gsl_function F1;	
     struct injection_kappa_params params = {theta,kappa,knorm,mass};
     F1.function = &injection_kappa_int;
     F1.params   = &params;
 
-    double integral, error;
-
     for (int i=0;i<size;i++){
         if (i < size-1) {
+            gsl_integration_workspace *w1;
+            w1 = gsl_integration_workspace_alloc (100);
     	    gsl_integration_qag(&F1,gamma[i],gamma[i+1],1e1,1e1,100,1,w1,&integral,&error);
-    	    ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass*cee)+pdot_rad*pow(p[i]/(mass*cee),2.));
+            gsl_integration_workspace_free (w1);
+
+    	    ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass*cee)+pdot_rad*(gamma[i]*p[i]/(mass*cee)));
         }
         else {
             ndens[size-1] = ndens[size-2]*pow(p[size-1]/p[size-2],-kappa);

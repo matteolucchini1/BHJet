@@ -9,7 +9,7 @@ class Kappa: public Particles {
         double kappa, knorm;
         double pmin,pmax;
     public:	
-        Kappa(int s,int type,double T,double k,bool flag);		
+        Kappa(int s,int type,double T,double k);		
 	
         void set_p(double ucom,double bfield,double betaeff,double r,double fsc);
         void set_p(double gmax);					

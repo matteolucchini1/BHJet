@@ -21,8 +21,6 @@ Cyclosyn::~Cyclosyn(){
     delete[] en_phot_obs;
     delete[] num_phot_obs;
 	
-    gsl_integration_workspace_free (w1);
-
     gsl_spline_free(syn_f), gsl_interp_accel_free(syn_acc);
 }
 
@@ -37,8 +35,6 @@ Cyclosyn::Cyclosyn(int s,double numin,double numax,double m){
     num_phot_obs = new double[2*size];
 
     counterjet = false;
-
-    w1 = gsl_integration_workspace_alloc(100);
 
     syn_acc =  gsl_interp_accel_alloc();
     syn_f = gsl_spline_alloc(gsl_interp_cspline,47);
@@ -67,9 +63,7 @@ double cyclosyn_emis(double gamma,void *p){
     gsl_interp_accel *acc_eldis = (params -> acc_eldis);
 
     double nu_c, x, emisfunc, nu_larmor, psquared, ngamma;
-
     gamma = exp(gamma); 
-
     //this is in the synchrotron regime
     if (gamma > 2.) {
         nu_c = (3.*charg*b*pow(gamma,2.))/(4.*pi*mass*cee);
@@ -105,9 +99,7 @@ double cyclosyn_abs(double gamma,void *p){
     gsl_interp_accel *acc_derivs = (params -> acc_derivs);
 
     double nu_c, x, emisfunc, nu_larmor, psquared, ngamma_diff;
-
     gamma = exp(gamma);
-
     //this is in the synchrotron regime
     if (gamma > 2.) {
         nu_c = (3.*charg*b*pow(gamma,2.))/(4.*pi*mass*cee);
@@ -127,7 +119,6 @@ double cyclosyn_abs(double gamma,void *p){
         psquared = pow(gamma,2.)-1.;
         emisfunc = (2.*psquared)/(1.+3.*psquared)*exp((2.*(1.-x))/(1.+3.*psquared));
     }
-
     ngamma_diff = gsl_spline_eval(derivs,gamma,acc_derivs);
 
     return ngamma_diff*pow(gamma,2.)*emisfunc;
@@ -137,11 +128,14 @@ double cyclosyn_abs(double gamma,void *p){
 double Cyclosyn::emis_integral(double nu,double gmin,double gmax,gsl_spline *eldis,gsl_interp_accel
                                *acc_eldis){					 	    
     double result1, error1;
+    gsl_integration_workspace *w1;
+    w1 = gsl_integration_workspace_alloc(100);
     gsl_function F1;
     struct cyclosyn_emis_params F1params = {nu,bfield,mass,syn_f,syn_acc,eldis,acc_eldis};
     F1.function     = &cyclosyn_emis;
     F1.params       = &F1params;
     gsl_integration_qag(&F1,log(gmin),log(gmax),1e1,1e1,100,2,w1,&result1,&error1);
+    gsl_integration_workspace_free (w1);
 
     return result1;
 }
@@ -149,93 +143,87 @@ double Cyclosyn::emis_integral(double nu,double gmin,double gmax,gsl_spline *eld
 double Cyclosyn::abs_integral(double nu,double gmin,double gmax,gsl_spline *derivs,gsl_interp_accel 
                               *acc_derivs){							   
     double result1, error1;
+    gsl_integration_workspace *w1;
+    w1 = gsl_integration_workspace_alloc(100);
     gsl_function F1;
     struct cyclosyn_abs_params F1params = {nu,bfield,mass,syn_f,syn_acc,derivs,acc_derivs};
     F1.function     = &cyclosyn_abs;
     F1.params       = &F1params;
     gsl_integration_qag(&F1,log(gmin),log(gmax),1e1,1e1,100,2,w1,&result1,&error1);
+    gsl_integration_workspace_free (w1);
 
     return result1;						 
 }
 
-//Comoving and observed specific luminosity for frequency bin k, from integrated coefficients
-void Cyclosyn::specific_luminosity(int k,double gmin,double gmax, gsl_spline *eldis,gsl_interp_accel 
-                                   *acc_eldis,gsl_spline *eldis_diff,gsl_interp_accel *acc_eldis_diff){
+//Comoving and observed specific luminosity for the input particle distribution
+void Cyclosyn::cycsyn_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_interp_accel *acc_eldis,
+                               gsl_spline *eldis_diff,gsl_interp_accel *acc_eldis_diff){	
     double emis, abs;
     double pitch = 0.73;
     double acons, elcons, asyn, epsasyn;
     double absfac, tsyn, tsyn_obs, absfac_obs;
     double dopfac_cj;
-
-    dopfac_cj = dopfac*(1.-beta*cos(angle))/(1.+beta*cos(angle));
-    en_phot_obs[k] = en_phot[k]*dopfac;
-    if(counterjet == true){ 
-        en_phot_obs[k+size] = en_phot[k]*dopfac_cj;
-    }
-
-    emis = emis_integral(en_phot[k]/herg,gmin,gmax,eldis,acc_eldis);
-    abs = abs_integral(en_phot[k]/herg,gmin,gmax,eldis_diff,acc_eldis_diff);
-
-    if (log10(emis) < -50. || log10(abs) < -50.){
-        num_phot_obs[k] = 0;
-        if(counterjet == true){ 
-            num_phot_obs[k+size] = 0;
-        }
-        return;
-    }
-
-    elcons = sqrt(3.)*(charg*charg*charg)*bfield*sin(pitch)/emerg;
-    acons = -cee*cee/(8.*pi*pow(en_phot[k]/herg,2.));
-    asyn = acons*elcons*abs;
-    epsasyn	= emis/(acons*abs);
-
-    tsyn	= pi/2. * asyn*r;
-    if(tsyn >= 1.){
-        absfac	= (1.-exp(-tsyn));
-    }
-    else{
-        absfac	= tsyn-pow(tsyn,2.)/2.+pow(tsyn,3.)/6.;
-    }    
-
-    //This includes skin depth/viewing angle effects for cylinder case
-    if (geometry == "cylinder") {
-        tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
-    } else {
-        tsyn_obs = pi/2.*asyn*r/(dopfac);    
-    }
-    if(tsyn_obs >= 1.){
-        absfac_obs	= (1.-exp(-tsyn_obs));
-    }
-    else{
-        absfac_obs	= tsyn_obs-pow(tsyn_obs,2.)/2.+pow(tsyn_obs,3.)/6.;
-    }    
-
-    num_phot[k]	= pi*r*r*absfac*epsasyn;    
-    num_phot_obs[k]	= 2.*r*z*absfac_obs*epsasyn*pow(dopfac,dopnum);
-
-    if(counterjet == true){    	
-        if (geometry == "cylinder") {
-        tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
-        } else {
-            tsyn_obs = pi/2.*asyn*r/(dopfac);    
-        }        
-        if(tsyn_obs >= 1.){
-        	absfac_obs	= (1.-exp(-tsyn_obs));
-        }
-        else{
-        	absfac_obs	= tsyn_obs-pow(tsyn_obs,2.)/2.+pow(tsyn_obs,3.)/6.;
-        }
-        num_phot_obs[k+size] = 2.*r*z*absfac_obs*epsasyn*pow(dopfac_cj,dopnum);
-    } else {
-        num_phot_obs[k+size] = 0.;
-    }
-}
-
-//Cyclosyonchrotron spectrum calculated looping over the entire frequency array
-void Cyclosyn::cycsyn_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_interp_accel *acc_eldis,
-                               gsl_spline *eldis_diff,gsl_interp_accel *acc_eldis_diff){			
+    
+    dopfac_cj = dopfac*(1.-beta*cos(angle))/(1.+beta*cos(angle));                               
+                               		
     for(int k=0;k<size;k++){
-        specific_luminosity(k,gmin,gmax,eldis,acc_eldis,eldis_diff,acc_eldis_diff);
+        en_phot_obs[k] = en_phot[k]*dopfac;
+        if(counterjet == true){ 
+            en_phot_obs[k+size] = en_phot[k]*dopfac_cj;
+        }
+
+        emis = emis_integral(en_phot[k]/herg,gmin,gmax,eldis,acc_eldis);
+        abs = abs_integral(en_phot[k]/herg,gmin,gmax,eldis_diff,acc_eldis_diff);
+        if (log10(emis) < -50. || log10(abs) < -50.){
+            num_phot_obs[k] = 0;
+            if(counterjet == true){ 
+                num_phot_obs[k+size] = 0;
+            }
+        } else {
+            elcons = sqrt(3.)*(charg*charg*charg)*bfield*sin(pitch)/emerg;
+            acons = -cee*cee/(8.*pi*pow(en_phot[k]/herg,2.));
+            asyn = acons*elcons*abs;
+            epsasyn	= emis/(acons*abs);
+            tsyn	= pi/2. * asyn*r;
+            if(tsyn >= 1.){
+                absfac	= (1.-exp(-tsyn));
+            }
+            else{
+                absfac	= tsyn-pow(tsyn,2.)/2.+pow(tsyn,3.)/6.;
+            }    
+            //This includes skin depth/viewing angle effects for cylinder case
+            if (geometry == "cylinder") {
+                tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
+            } else {
+                tsyn_obs = pi/2.*asyn*r/(dopfac);    
+            }
+            if(tsyn_obs >= 1.){
+                absfac_obs	= (1.-exp(-tsyn_obs));
+            }
+            else{
+                absfac_obs	= tsyn_obs-pow(tsyn_obs,2.)/2.+pow(tsyn_obs,3.)/6.;
+            }  
+
+            num_phot[k]	= pi*r*r*absfac*epsasyn;    
+            num_phot_obs[k]	= 2.*r*z*absfac_obs*epsasyn*pow(dopfac,dopnum);
+
+            if(counterjet == true){    	
+                if (geometry == "cylinder") {
+                tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
+                } else {
+                    tsyn_obs = pi/2.*asyn*r/(dopfac);    
+                }        
+                if(tsyn_obs >= 1.){
+                	absfac_obs	= (1.-exp(-tsyn_obs));
+                }
+                else{
+                	absfac_obs	= tsyn_obs-pow(tsyn_obs,2.)/2.+pow(tsyn_obs,3.)/6.;
+                }
+                num_phot_obs[k+size] = 2.*r*z*absfac_obs*epsasyn*pow(dopfac_cj,dopnum);
+            } else {
+                num_phot_obs[k+size] = 0.;
+            }        
+        }         
     }
 }
 

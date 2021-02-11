@@ -29,7 +29,6 @@
 
 //Template class for particle distributions
 //This class contains members and methods that are used for thermal, non-thermal and mixed distributions
-//note: ndens is number density per unit momentum
 
 //Structures used for GSL integration
 typedef struct pl_params { 
@@ -97,14 +96,9 @@ class Particles {
         double *p;				//array of particle momenta
         double *ndens;			//array of number density per unit volume, per unit momentum
         double *gamma;			//array of particle kinetic energies for each momentum
-        double *gdens;		//array of number density per unit volume, per unit gamma
-        double *gdens_diff;//array with differential of number density for radiation calculation
-						        //to treat non-relativistic particles the cooling has to be calculated in
-						        //momentum space, but relativistic radiation codes require gamma/energy space
-						        //In this class both can be accessed after calculating the appropriate cooling
-        bool FP_flag;			//This flag regulates whether the particle distribution is going to include a
-						        //FP treatement for or not and sets up arrays needed for radiation accordingly
-        gsl_integration_workspace *w1;
+        double *gdens;		    //array of number density per unit volume, per unit gamma
+        double *gdens_diff;     //array with differential of number density for radiation calculation
+						        
     public:
         ~Particles();
 
@@ -127,6 +121,6 @@ class Particles {
         double av_psq();
         double av_gammasq();
 
-        void array_test();				
+        void test_arrays();				
 };
 #endif

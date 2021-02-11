@@ -21,8 +21,8 @@ class Cyclosyn: public Radiation {
      	double abs_integral(double nu,double gmin,double gmax,gsl_spline *eldis_diff,gsl_interp_accel
                             *acc_eldis_diff);
 
-        void specific_luminosity(int k,double gmin,double gmax,gsl_spline *eldis,gsl_interp_accel
-	                             *acc_eldis,gsl_spline *eldis_diff,gsl_interp_accel *acc_eldis_diff);
+        //void specific_luminosity(int k,double gmin,double gmax,gsl_spline *eldis,gsl_interp_accel
+	    //                         *acc_eldis,gsl_spline *eldis_diff,gsl_interp_accel *acc_eldis_diff);
         void cycsyn_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_interp_accel *acc_eldis,gsl_spline
                              *eldis_diff,gsl_interp_accel *acc_eldis_diff);
                       
