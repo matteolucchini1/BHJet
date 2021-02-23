@@ -18,7 +18,6 @@
 #define pmgm            GSL_CONST_CGSM_MASS_PROTON
 #define kboltz	        GSL_CONST_CGSM_BOLTZMANN
 #define kboltz_kev2erg  1.6022e-9 		//Boltzman constant in keV/erg 
-#define me_kev          511 			//electron mass in kev
 #define emerg           (GSL_CONST_CGSM_MASS_ELECTRON*pow(GSL_CONST_CGSM_SPEED_OF_LIGHT,2.))
 #define pi              M_PI
 #define charg           4.8e-10

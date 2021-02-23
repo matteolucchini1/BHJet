@@ -1,1 +1,1 @@
-rm Makefile; slirp -ldflags "bhjet.o utils.o jetpars.o BBody.o Cyclosyn.o Mixed.o Particles.o ShSDisk.o Compton.o Kappa.o Powerlaw.o Radiation.o Thermal.o" -lgsl -lgslcblas -lm bhjet.hh
+rm Makefile; slirp -ldflags "bhjet.o utils.o jetpars.o BBody.o Cyclosyn.o Mixed.o Particles.o ShSDisk.o Compton.o Kappa.o Bknpower.o Powerlaw.o Radiation.o Thermal.o" -lgsl -lgslcblas -lm bhjet.hh

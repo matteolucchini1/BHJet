@@ -38,7 +38,6 @@
 #define pmgm            GSL_CONST_CGSM_MASS_PROTON
 #define kboltz          GSL_CONST_CGSM_BOLTZMANN
 #define kboltz_kev2erg  1.6022e-9 		//Boltzman constant in keV/erg 
-#define me_kev          511 			//electron mass in kev
 #define emerg           (GSL_CONST_CGSM_MASS_ELECTRON*pow(GSL_CONST_CGSM_SPEED_OF_LIGHT,2.))
 #define pi              M_PI
 #define charg           4.8e-10
@@ -119,10 +118,10 @@ typedef struct com_pars{
 
 void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec);
 
-void plot_write(int size,double *en,double *lum,char path[],double dist,double redshift);					
-void plot_write(int size,const double *en,const double *lum,char path[],double dist,double redshift);	
+void plot_write(int size,double *en,double *lum,std::string path,double dist,double redshift);					
+void plot_write(int size,const double *en,const double *lum,std::string path,double dist,double redshift);	
 void plot_write(int size,const double *p,const double *g,const double *pdens,const double *gdens,
-                char path[]);
+                std::string path);
 									
 bool Compton_check(bool IsShock,int i,double Mbh,double Ucom,zone_pars &zone);
 
@@ -152,5 +151,5 @@ void b_profile(double g,double n,jet_dynpars &dyn,jet_enpars &en,double &field);
 void agn_photons_init(double lum,double f1,double f2,com_pars &agn_com);
 void zone_agn_phfields(double z,zone_pars &zone,double &ublr_zone,double &udt_zone,com_pars &agn_com);
 
-void clean_file(char path[],int check);
+void clean_file(std::string path,int check);
 void jetinterp(double *ear,double *energ,double *phot,double *photar,int ne,int newne);

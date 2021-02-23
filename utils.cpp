@@ -36,9 +36,9 @@ bool Compton_check(bool IsShock,int i,double Mbh,double Urad,zone_pars &zone){
 //overloard with or without const is to be able to pass arrays directly from the radiation libraries
 //note: the factor 1+z in the specific luminosity calculation is to ensure that the output spectrum only moves
 //to lower frequency, not up/down. NOTE THIS FUCKS THE FLUX DENSITY PLOT, RETHINK
-void plot_write(int size,double *en,double *lum,char path[],double dist,double redsh){
+void plot_write(int size,double *en,double *lum,std::string path,double dist,double redsh){
     std::ofstream file;
-    file.open(path,std::ios::app);	
+    file.open(path.c_str(),std::ios::app);	
 
     for(int k=0;k<size;k++){
         file << en[k]/(herg*(1.+redsh)) << " " << lum[k]*(1.+redsh)/(4.*pi*pow(dist,2.)*mjy) << std::endl;
@@ -47,9 +47,9 @@ void plot_write(int size,double *en,double *lum,char path[],double dist,double r
     file.close();	
 }
 
-void plot_write(int size,const double *en,const double *lum,char path[],double dist,double redsh){
+void plot_write(int size,const double *en,const double *lum,std::string path,double dist,double redsh){
     std::ofstream file;
-    file.open(path,std::ios::app);	
+    file.open(path.c_str(),std::ios::app);	
 
     for(int k=0;k<size;k++){
         file << en[k]/(herg*(1.+redsh)) << " " << lum[k]*(1.+redsh)/(4.*pi*pow(dist,2.)*mjy) << std::endl;
@@ -59,10 +59,10 @@ void plot_write(int size,const double *en,const double *lum,char path[],double d
 }
 
 void plot_write(int size,const double *p,const double *g,const double *pdens,const double *gdens,
-				char path[]){
+				std::string path){
 			
     std::ofstream file;
-    file.open(path,std::ios::app);
+    file.open(path.c_str(),std::ios::app);
     for(int k=0;k<size;k++){
      file << p[k] << " " << g[k] << " " << pdens[k] << " " << gdens[k] << std::endl;
     }	
@@ -214,9 +214,9 @@ double photon_index(int size,double numin,double numax,const double* input_en,co
 //from the path inside the write function. As a result, it's impossible to just truncate and clean the files
 //at the start of each iteration. This is only relevant for the cyclosyn_zones, compton_zones, and numdens
 //files
-void clean_file(char path[],int check){
+void clean_file(std::string path,int check){
     std::ofstream file;
-    file.open(path,std::ios::trunc);
+    file.open(path.c_str(),std::ios::trunc);
 
     if (check==2){
         file << std::left << std::setw(20) << "#nu [Hz] " << std::setw(20) << "Flux [mJy] " << std::endl;
