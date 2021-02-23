@@ -131,6 +131,10 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     compsw = param[24];
     velsw = param[25];
     infosw = param[26];
+    
+    if (infosw>=1) {
+        param_write(param,"Output/Starting_pars.dat");
+    }
 
     //initialize total energy/luminosity arrays
     for(int i=0;i<ne;i++){

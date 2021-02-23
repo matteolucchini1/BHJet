@@ -118,6 +118,7 @@ typedef struct com_pars{
 
 void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec);
 
+void param_write(const double *par,std::string path);
 void plot_write(int size,double *en,double *lum,std::string path,double dist,double redshift);					
 void plot_write(int size,const double *en,const double *lum,std::string path,double dist,double redshift);	
 void plot_write(int size,const double *p,const double *g,const double *pdens,const double *gdens,

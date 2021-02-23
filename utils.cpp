@@ -32,10 +32,21 @@ bool Compton_check(bool IsShock,int i,double Mbh,double Urad,zone_pars &zone){
     }
 }
 
+void param_write(const double *par,std::string path){
+    std::ofstream file;
+    file.open(path.c_str(),std::ios::app);	
+    
+    for (int k=0;k<27;k++) {
+        file << par[k] << std::endl;
+    }
+    
+    file.close();
+}
+
 //Plots a given array in units of ergs (x axis) and erg/s/Hz (y axis) to the file on the provided path. The 
 //overloard with or without const is to be able to pass arrays directly from the radiation libraries
 //note: the factor 1+z in the specific luminosity calculation is to ensure that the output spectrum only moves
-//to lower frequency, not up/down. NOTE THIS FUCKS THE FLUX DENSITY PLOT, RETHINK
+//to lower frequency, not up/down. 
 void plot_write(int size,double *en,double *lum,std::string path,double dist,double redsh){
     std::ofstream file;
     file.open(path.c_str(),std::ios::app);	
@@ -58,6 +69,7 @@ void plot_write(int size,const double *en,const double *lum,std::string path,dou
     file.close();	
 }
 
+//Same as above but for particle distributions
 void plot_write(int size,const double *p,const double *g,const double *pdens,const double *gdens,
 				std::string path){
 			
@@ -218,7 +230,9 @@ void clean_file(std::string path,int check){
     std::ofstream file;
     file.open(path.c_str(),std::ios::trunc);
 
-    if (check==2){
+    if (check == 1) {
+        file << std::left << std::setw(20) << "#Parameter:" << std::endl;
+    } else if (check==2){
         file << std::left << std::setw(20) << "#nu [Hz] " << std::setw(20) << "Flux [mJy] " << std::endl;
     } else if (check==4){
         file << std::left << std::setw(20) << "#p [g cm s-1] " << std::setw(20) << "g [] " << std::setw(20) << 
