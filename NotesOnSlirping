@@ -1,0 +1,20 @@
+
+It was needed for me to edit the Makefile before running the "make" command to create the bhjet.sl file. 
+1. I had to check the compilers used in CC/CXX/FC
+2. add -I/opt/local/include to SLANGINC	
+3. add `pkg-config --cflags gsl` in CC_COMPILE/CXX_COMPILE/FC_COMPILE
+
+This could solve issues such as "gsl/gsl_*.h not found" 
+
+Then I was getting an error of symbols not recognized, but it was because Bknpower.o was missing from OBJ and from slirpAgnjet command, which has to be edited to:
+ rm Makefile; slirp -ldflags "bhjet.o utils.o jetpars.o BBody.o Cyclosyn.o Mixed.o Particles.o ShSDisk.o Compton.o Kappa.o Powerlaw.o Radiation.o Thermal.o Bkpower.o" -lgsl -lgslcblas -lm  bhjet.hh
+
+
+
+In my new computer I cannot solve the segmentation fault happening when I run the "make test". This is the message:
+
+$> make test
+slsh -n bhjet-test.sl
+Namespace "Global" already exists
+Namespace "Global" already exists
+make: *** [test] Segmentation fault: 11
