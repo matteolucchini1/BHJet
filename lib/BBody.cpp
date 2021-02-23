@@ -8,10 +8,14 @@ BBody::~BBody(){
 BBody::BBody(){
     size = 40;
 
+    en_phot = new double[size];
+    num_phot = new double[size];
     en_phot_obs = new double[size];
     num_phot_obs = new double[size];
 
     for(int i=0;i<size;i++){
+        en_phot[i] = 0.;
+        num_phot[i] = 0.;  
         en_phot_obs[i] = 0.;
         num_phot_obs[i] = 0.;       
     }	
@@ -29,7 +33,8 @@ void BBody::set_temp_kev(double T){
     einc = (log10(emax)-log10(emin))/(size-1);
 
     for(int i=0;i<size;i++){
-        en_phot_obs[i] = pow(10.,log10(emin)+i*einc);
+        en_phot[i] = pow(10.,log10(emin)+i*einc);
+        en_phot_obs[i] = en_phot[i];
     }	
 }
 
@@ -44,7 +49,8 @@ void BBody::set_temp_k(double T){
     einc = (log10(emax)-log10(emin))/(size-1);
 
     for(int i=0;i<size;i++){
-        en_phot_obs[i] = pow(10.,log10(emin)+i*einc);
+        en_phot[i] = pow(10.,log10(emin)+i*einc);
+        en_phot_obs[i] = en_phot[i];
     }	
 }
 
@@ -59,7 +65,8 @@ void BBody::set_temp_hz(double nu){
     einc = (log10(emax)-log10(emin))/(size-1);
 
     for(int i=0;i<size;i++){
-        en_phot_obs[i] = pow(10.,log10(emin)+i*einc);
+        en_phot[i] = pow(10.,log10(emin)+i*einc);
+        en_phot_obs[i] = en_phot[i];
     }	
 }
 
@@ -71,8 +78,9 @@ void BBody::set_lum(double L){
 //Method to set BB spectrum
 void BBody::bb_spectrum(){
     for (int i=0;i<size;i++){
-	    num_phot_obs[i] = normbb*2.*herg*pow(en_phot_obs[i]/herg,3.)/
-	                      (pow(cee,2.)*(exp(en_phot_obs[i]/(Tbb*kboltz))-1.));
+	    num_phot[i] = normbb*2.*herg*pow(en_phot_obs[i]/herg,3.)/
+                      (pow(cee,2.)*(exp(en_phot_obs[i]/(Tbb*kboltz))-1.));
+        num_phot_obs[i] = num_phot[i];
     }
 }
 
