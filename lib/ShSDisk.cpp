@@ -17,6 +17,12 @@ ShSDisk::ShSDisk(){
     en_phot_obs = new double [size];
     num_phot_obs = new double [size];
     
+    for (int i=0;i<size;i++) {
+        en_phot[i] = 0.;
+        en_phot_obs[i] = 0.;
+        num_phot[i] = 0.;
+        num_phot_obs[i] = 0.;
+    } 
 }	
 
 //return SD spectrum over a given radius, frequency to be integrated over radius

@@ -139,11 +139,11 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     //initialize total energy/luminosity arrays
     for(int i=0;i<ne;i++){
        	tot_en[i] = (ear[i] + (ear[i+1]-ear[i])/2.)*herg/hkev;	
-       	tot_syn_pre[i] = 1.e-50;
-       	tot_syn_post[i] = 1.e-50;
-       	tot_com_pre[i] = 1.e-50;
-       	tot_com_post[i] = 1.e-50;
-       	tot_lum[i] = 1.e-50;	
+       	tot_syn_pre[i] = 1.;
+       	tot_syn_post[i] = 1.;
+       	tot_com_pre[i] = 1.;
+       	tot_com_post[i] = 1.;
+       	tot_lum[i] = 1.;	
     }
 
     npsw = 1;	

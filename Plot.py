@@ -24,12 +24,12 @@ kevconv = 1.
 fluxconv = 4.*math.pi*(pars[2]*3.*10**21)**2
 
 if (pars[0] >= 1.e3):
-    ulim_f = 1.e27
+    ulim_f = 1.e20
     blim_f = 0.5e9
     ulim_fl = 1.e-9
     blim_fl = 1.e-14
-    ulim_fd = 1.e5
-    blim_fd = 1.e-13
+    ulim_fd = 5.e2
+    blim_fd = 1.e-3
 else:
     ulim_f = 0.9e21
     blim_f = 0.5e9

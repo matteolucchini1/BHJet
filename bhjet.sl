@@ -63,7 +63,7 @@ static variable jet_input = {
 "f_sc",          1.5e-7,   1e-9,    0.1,
 "pbeta",          5.e-2,   1e-3,     1.,
 "sig_acc",	   	   1e-1,  1.e-2,     1.,
-"Tin [L_edd]",    1.e-2,  1.e-4,     1.,
+"Ldisk [L_edd]",    1.e-2,  1.e-4,     1.,
 "rin [r_g]",         1.,     1.,   2.e2,
 "rout [r_g]",     1000.,    10.,   1.e5,
 "compar1",         1.e3,     3.,   1.e6,
