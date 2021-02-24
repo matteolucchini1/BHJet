@@ -3,9 +3,10 @@
 //This function determines very, very roughly whether the Compton emission from a zone is worth computing or 
 //not. The criteria are a) are we in the first zone (which we almost always care about because it's the 
 //corona) or b) do we expect the non-thermal SSC luminosity to be sufficiently bright. Note that in XRBs for
-// standard parameters this function returns false in most zones. This is because there are hardly any gamma
-//ray detections
-bool Compton_check(bool IsShock,int i,double Mbh,double Urad,zone_pars &zone){
+// standard parameters this function returns false in most zones; also, for LLAGN (velsw not higher than 1, 
+//large BH mass) it assumes you are not trying to compute the gamma ray spectrum. This is because neither
+//class of objects actually has any gamma ray detections
+bool Compton_check(bool IsShock,int i,double Mbh,double Urad,double velsw,zone_pars &zone){
     double Lumnorm,Ub,Usyn,Lsyn,Lcom;
     Lumnorm = pi*pow(zone.r,2.)*zone.delz*pow(zone.delta,4.)*zone.lepdens*sigtom*cee*zone.avgammasq;
     Ub = pow(zone.bfield,2.)/(8.*pi); 
@@ -16,8 +17,9 @@ bool Compton_check(bool IsShock,int i,double Mbh,double Urad,zone_pars &zone){
     if (i <= 1){
         return true;
     }
-
-    if(Mbh>1.e4 && IsShock == true){
+    if (Mbh > 1.e4 && velsw <= 1) {
+        return false;
+    } else if(Mbh>1.e4 && IsShock == true){
         if (Lcom/Lsyn > 1.e-2){
             return true;
         } else {

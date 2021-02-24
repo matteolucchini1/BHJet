@@ -538,7 +538,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             sum_zones(nsyn,ne,syn_en,syn_lum,tot_en,tot_syn_post);
         }			
         //calculate inverse Compton spectrum, if it's expected to be bright enough	
-        if (Compton_check(IsShock,i,Mbh,Urad,zone) == true){
+        if (Compton_check(IsShock,i,Mbh,Urad,velsw,zone) == true){
         //if(z>zmax){
             //Set up the calculation by reading in/calculating beaming,volume,counterjet presence,tau
             InvCompton.set_beaming(theta,zone.beta,zone.delta);
