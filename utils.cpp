@@ -36,7 +36,7 @@ bool Compton_check(bool IsShock,int i,double Mbh,double Urad,double velsw,zone_p
 
 void param_write(const double *par,std::string path){
     std::ofstream file;
-    file.open(path.c_str(),std::ios::app);	
+    file.open(path.c_str(),std::ios::trunc);	
     
     for (int k=0;k<27;k++) {
         file << par[k] << std::endl;
