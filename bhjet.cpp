@@ -290,7 +290,12 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         zone.delta = 1./(zone.gamma*(1.-zone.beta*cos(theta*pi/180.)));
 
         //This is to avoid crashes due to low (sub 1 kev) particle temperatures
-        zone.eltemp = max(tshift*Te,kboltz_kev2erg);
+        if (z < zdiss) {
+            zone.eltemp = max(tshift*Te,kboltz_kev2erg);    
+        } else {
+            zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
+        }
+        
         
         //This is to evolve the fraction of non thermal particles along the jet, and change the distribution 
         //of non thermal particles appropriately

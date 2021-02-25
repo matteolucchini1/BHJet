@@ -14,23 +14,25 @@ bool Compton_check(bool IsShock,int i,double Mbh,double Urad,double velsw,zone_p
     Usyn = Lsyn/(pi*pow(zone.r,2.)*cee*pow(zone.delta,4.));
     Lcom = Lumnorm*(Usyn+Urad);
 
+    bool test1 = (Lcom/Lsyn > 2e-2);
+    bool test2 = (Lcom >= 1.26e38*Mbh*1e-7);
+
+    //the logic for these tests is as follows: 
+    //1) always include the jet nozzle/corona, and the first region after it just in case
+    //2) if large BH mass and not using blhet, assume we're dealing with a LLAGN, hence no gamma ray data
+    //available, hence no need to calculate the non-thermal IC spectrum
+    //3) in any other zone, make sure that a) the IC emission from the zone is at least 0.02 times that of them
+    //synchrotron component and b) make sure this luminosity is not lower than 1e-7 the Eddington luminosity
+    //of the black hole. 1e-7 is taken to be an arbitrarily small number, anything lower will just not be 
+    //detectable anyway. 
+
     if (i <= 1){
         return true;
     }
-    if (Mbh > 1.e4 && velsw <= 1) {
+    else if (Mbh > 1.e4 && velsw <= 1) {
         return false;
-    } else if(Mbh>1.e4 && IsShock == true){
-        if (Lcom/Lsyn > 1.e-2){
-            return true;
-        } else {
-            return false;
-        }
-    } else {
-        if (Lcom/Lsyn > 1.4e-2 && IsShock == true){
-            return true;
-        } else {
-            return false;
-        }
+    } else if(test1 == true && test2 == true && IsShock == true){
+        return true;
     }
 }
 
