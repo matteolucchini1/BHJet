@@ -15,7 +15,7 @@ rc('font',**{'family':'serif','serif':['Computer Modern']})
 plt.rcParams.update({'font.size': 18})
 
 pars = np.genfromtxt("Input/ip.dat")
-data = np.genfromtxt("1H0323342.dat")
+#data = np.genfromtxt("1H0323342.dat")
 
 kevconv = 1.
 #kevconv = 2.41*10**17
@@ -28,8 +28,8 @@ if (pars[0] >= 1.e3):
     blim_f = 0.5e9
     ulim_fl = 1.e-9
     blim_fl = 1.e-14
-    ulim_fd = 5.e2
-    blim_fd = 1.e-3
+    ulim_fd = 5.e3
+    blim_fd = 0.3e-3
 else:
     ulim_f = 0.9e21
     blim_f = 0.5e9
@@ -45,7 +45,7 @@ zheight=np.zeros(5)
 
 zheight=np.zeros(5) # the array that we use to print the labels in colorbar
 for n in range(0,len(zheight)):
-    zheight[n] = np.log10(np.int((pow(10.,math.log10(zmax/zmin)*(n*.25) + math.log10(zmin)))))
+    zheight[n] = np.log10(int((pow(10.,math.log10(zmax/zmin)*(n*.25) + math.log10(zmin)))))
 
 zheight = np.around(zheight,decimals=2)
 
@@ -58,7 +58,6 @@ if (plotcheck >= 1):
     Precom = np.genfromtxt("Output/Precom.dat")
     Postcom = np.genfromtxt("Output/Postcom.dat")
     Disk = np.genfromtxt("Output/Disk.dat")
-    Corona = np.genfromtxt("Output/Corona.dat")
     BB = np.genfromtxt("Output/BB.dat")
     Total = np.genfromtxt("Output/Total.dat")
 
@@ -77,7 +76,7 @@ if (plotcheck >=2):
     Cyclosyn_zones = np.genfromtxt("Output/Cyclosyn_zones.dat")
     Compton_zones = np.genfromtxt("Output/Compton_zones.dat")
     Numdens = np.genfromtxt("Output/Numdens.dat")
-    size3 = len(Numdens.T[0])/nzones
+    size3 = len(Numdens.T[0])//nzones
     i = 0
     j = 0
     k = 0
@@ -98,9 +97,9 @@ if (plotcheck >=2):
             size_com_arr[i] = k + 1
             i = i + 1
             k = 0
-    g = np.zeros(size3)
+    garr = np.zeros(size3)
     ng = np.zeros(size3)
-    p = np.zeros(size3)
+    parr = np.zeros(size3)
     nparr = np.zeros(size3)
 
 i = 0
@@ -135,9 +134,9 @@ ax1.plot(Postcom.T[0]/kevconv,Postcom.T[1]*Postcom.T[0]*mjy*fluxconv,linewidth=2
 ax1.plot(Disk.T[0]/kevconv,Disk.T[1]*Disk.T[0]*mjy*fluxconv,linewidth=2.5,color='red',zorder=nzones+1)
 ax1.plot(BB.T[0]/kevconv,BB.T[1]*BB.T[0]*mjy*fluxconv,linewidth=2.5,color='orange',zorder=nzones+1)
 ax1.plot(Total.T[0]/kevconv,Total.T[1]*Total.T[0]*mjy*fluxconv,linewidth=1.5,color='black',zorder=nzones+1)
-ax1.errorbar(data.T[0]/kevconv,data.T[2],yerr=data.T[3],color='black',fmt='o')
-ax1.set_xscale('log', basex=10)
-ax1.set_yscale('log', basey=10)
+#ax1.errorbar(data.T[0]/kevconv,data.T[2],yerr=data.T[3],color='black',fmt='o')
+ax1.set_xscale('log', base=10)
+ax1.set_yscale('log', base=10)
 ax1.set_ylim([blim_fl*fluxconv,ulim_fl*fluxconv])
 ax1.set_xlim([blim_f/kevconv,ulim_f/kevconv])
 
@@ -168,7 +167,7 @@ for i in range(nzones-1):
         lnu_compton[l] = Compton_zones.T[1][totindex2+l]
     totindex1 = totindex1 + int(size_cyclo_arr[i])
     totindex2 = totindex2 + int(size_com_arr[i])	
-    if ((i%3)== 0):
+    if ((i%1)== 0):
         ax2.plot(nu_cyclosyn,lnu_cyclosyn,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
         ax2.plot(nu_compton,lnu_compton,linewidth=2.5,color=colors[i],zorder=nzones-i,linestyle='dashed')
 ax2.plot(Presyn.T[0]/kevconv,Presyn.T[1],linewidth=2.5,color='cyan',zorder=nzones+1)
@@ -181,8 +180,8 @@ ax2.plot(Disk.T[0]/kevconv,Disk.T[1],linewidth=2.5,color='red',zorder=nzones+1)
 ax2.plot(Total.T[0]/kevconv,Total.T[1],linewidth=1.5,color='black',zorder=nzones+1)
 ax2.set_ylim([blim_fd,ulim_fd])
 ax2.set_xlim([blim_f/kevconv,ulim_f/kevconv])
-ax2.set_xscale('log', basex=10)
-ax2.set_yscale('log', basey=10)
+ax2.set_xscale('log', base=10)
+ax2.set_yscale('log', base=10)
 
 ax2.yaxis.tick_right()
 ax2.yaxis.set_label_position("right")
@@ -208,27 +207,27 @@ if(plotcheck>=2):
     fig2, (ax3, ax4) = plt.subplots(1,2,figsize=(18,6))	
     for j in range(nzones-1):
         for i in range(size3):
-            p[i] = Numdens.T[0][i+size3*j]
+            parr[i] = Numdens.T[0][i+size3*j]
             nparr[i] = Numdens.T[2][i+size3*j]
-        if ((j%3) == 0): #this plots one in five zones for clarity
-            ax3.plot(p,nparr*p,linewidth=3.5,color=colors[j],zorder=150-j)
+        if ((j%5) == 0): #this plots one in five zones for clarity
+            ax3.plot(parr,nparr*parr,linewidth=3.5,color=colors[j],zorder=150-j)
     ax3.set_xlabel('Momentum (erg*s/cm)',fontsize=22)
-    ax3.set_ylabel('Number density (#/cm^3)',fontsize=22)		
-    ax3.set_xscale('log', basex=10)
-    ax3.set_yscale('log', basey=10)
+    ax3.set_ylabel('Number density ($\\#/cm^{3}$)',fontsize=22)		
+    ax3.set_xscale('log', base=10)
+    ax3.set_yscale('log', base=10)
 
     i = 0
     j = 0
     for j in range(nzones-1):
         for i in range(size3):
-            g[i] = Numdens.T[1][i+size3*j]
+            garr[i] = Numdens.T[1][i+size3*j]
             ng[i] = Numdens.T[3][i+size3*j]
-        if ((j%3) == 0): #this plots one in five zones for clarity
-            ax4.plot(g,ng*g,linewidth=3.5,color=colors[j],zorder=150-j)
+        if ((j%5) == 0): #this plots one in five zones for clarity
+            ax4.plot(garr,ng*garr,linewidth=3.5,color=colors[j],zorder=150-j)
     ax4.set_xlabel('Electron $\\gamma$',fontsize=22)
-    ax4.set_ylabel('Number density (#/cm^3)',fontsize=22)	
-    ax4.set_xscale('log', basex=10)
-    ax4.set_yscale('log', basey=10)
+    ax4.set_ylabel('Number density ($\\#/cm^{3}$)',fontsize=22)	
+    ax4.set_xscale('log', base=10)
+    ax4.set_yscale('log', base=10)
     ax4.yaxis.tick_right()
     ax4.yaxis.set_label_position("right")
 

@@ -6,7 +6,7 @@
 // standard parameters this function returns false in most zones; also, for LLAGN (velsw not higher than 1, 
 //large BH mass) it assumes you are not trying to compute the gamma ray spectrum. This is because neither
 //class of objects actually has any gamma ray detections
-bool Compton_check(bool IsShock,int i,double Mbh,double Urad,double velsw,zone_pars &zone){
+bool Compton_check(bool IsShock,int i,double Mbh,double Nj,double Urad,double velsw,zone_pars &zone){
     double Lumnorm,Ub,Usyn,Lsyn,Lcom;
     Lumnorm = pi*pow(zone.r,2.)*zone.delz*pow(zone.delta,4.)*zone.lepdens*sigtom*cee*zone.avgammasq;
     Ub = pow(zone.bfield,2.)/(8.*pi); 
@@ -14,8 +14,8 @@ bool Compton_check(bool IsShock,int i,double Mbh,double Urad,double velsw,zone_p
     Usyn = Lsyn/(pi*pow(zone.r,2.)*cee*pow(zone.delta,4.));
     Lcom = Lumnorm*(Usyn+Urad);
 
-    bool test1 = (Lcom/Lsyn > 2e-2);
-    bool test2 = (Lcom >= 1.26e38*Mbh*1e-7);
+    bool test1 = (Lcom/Lsyn > 1e-2);
+    bool test2 = (Lcom >= Nj*1e-8);]
 
     //the logic for these tests is as follows: 
     //1) always include the jet nozzle/corona, and the first region after it just in case
@@ -28,11 +28,12 @@ bool Compton_check(bool IsShock,int i,double Mbh,double Urad,double velsw,zone_p
 
     if (i <= 1){
         return true;
-    }
-    else if (Mbh > 1.e4 && velsw <= 1) {
+    } else if (Mbh > 1.e4 && velsw <= 1) {
         return false;
     } else if(test1 == true && test2 == true && IsShock == true){
         return true;
+    } else {
+        return false;
     }
 }
 

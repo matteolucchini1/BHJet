@@ -124,7 +124,7 @@ void plot_write(int size,const double *en,const double *lum,std::string path,dou
 void plot_write(int size,const double *p,const double *g,const double *pdens,const double *gdens,
                 std::string path);
 									
-bool Compton_check(bool IsShock,int i,double Mbh,double Ucom,double velsw,zone_pars &zone);
+bool Compton_check(bool IsShock,int i,double Mbh,double Nj,double Ucom,double velsw,zone_pars &zone);
 
 void sum_counterjet(int size,const double* input_en,const double* input_lum,double* en,double* lum);
 void output_spectrum(int size,double* en,double* lum,double* spec,double redsh,double dist);
