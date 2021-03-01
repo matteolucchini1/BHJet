@@ -15,7 +15,7 @@ bool Compton_check(bool IsShock,int i,double Mbh,double Nj,double Urad,double ve
     Lcom = Lumnorm*(Usyn+Urad);
 
     bool test1 = (Lcom/Lsyn > 1e-2);
-    bool test2 = (Lcom >= Nj*1e-8);]
+    bool test2 = (Lcom >= Nj*1e-8);
 
     //the logic for these tests is as follows: 
     //1) always include the jet nozzle/corona, and the first region after it just in case

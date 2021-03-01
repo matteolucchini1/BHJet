@@ -549,7 +549,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             InvCompton.set_beaming(theta,zone.beta,zone.delta);
             InvCompton.set_geometry("cylinder",zone.r,zone.delz);
             InvCompton.set_counterjet(IsCounterjet);	
-            InvCompton.set_tau(zone.lepdens,Te/emerg);
+            InvCompton.set_tau(zone.lepdens,zone.eltemp/emerg);
             //Multiple scatters only if ypar and tau are large enough
             if(InvCompton.get_ypar() > 1.e-2 && InvCompton.get_tau() > 5.e-2){
                 InvCompton.set_niter(15);		
