@@ -32,23 +32,23 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     double redsh;								//source redshift
     double jetrat;								//injected power in Eddington units	
     double zmin;								//jet launching point
-    double r0;									//initial jet radius in rg
+    double r_0;									//initial jet radius in rg
     double h;									//jet nozzle aspect ratio
-    double zacc;								//end of bulk magnetic acceleration region in rg
-    double zdiss;								//dissipation/nonthermal particle injection region in rg	
-    double zmax;								//distance from bh up to which calculation continues
-    double Te;									//temperature in kev, converted to erg	
-    double plfrac_0;							//percentage of nonthermal particles at the dissipation region
-    double pldist;								//parameter to change plfrac over distance
+    double z_acc;								//end of bulk magnetic acceleration region in rg
+    double z_diss;								//dissipation/nonthermal particle injection region in rg	
+    double z_max;								//distance from bh up to which calculation continues
+    double t_e;									//temperature in kev, converted to erg	
+    double f_nth;							    //percentage of nonthermal particles at the dissipation region
+    double f_pl;								//parameter to change plfrac over distance
     double pspec;								//slope of nonthermal distribution
-    double heat;								//shock heating paramter
-    double betaeff;								//effective expansion velocity used to set adiabatic cooling
-    double fsc;									//particle acceleration timescale parameter		
-    double pbeta;								//plasma beta in the jet base
+    double f_heat;								//shock heating paramter
+    double f_beta;								//effective expansion velocity used to set adiabatic cooling
+    double f_sc;								//particle acceleration timescale parameter		
+    double p_beta;								//plasma beta in the jet base
     double sig_acc;								//final sigma when using magnetic acceleration
-    double Ldisk;								//disk luminosity in Eddington units
-    double Rin;									//disk inner radius in rg
-    double Rout;								//disk outer radius in rg
+    double l_disk;								//disk luminosity in Eddington units
+    double r_in;								//disk inner radius in rg
+    double r_out;								//disk outer radius in rg
     double compar1;								//external inverse Compton parameters; different meanings
     double compar2;								//depending on the value of compsw
     double compar3;	
@@ -109,22 +109,22 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     dist = param[2]*kpc;	
     redsh = param[3];
     jetrat = param[4]*Eddlum;
-    r0 = param[5]*Rg;
-    zdiss = param[6]*Rg;
-    zacc = param[7]*Rg;	
-    zmax = param[8]*Rg;
-    Te = param[9]*kboltz_kev2erg;
-    plfrac_0 = param[10];
-    pldist = param[11];
+    r_0 = param[5]*Rg;
+    z_diss = param[6]*Rg;
+    z_acc = param[7]*Rg;	
+    z_max = param[8]*Rg;
+    t_e = param[9]*kboltz_kev2erg;
+    f_nth = param[10];
+    f_pl = param[11];
     pspec = param[12];
-    heat = param[13];
-    betaeff = param[14];
-    fsc = param[15];
-    pbeta = param[16];
+    f_heat = param[13];
+    f_beta = param[14];
+    f_sc = param[15];
+    p_beta = param[16];
     sig_acc = param[17];	
-    Ldisk = param[18];
-    Rin = param[19]*Rg;
-    Rout = param[20]*Rg;
+    l_disk = param[18];
+    r_in = param[19]*Rg;
+    r_out = param[20]*Rg;
     compar1 = param[21];
     compar2 = param[22];
     compar3 = param[23];
@@ -172,13 +172,13 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 
     //STEP 3: DISK/EXTERNAL PHOTON CALCULATIONS
 
-    //The disk is disabled by setting Rin<Rout; its contribution is summed to the total only if there are no 
+    //The disk is disabled by setting r_in<r_out; its contribution is summed to the total only if there are no 
     //AGN photon fields that reprocess part of the luminosity, otherwise it is done later
-    if(Rin<Rout){
+    if(r_in<r_out){
     	Disk.set_mbh(Mbh);
-	    Disk.set_rin(Rin);
-	    Disk.set_rout(Rout);
-	    Disk.set_luminosity(Ldisk);		
+	    Disk.set_rin(r_in);
+	    Disk.set_rout(r_out);
+	    Disk.set_luminosity(l_disk);		
 	    Disk.set_inclination(theta);
 	    Disk.disk_spectrum();
 	    if (compsw != 2) {
@@ -200,7 +200,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         BlackBody.bb_spectrum();
         sum_ext(40,ne,BlackBody.get_energy_obs(),BlackBody.get_nphot_obs(),tot_en,tot_lum);
     }
-    else if (compsw==2 && Rin<Rout){
+    else if (compsw==2 && r_in<r_out){
         agn_photons_init(Disk.total_luminosity(),compar1,compar2,agn_com);
 
         BLR.set_temp_kev(agn_com.tblr);
@@ -228,7 +228,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     //thermal distribution 
     Thermal dummy_elec(nel);
     dummy_elec.set_mass(emgm);
-    dummy_elec.set_temp(Te);
+    dummy_elec.set_temp(t_e);
     dummy_elec.set_p();	
     dummy_elec.set_norm(1.);	
     dummy_elec.set_ndens();
@@ -238,16 +238,16 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     grid.zcut = 1.e3*Rg;
 
     jet_dyn.min = zmin;
-    jet_dyn.max = zmax;
-    jet_dyn.h0 = 2.*r0+zmin;
-    jet_dyn.r0 = r0;
-    jet_dyn.acc = zacc;
+    jet_dyn.max = z_max;
+    jet_dyn.h0 = 2.*r_0+zmin;
+    jet_dyn.r0 = r_0;
+    jet_dyn.acc = z_acc;
     jet_dyn.beta0 = sqrt(4./3.*(4./3.-1.)/(4./3.+1.));	//set initial jet speed for relativistic fluid, g=4/3 
     jet_dyn.gam0 = 1./sqrt(1.-(pow(jet_dyn.beta0,2.)));	//set corresponding lorentz factor
     jet_dyn.gamf = velsw;
     jet_dyn.Rg = Rg;  
 
-    nozzle_ener.pbeta = pbeta;
+    nozzle_ener.pbeta = p_beta;
     nozzle_ener.Nj = jetrat;
     nozzle_ener.sig_acc = sig_acc; 
     nozzle_ener.av_gamma = dummy_elec.av_gamma();
@@ -285,43 +285,44 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         } else if (velsw==1){
             isojetpars(z,jet_dyn,nozzle_ener,tshift,zone,spline_speed,acc_speed);
         } else {
-            bljetpars(z,betaeff,jet_dyn,nozzle_ener,tshift,zone,spline_speed,acc_speed);
+            bljetpars(z,f_beta,jet_dyn,nozzle_ener,tshift,zone,spline_speed,acc_speed);
         }
         zone.delta = 1./(zone.gamma*(1.-zone.beta*cos(theta*pi/180.)));
 
         //This is to avoid crashes due to low (sub 1 kev) particle temperatures
-        if (z < zdiss) {
-            zone.eltemp = max(tshift*Te,kboltz_kev2erg);    
+        if (z < z_diss) {
+            zone.eltemp = max(tshift*t_e,kboltz_kev2erg);    
         } else {
-            zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
+            zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),kboltz_kev2erg);
         }
         
         
         //This is to evolve the fraction of non thermal particles along the jet, and change the distribution 
         //of non thermal particles appropriately
-        if (z < zdiss) {
+        if (z < z_diss) {
             zone.nth_frac = 0.;
         } else {
-            zone.nth_frac = plfrac_0*pow(log10(zdiss)/log10(z),pldist);            
+            zone.nth_frac = f_nth*pow(log10(z_diss)/log10(z),f_pl);  
+            cout << "Nth increased here! " << z/Rg << endl;           
         }
 
 
         //Include the disk for radiative cooling if it's on;
         //if compsw==1 the boosting is the same in all zones, if compsw==2 we boost either blr,torus or both
         //depending on the distance from the BH of the jet region/seed photon production
-        if (Rin < Rout) {
-            double Rdisk = pow(Rin,2.)+pow(z,2.);
+        if (r_in < r_out) {
+            double Rdisk = pow(r_in,2.)+pow(z,2.);
             double delta_disk, theta_disk;
-            theta_disk = pi-atan(Rin/z);
+            theta_disk = pi-atan(r_in/z);
             delta_disk = 1./(zone.gamma-zone.beta*cos(theta_disk));
-            Urad = pow(delta_disk,2.)*Ldisk*Eddlum/(4.*pi*Rdisk*cee);
+            Urad = pow(delta_disk,2.)*l_disk*Eddlum/(4.*pi*Rdisk*cee);
         } else {
             Urad = 0.;
         }
         
         if(compsw==1){			
             Urad = Urad + pow(zone.delta,2.)*Ubb1;
-        } else if (compsw==2 && Rin<Rout){
+        } else if (compsw==2 && r_in<r_out){
             zone_agn_phfields(z,zone,Ubb1,Ubb2,agn_com);
             Urad = Urad + agn_com.urad_total;
         }          
@@ -349,8 +350,10 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             }
         } else if (zone.nth_frac < 0.5){ 
             if (IsShock==false){
-                Te = heat*Te;
+                t_e = f_heat*t_e;
                 IsShock = true;
+                zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),kboltz_kev2erg);
+                cout << "Shock heating here! " << z/Rg << endl;
             }					
             Mixed acc_lep(nel);
             acc_lep.set_mass(emgm);
@@ -358,16 +361,16 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             acc_lep.set_pspec(pspec);
             acc_lep.set_plfrac(zone.nth_frac);
             
-            //if fsc < 10 it's the acceleration efficiency, else it's the desired maximum lorentz factor
-            if (fsc<10.){
-                acc_lep.set_p(Urad,zone.bfield,betaeff,zone.r,fsc);
+            //if f_sc < 10 it's the acceleration efficiency, else it's the desired maximum lorentz factor
+            if (f_sc<10.){
+                acc_lep.set_p(Urad,zone.bfield,f_beta,zone.r,f_sc);
             } else{
-                acc_lep.set_p(fsc);
+                acc_lep.set_p(f_sc);
             }	
 
             acc_lep.set_norm(zone.lepdens);	
             acc_lep.set_ndens();
-            acc_lep.cooling_steadystate(Urad,zone.lepdens,zone.bfield,zone.r,betaeff);
+            acc_lep.cooling_steadystate(Urad,zone.lepdens,zone.bfield,zone.r,f_beta);
             //Note: this assumes ssc cooling is negligible
 
             gmin = acc_lep.get_gamma()[0];
@@ -384,8 +387,8 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             }
         } else if (zone.nth_frac < 1.) {
             if (IsShock==false){
-                Te = heat*Te;
-                zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
+                t_e = f_heat*t_e;
+                zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),kboltz_kev2erg);
                 IsShock = true;
             }
             Thermal dummy_elec(nel);
@@ -401,15 +404,15 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             acc_lep.set_pspec1(-2.);
             acc_lep.set_pspec2(pspec);
                         
-            if (fsc<10.){
-                acc_lep.set_p(0.1*pbrk,pbrk,Urad,zone.bfield,betaeff,zone.r,fsc);
+            if (f_sc<10.){
+                acc_lep.set_p(0.1*pbrk,pbrk,Urad,zone.bfield,f_beta,zone.r,f_sc);
             } else{
-                acc_lep.set_p(0.1*pbrk,pbrk,fsc);
+                acc_lep.set_p(0.1*pbrk,pbrk,f_sc);
             }	
             
             acc_lep.set_norm(zone.lepdens);	
             acc_lep.set_ndens();
-            acc_lep.cooling_steadystate(Urad,zone.lepdens,zone.bfield,zone.r,betaeff);
+            acc_lep.cooling_steadystate(Urad,zone.lepdens,zone.bfield,zone.r,f_beta);
             //Note: this assumes ssc cooling is negligible
 
             gmin = acc_lep.get_gamma()[0];
@@ -426,8 +429,8 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             }
         } else if (zone.nth_frac == 1.) {
             if (IsShock==false){
-                Te = heat*Te;
-                zone.eltemp = max(tshift*Te*pow(log10(zdiss)/log10(z),pldist),kboltz_kev2erg);
+                t_e = f_heat*t_e;
+                zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),kboltz_kev2erg);
                 IsShock = true;
             }
             Thermal dummy_elec(nel);
@@ -442,15 +445,15 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             acc_lep.set_mass(emgm);
             acc_lep.set_pspec(pspec);
                         
-            if (fsc<10.){
-                acc_lep.set_p(pmin,Urad,zone.bfield,betaeff,zone.r,fsc);
+            if (f_sc<10.){
+                acc_lep.set_p(pmin,Urad,zone.bfield,f_beta,zone.r,f_sc);
             } else{
-                acc_lep.set_p(pmin,fsc);
+                acc_lep.set_p(pmin,f_sc);
             }	
             
             acc_lep.set_norm(zone.lepdens);	
             acc_lep.set_ndens();
-            acc_lep.cooling_steadystate(Urad,zone.lepdens,zone.bfield,zone.r,betaeff);
+            acc_lep.cooling_steadystate(Urad,zone.lepdens,zone.bfield,zone.r,f_beta);
             //Note: this assumes ssc cooling is negligible
 
             gmin = acc_lep.get_gamma()[0];
@@ -486,7 +489,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         //both the black body and disk part. This is why the maximum frequency is taken as the maximum of the
         //two scale frequencies.
         syn_min = 0.1*pow(gmin,2.)*charg*zone.bfield/(2.*pi*emgm*cee);
-        if(Rin<Rout){
+        if(r_in<r_out){
             syn_max = max(50.*pow(gmax,2.)*charg*zone.bfield/(2.*pi*emgm*cee),20.*Disk.tin()*kboltz/herg);
         }
         else {
@@ -537,14 +540,14 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             }
         }
         //Include zone's emission to the pre/post particle acceleration spectrum
-        if(z<zdiss){
+        if(z<z_diss){
             sum_zones(nsyn,ne,syn_en,syn_lum,tot_en,tot_syn_pre);
         } else {
             sum_zones(nsyn,ne,syn_en,syn_lum,tot_en,tot_syn_post);
         }			
         //calculate inverse Compton spectrum, if it's expected to be bright enough	
         if (Compton_check(IsShock,i,Mbh,jetrat,Urad,velsw,zone) == true){
-        //if(z>zmax){
+        //if(z>z_max){
             //Set up the calculation by reading in/calculating beaming,volume,counterjet presence,tau
             InvCompton.set_beaming(theta,zone.beta,zone.delta);
             InvCompton.set_geometry("cylinder",zone.r,zone.delz);
@@ -557,15 +560,15 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             //Cyclosynchrotron photons are always considered in the scattering						
             InvCompton.cyclosyn_seed(Syncro.get_energy(),Syncro.get_nphot());
             //Disk photons are included only if the disk is present
-            if(Rin<Rout){
-                InvCompton.shsdisk_seed(Syncro.get_energy(),Disk.tin(),Rin,Rout,Disk.hdisk(),z+zone.delz/2.);
+            if(r_in<r_out){
+                InvCompton.shsdisk_seed(Syncro.get_energy(),Disk.tin(),r_in,r_out,Disk.hdisk(),z+zone.delz/2.);
             }
             //Black body photons included only if compsw==1
             if(compsw==1){						
                 InvCompton.bb_seed(Syncro.get_energy(),Ubb1,zone.delta*BlackBody.temp_kev());
             }
             //AGN photon fields photons are considered only if disk is present and compsw==2
-            if(compsw==2 && Rin<Rout){
+            if(compsw==2 && r_in<r_out){
                 InvCompton.bb_seed(Syncro.get_energy(),Ubb1,zone.delta*BLR.temp_kev());
                 InvCompton.bb_seed(Syncro.get_energy(),Ubb2,zone.delta*Torus.temp_kev());
             }
@@ -585,7 +588,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 	            }			
             }
             //Include zone's emission to the pre/post particle acceleration spectrum
-            if(z<zdiss){
+            if(z<z_diss){
                 sum_zones(ncom,ne,com_en,com_lum,tot_en,tot_com_pre);
             } else {
                 sum_zones(ncom,ne,com_en,com_lum,tot_en,tot_com_post);
@@ -638,7 +641,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         cout << "Radio 10-100 GHz spectral index estimate: " 
              << 1.+photon_index(ne,1e10,1e11,tot_en,tot_lum) << endl;
         double compactness = integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre)*sigtom
-                             /(r0*emerg*cee);      
+                             /(r_0*emerg*cee);      
         cout << "Jet base compactness: " << compactness << endl;
         if (compactness >= 10.*(param[9]/511.)*exp(511./param[9])) {
             cout << "Possible runaway pair production in the jet base!" << endl; 

@@ -209,7 +209,7 @@ if(plotcheck>=2):
         for i in range(size3):
             parr[i] = Numdens.T[0][i+size3*j]
             nparr[i] = Numdens.T[2][i+size3*j]
-        if ((j%5) == 0): #this plots one in five zones for clarity
+        if ((j%1) == 0): #this plots one in five zones for clarity
             ax3.plot(parr,nparr*parr,linewidth=3.5,color=colors[j],zorder=150-j)
     ax3.set_xlabel('Momentum (erg*s/cm)',fontsize=22)
     ax3.set_ylabel('Number density ($\\#/cm^{3}$)',fontsize=22)		
@@ -222,7 +222,7 @@ if(plotcheck>=2):
         for i in range(size3):
             garr[i] = Numdens.T[1][i+size3*j]
             ng[i] = Numdens.T[3][i+size3*j]
-        if ((j%5) == 0): #this plots one in five zones for clarity
+        if ((j%1) == 0): #this plots one in five zones for clarity
             ax4.plot(garr,ng*garr,linewidth=3.5,color=colors[j],zorder=150-j)
     ax4.set_xlabel('Electron $\\gamma$',fontsize=22)
     ax4.set_ylabel('Number density ($\\#/cm^{3}$)',fontsize=22)	

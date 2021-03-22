@@ -11,7 +11,7 @@
 0.1				#fraction of particles accelerated initially
 0				#reduction in accelerated particles over distance
 2.				#non-thermal particle index
-1				#shock heating at dissipation location
+10				#shock heating at dissipation location
 0.1				#effective adiabatic expansion speed
 0.1				#particle acceleration efficiency
 0.1			    #initial plasma beta
@@ -24,4 +24,4 @@
 0				#external compton parameter 3
 0				#external compton switch
 1				#velsw
-5				#infosw
+2				#infosw

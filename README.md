@@ -1,14 +1,8 @@
----------------------------------------------------------------------------------------------------------------------------------------
-
-Table of contents:
-1) Basic description of the model
-2) Overview of the code and performance notes
-3) Description of the parameters in the model
-4) Instructions to run the code
+##BHJET
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
-AGNJET is a semi-analytical, multi-zone jet model designed for modelling steady-state SEDs of jets launched from accreting black holes. The key features of the model are: 
+BHJET is a semi-analytical, multi-zone jet model designed for modelling steady-state SEDs of jets launched from accreting black holes. The key features of the model are: 
 1) It is applicable across the entire black hole mass scale, from black hole X-ray binaries (both low and high mass) to active galactic nuclei of any class (from low-luminosity AGN to flat spectrum radio quasars),
 2) It is designed to be more comparable than other codes to GRMHD simulations and/or RMHD semi-analytical solutions.
 The model is fairly complex and fitting it to data is not always straightforward. As such, it is highly recommended to read this file carefully before running the code. It takes little time and will save you a lot of headaches later on.
@@ -38,22 +32,22 @@ Incl 	- viewing angle of the jet. Sets Doppler factor for the various regions. A
 dkpc 	- distance from source in kpc. Always set before the fit.
 redshfit- self explanatory. Only used for modelling AGN and set before the fit.
 jetrat	- amount of power injected at the base of the jet measured in Eddington units. Does not account for heating/acceleration of particles.
-r0		- radius of the nozzle/corona, described by an outflowing, magnetized cylinder of radius r0 and height hratio*r0. Mainly changes emission properties of the nozzle.
-zdiss	- location of non-thermal particle injection region. sets optically thick to thin break, overall normalization and Compton dominance of non-thermal component, and for high accretion rate AGN sets the EC target field (BLR or torus). 
-zacc    - if velsw > 1, sets location of the jet acceleration. Sets dependency of magnetic field with distance; smaller values correspond to faster dissipation before zacc (see velsw below). Measured in r_g like zdiss. 
-zmax 	- maximum length over which jet calculations are carried out, in units of Rg. Typically frozen to large values in order to get a flat radio spectrum.
-Te 		- temperature of relativistic electrons in the nozzle/corona, expressed in kev.
-f_nth  - percentage of thermal particles accelerated into power-law tail. Typical values range between 10% and 90%. Typically frozen to 0.1.
-f_pl 	- reduces particle temperature and percentage of accelerated particles along the jet after zsh; both are decreased by a factor (log10(zdiss)/log10(z))^pldist. This results in an inverted radio spectrum. Set to 0 for a standard flat spectrum/isothermal jet.
+r\_0	- radius of the nozzle/corona, described by an outflowing, magnetized cylinder of radius r\_0 and height 2r\_0. Measured in units of r\_g.
+z\_diss	- location of non-thermal particle injection region. sets optically thick to thin break, overall normalization and Compton dominance of non-thermal component, and for high accretion rate AGN sets the EC target field (BLR or BLR+torus). Measured in units of r\_g.
+z\_acc   - if velsw > 1, sets location of the jet acceleration. Sets dependency of magnetic field with distance; smaller values correspond to faster dissipation before zacc (see velsw below). Measured in r\_g like zdiss. 
+z\_max 	- maximum length over which jet calculations are carried out, in units of Rg. Typically frozen to large values in order to get a flat radio spectrum.
+t\_e	- temperature of relativistic electrons in the nozzle/corona, expressed in kev.
+f\_nth  - percentage of thermal particles accelerated into power-law tail. Typical values range between 10% and 90%. Typically frozen to 0.1.
+f\_pl 	- reduces particle temperature and percentage of accelerated particles along the jet after zsh; both are decreased by a factor (log10(zdiss)/log10(z))^pldist. This results in an inverted radio spectrum. Set to 0 for a standard flat spectrum/isothermal jet.
 pspec 	- slope of non-thermal particle distribution.
-f_heat 	- imitates shock heating; at z=zdiss bumps Te by a fixed factor heat, increasing the radiative efficiency of the jet after zsh. Typically set to 1 and frozen unless necessary.
-f_b	- sets the effective adiabatic cooling timescale, defined as t_ad = r/betaeff*c. This in turn sets the location of the cooling break in the radiating particle distribution. Typically kept free for blazars, otherwise set to 0.1 and frozen.
-f_sc  	- sets the maximum energy of non-thermal particles by parametrizing the acceleration timescale (and therefore acceleration efficiency). 
-p_beta  - plasma beta (ratio between lepton and magnetic field energy density) at the base. If velsw = 0 or 1 this sets (and freezes) the equipartition value throughout the jet, if velsw > 1 this only sets the pair content and has to be frozen to a value high enough to have pair content ~approx unity (see infosw for how to check this). This is because the assumptions going into the calculation of the magnetic field when velsw>1 only hold if lepton energy density <<< (cold) proton energy density. If velsw > 1, this can be set to 0 to always enforce one proton per electron. See Crumley et al. 2016, Lucchini et al. 2019 for more details.
-sig_acc 	- only used if velsw > 1, sets the value for magnetization (defined as magnetic pressure plus energy density, over proton energy density plus lepton energy density and pressure, although the latter two are negligible). Sets Compton-y and peak frequencies for non-thermal bumps.
-Ldisk 	- sets the luminosity of the disk in Eddington units, and the corresponding temperature is computed from knowing this luminosity and Rin.
-Rin 	- inner radius of the disk.
-Rout    - outer radius of the disk. Only has a minimal contribution to the SED, typically frozen. rout<=rin disables the disk.
+f\_heat 	- imitates shock heating; at z=zdiss bumps Te by a fixed factor heat, increasing the radiative efficiency of the jet after zsh. Typically set to 1 and frozen unless necessary.
+f\_b	- sets the effective adiabatic cooling timescale, defined as t_ad = r/betaeff*c. This in turn sets the location of the cooling break in the radiating particle distribution. Typically kept free for blazars, otherwise set to 0.1 and frozen.
+f\_sc  	- sets the maximum energy of non-thermal particles by parametrizing the acceleration timescale (and therefore acceleration efficiency). 
+p\_beta - plasma beta (ratio between lepton and magnetic field energy density) at the base. If velsw = 0 or 1 this sets (and freezes) the equipartition value throughout the jet, if velsw > 1 this only sets the pair content and has to be frozen to a value high enough to have pair content ~approx unity (see infosw for how to check this). This is because the assumptions going into the calculation of the magnetic field when velsw>1 only hold if lepton energy density <<< (cold) proton energy density. If velsw > 1, this can be set to 0 to always enforce one proton per electron. See Crumley et al. 2016, Lucchini et al. 2019 for more details.
+sig\_acc- only used if velsw > 1, sets the value for magnetization (defined as magnetic pressure plus energy density, over proton energy density plus lepton energy density and pressure, although the latter two are negligible). Sets Compton-y and peak frequencies for non-thermal bumps.
+l\_disk - sets the luminosity of the disk in Eddington units, and the corresponding temperature is computed from knowing this luminosity and Rin.
+r\_in 	- inner radius of the disk.
+r\_out  - outer radius of the disk. Only has a minimal contribution to the SED, typically frozen. rout<=rin disables the disk.
 compar1 - first parameter of the external photon field, depending on the value of compsw
 compar2 - second parameter of the external photon field, depending on the value of compsw
 compar3 - third parameter of the external photon field, depending on the value of compsw
