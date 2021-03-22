@@ -145,7 +145,7 @@ void Bknpower::cooling_steadystate(double ucom, double n0,double bfield,double r
             ndens[i] = (integral/tinj)/(pdot_ad*p[i]/(mass_gr*cee)+pdot_rad*(gamma[i]*p[i]/(mass_gr*cee)));
         }
         else {
-            ndens[size-1] = ndens[size-2]*pow(p[size-1]/p[size-2],-pspec2)*exp(-1.);
+            ndens[size-1] = ndens[size-2]*pow(p[size-1]/p[size-2],-pspec2-1);
         }
     }		
     // the last bin is set by arbitrarily assuming cooled distribution; this is necessary because the integral 

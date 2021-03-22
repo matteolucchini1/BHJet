@@ -1,11 +1,11 @@
-10				#bh mass
+10	    		#bh mass
 40				#viewing angle
 3				#distance in kpc
 0.0		        #redshift
 1e-2			#injected power in Eddington units
 5				#radius in rg
-1.e4			#non-thermal injection distance in rg
-1.e4			#end of bulk magnetic acceleration in rg
+1.e4 			#non-thermal injection distance in rg
+1.e4 			#end of bulk magnetic acceleration in rg
 1.e9			#maximum distance of jet in rg
 200				#temperature in kev
 0.1				#fraction of particles accelerated initially
@@ -20,7 +20,7 @@
 10				#inner disk radius in rg
 1.e5			#outer disk radius in rg
 0.1				#external compton parameter 1
-0.5				#external compton parameter 2
+0.3				#external compton parameter 2
 0				#external compton parameter 3
 0				#external compton switch
 1				#velsw
