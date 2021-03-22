@@ -13,7 +13,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     bool IsCounterjet = true;					//flag to decide whether to include a counterjet	
     bool IsShock = false;						//flag to check shock heating
 
-    int nz = 80;								//total number of zones
+    int nz = 100;								//total number of zones
     int nel = 70;
     int syn_res = 10;							//number of bins per decade in synch frequency;
     int com_res = 6;							//number of bins per decade in compton frequency;
@@ -637,14 +637,14 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         cout << "X-ray 10-100 keV photon index estimate: " 
              << photon_index(ne,10.*2.41e17,100.*2.41e17,tot_en,tot_lum) << endl;
         cout << "Radio 10-100 GHz spectral index estimate: " 
-             << 1.+photon_index(ne,1e10,1e11,tot_en,tot_lum) << endl;
+             << 1.+photon_index(ne,1e10,1e11,tot_en,tot_lum) << endl << endl;
         double compactness = integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre)*sigtom
                              /(r_0*emerg*cee);      
         cout << "Jet base compactness: " << compactness << endl;
         if (compactness >= 10.*(param[9]/511.)*exp(511./param[9])) {
-            cout << "Possible runaway pair production in the jet base!" << endl; 
+            cout << "Possible pair production in the jet base!" << endl; 
             cout << "Lower limit on allowed compactness: " << 10.*(param[9]/511.)*exp(511./param[9]) << endl;
-            cout << "Note: this is for a slab, a cylinder allows higher l by a factor of a few" << std::endl;
+            cout << "Note: this is for a slab, a cylinder allows higher l by a factor of ~10" << std::endl;
         }
     }	
 

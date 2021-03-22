@@ -14,8 +14,9 @@ rc('text',usetex=True)
 rc('font',**{'family':'serif','serif':['Computer Modern']})
 plt.rcParams.update({'font.size': 18})
 
+colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+
 pars = np.genfromtxt("Input/ip.dat")
-#data = np.genfromtxt("1H0323342.dat")
 
 kevconv = 1.
 #kevconv = 2.41*10**17
