@@ -302,8 +302,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         if (z < z_diss) {
             zone.nth_frac = 0.;
         } else {
-            zone.nth_frac = f_nth*pow(log10(z_diss)/log10(z),f_pl);  
-            cout << "Nth increased here! " << z/Rg << endl;           
+            zone.nth_frac = f_nth*pow(log10(z_diss)/log10(z),f_pl);           
         }
 
 
@@ -353,7 +352,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 t_e = f_heat*t_e;
                 IsShock = true;
                 zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),kboltz_kev2erg);
-                cout << "Shock heating here! " << z/Rg << endl;
             }					
             Mixed acc_lep(nel);
             acc_lep.set_mass(emgm);
