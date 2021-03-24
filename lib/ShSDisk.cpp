@@ -160,6 +160,6 @@ void ShSDisk::test(){
     std::cout << "Inner disk radius: " << r << " cm, " << r/Rg << " rg; outer disk radius: " << z <<
                  " cm, " << z/Rg << " rg; disk scale height: " << Hratio << std::endl;	
     std::cout << "Inner disk temperature: " << Tin*kboltz/kboltz_kev2erg << 
-                 " kev; observed  disk luminosity in Eddington units: " << Ldisk << " and erg s^-1: " << 
+                 " kev; emitted  disk luminosity in Eddington units: " << Ldisk << " and erg s^-1: " << 
                  total_luminosity() << std::endl;
 }

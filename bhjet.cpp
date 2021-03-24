@@ -17,11 +17,11 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     int syn_res = 10;							//number of bins per decade in synch frequency;
     int com_res = 6;							//number of bins per decade in compton frequency;
     int nsyn,ncom;								//number of bins in synch/compton frequency;
-    int npsw;									//switch to define number of protons calculations
+    int npsw = 1;								//switch to define number of protons calculations in agnjet
 											    //0: no protons
 											    //1: Up = Ue+Ub
 											    //2: ne = np	
-											    //pair only jet not implemented yet.
+											    //NOTE pair only jet not implemented self-consistently yet!
 
     double Mbh;									//black hole mass in solar masses
     double Eddlum;								//black hole Eddington luminosity
@@ -85,6 +85,12 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     jet_enpars nozzle_ener;						//structure with jet energetic parameters
     zone_pars zone;								//strucutre with parameters of each individual zone
     com_pars agn_com;							//structure with parameters for inverse Compton fields in AGN
+    
+    //External photon object declarations
+    ShSDisk Disk;
+    BBody BLR;
+    BBody Torus;
+    BBody BlackBody;
 
     //splines for jet acceleration
     gsl_interp_accel *acc_speed = gsl_interp_accel_alloc();
@@ -97,10 +103,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     gsl_interp_accel *acc_deriv = gsl_interp_accel_alloc();
     gsl_spline *spline_deriv = gsl_spline_alloc(gsl_interp_steffen,nel);  
 
-    //STEP 2: PARAMETER/OBJECT INITIALIZATION
-    //----------------------------------------------------------------------------------------------
-	
-    //read in parameter values
+    //STEP 2: PARAMETER/FILE INITIALIZATION
     Mbh = param[0];
     Eddlum = 1.25e38*Mbh;				
     Rg = gconst*Mbh*msun/(cee*cee);
@@ -130,6 +133,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     compsw = param[24];
     velsw = param[25];
     infosw = param[26];
+    zmin = 2.*Rg;
     
     if (infosw>=1) {
         param_write(param,"Output/Starting_pars.dat");
@@ -144,15 +148,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
        	tot_com_post[i] = 1.;
        	tot_lum[i] = 1.;	
     }
-
-    npsw = 1;	
-    zmin = 2.*Rg;
-
-    //Initialize disk+external photon classes
-    ShSDisk Disk;
-    BBody BLR;
-    BBody Torus;
-    BBody BlackBody;
 
     if(infosw>=1){			
         clean_file("Output/Presyn.dat",2);
@@ -170,7 +165,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     }
 
     //STEP 3: DISK/EXTERNAL PHOTON CALCULATIONS
-
     //The disk is disabled by setting r_in<r_out; its contribution is summed to the total only if there are no 
     //AGN photon fields that reprocess part of the luminosity, otherwise it is done later
     if(r_in<r_out){
@@ -222,11 +216,9 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     }	
 	
     //STEP 4: JET BASE EQUIPARTITION CALCULATIONS AND SETUP
-    //----------------------------------------------------------------------------------------------	
-
     //Dummy particle distribution, needed for average lorentz factor in equipartition function
-    //The parameters for the method to set the momentum array are set to dummy values that result in a fully
-    //thermal distribution 
+    //The number density is just set to unity, the normalisation is not needed to calculate the average Lorenz factor
+    //of the thermal distribution anyway
     Thermal dummy_elec(nel);
     dummy_elec.set_temp_kev(t_e);
     dummy_elec.set_p();	
@@ -253,7 +245,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     nozzle_ener.av_gamma = dummy_elec.av_gamma();
     //set up jet velocity profile depending on choice of adiabatic,isothermal,magnetically dominated jet   
     //note: the adiabatic jet only runs correctly if the final temperature is above ~1kev, which means the
-    //initial temperature has to be ~10^4 kev
+    //initial temperature has to be ~10^4 kev to avoid numerical issues
     if(velsw==0){   
         velprof_ad(spline_speed);
         equipartition(npsw,jet_dyn,nozzle_ener);	
@@ -284,8 +276,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     }	
 
     //STEP 5: TOTAL JET CALCULATIONS, LOOPING OVER EACH SEGMENT OF THE JET
-    //----------------------------------------------------------------------------------------------
-
     for(int i=0;i<nz;i++){
         //calculate dynamics/energetics in each zone
         jetgrid(i,grid,jet_dyn,zone.r,zone.delz,z);	
@@ -304,8 +294,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         } else {
             zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),1.);
         }
-        
-        
+                
         //This is to evolve the fraction of non thermal particles along the jet, and change the distribution 
         //of non thermal particles appropriately
         if (z < z_diss) {
@@ -313,7 +302,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         } else {
             zone.nth_frac = f_nth*pow(log10(z_diss)/log10(z),f_pl);           
         }
-
 
         //Include the disk for radiative cooling if it's on;
         //if compsw==1 the boosting is the same in all zones, if compsw==2 we boost either blr,torus or both
@@ -469,8 +457,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 plot_write(nel,acc_lep.get_p(),acc_lep.get_gamma(),acc_lep.get_pdens(),acc_lep.get_gdens(),
                 "Output/Numdens.dat");
             }
-        }        
-
+        }    
         //Note: the energy density below assumes only cold protons
         if (infosw>=5){
             double Up,Ue,Ub;
@@ -484,7 +471,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                  << (zone.delz+z)/Rg << endl;
             cout << "Equipartition check; Sigma: " << 2.*Ub/Up << " Ue/Ub: " << Ue/Ub << endl;
         }
-
         //calculate emission of each zone		
         //note: the syn_en array is used for the seed photon fields in the IC part, so it needs to include
         //both the black body and disk part. This is why the maximum frequency is taken as the maximum of the
@@ -518,7 +504,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         }	        
         //Note: initializing these two arrays is only done to plot each zone correctly using the colorscale in
         //Plot.py
-
+        
         //calculate cyclosynchrotron spectrum
         //Set up the calculation by reading in magnetic field,beaming,volume,counterjet presence	
         Syncro.set_bfield(zone.bfield);
@@ -526,18 +512,17 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         Syncro.set_geometry("cylinder",zone.r,zone.delz);
         Syncro.set_counterjet(true);
         Syncro.cycsyn_spectrum(gmin,gmax,spline_eldis,acc_eldis,spline_deriv,acc_deriv);
-        sum_counterjet(nsyn,Syncro.get_energy_obs(),Syncro.get_nphot_obs(),syn_en,syn_lum);	
-        
+        sum_counterjet(nsyn,Syncro.get_energy_obs(),Syncro.get_nphot_obs(),syn_en,syn_lum);	        
         if (infosw>=5){
             Syncro.test();
-        }
-  
+        }  
         //Include zone's emission to the pre/post particle acceleration spectrum
         if(z<z_diss){
             sum_zones(nsyn,ne,syn_en,syn_lum,tot_en,tot_syn_pre);
         } else {
             sum_zones(nsyn,ne,syn_en,syn_lum,tot_en,tot_syn_post);
-        }			
+        }		
+        	
         //calculate inverse Compton spectrum, if it's expected to be bright enough	
         if (Compton_check(IsShock,i,Mbh,jetrat,Urad,velsw,zone) == true){
         //if(z>z_max){
@@ -567,12 +552,11 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             }
             //Calculate the spectrum with whichever fields have been invoked		
             InvCompton.compton_spectrum(gmin,gmax,spline_eldis,acc_eldis);
-            sum_counterjet(ncom,InvCompton.get_energy_obs(),InvCompton.get_nphot_obs(),com_en,com_lum);    
-            
+            sum_counterjet(ncom,InvCompton.get_energy_obs(),InvCompton.get_nphot_obs(),com_en,com_lum);             
             if (infosw>=5){
                 InvCompton.test();
             }
-
+            
             //Include zone's emission to the pre/post particle acceleration spectrum
             if(z<z_diss){
                 sum_zones(ncom,ne,com_en,com_lum,tot_en,tot_com_pre);
@@ -586,27 +570,24 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             plot_write(nsyn,syn_en,syn_lum,"Output/Cyclosyn_zones.dat",dist,redsh);
             plot_write(ncom,com_en,com_lum,"Output/Compton_zones.dat",dist,redsh);
         }			
-	
         delete[] syn_en,delete[] syn_lum;
         delete[] com_en,delete[] com_lum;			
     } 
 
     //FINAL STEP: SUM JET COMPONENTS TO TOTAL OUTPUT, WRITE/CLOSE PLOT FILES, FREE MEMORY
-    //----------------------------------------------------------------------------------------------
-    //include redshfit stuff here
     for(int k=0;k<ne;k++){
         tot_lum[k] = (tot_lum[k]+tot_syn_pre[k]+tot_syn_post[k]+tot_com_pre[k]+tot_com_post[k]);
         photeng[k] = log10(tot_en[k]/herg);
     }
     output_spectrum(ne,tot_en,tot_lum,photspec,redsh,dist);
 	
+	//Output to files and print information on terminal if user requires it
     if(infosw>=1){
         plot_write(ne,tot_en,tot_syn_pre,"Output/Presyn.dat",dist,redsh);
         plot_write(ne,tot_en,tot_syn_post,"Output/Postsyn.dat",dist,redsh);
         plot_write(ne,tot_en,tot_com_pre,"Output/Precom.dat",dist,redsh);
         plot_write(ne,tot_en,tot_com_post,"Output/Postcom.dat",dist,redsh);
         plot_write(50,Disk.get_energy_obs(),Disk.get_nphot_obs(),"Output/Disk.dat",dist,redsh);
-        //plot_write(ncom,Corona.get_energy_obs(),Corona.get_nphot_obs(),"Output/Corona.dat",dist,redsh);
         if(compsw==2){
             plot_write(40,Torus.get_energy_obs(),Torus.get_nphot_obs(),"Output/BB.dat",dist,redsh);
         } else {
