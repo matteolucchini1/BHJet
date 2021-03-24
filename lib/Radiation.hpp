@@ -114,6 +114,7 @@ class Radiation {
         void set_beaming(double theta,double speed,double doppler);
         void set_inclination(double theta);
         void set_geometry(std::string geom,double l1,double l2);
+        void set_geometry(std::string geom,double l1);
 
         void set_counterjet(bool flag);
         void test_arrays();				

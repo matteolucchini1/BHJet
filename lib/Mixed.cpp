@@ -14,7 +14,10 @@ Mixed::Mixed(int s){
     gdens_diff = new double[size];
 
     thnorm = 1.;									
-    plnorm = 1.;	
+    plnorm = 1.;
+    
+    mass_gr = emgm;
+    mass_kev = emgm*gr_to_kev;	
 
     for (int i=0;i<size;i++){
         p[i] = 0;

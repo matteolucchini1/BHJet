@@ -15,6 +15,9 @@ Kappa::Kappa(int s){
 
     knorm = 1.;	
 
+    mass_gr = emgm;
+    mass_kev = emgm*gr_to_kev;
+
     for (int i=0;i<size;i++){
         p[i] = 0;
         ndens[i] = 0;

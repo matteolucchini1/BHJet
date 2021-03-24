@@ -137,8 +137,8 @@ void velprof_ad(gsl_spline *spline);
 void velprof_iso(gsl_spline *spline);
 void velprof_mag(jet_dynpars &dyn,gsl_spline *spline);
 
-void equipartition(bool cj,int npsw,jet_dynpars &dyn,jet_enpars &en);
-void equipartition(bool cj,double Nj,jet_dynpars &dyn,jet_enpars &en);
+void equipartition(int npsw,jet_dynpars &dyn,jet_enpars &en);
+void equipartition(double Nj,jet_dynpars &dyn,jet_enpars &en);
 
 void jetgrid(int i,grid_pars &grid,jet_dynpars &dyn,double r,double &delz,double &z);
 void isojetpars(double z,jet_dynpars &dyn,jet_enpars &en,double &t,zone_pars &zone,gsl_spline *spline,

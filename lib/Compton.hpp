@@ -40,8 +40,6 @@ class Compton: public Radiation {
 
         void cyclosyn_seed(const double *seed_energ,const double *seed_lum);
         void bb_seed(const double *seed_energ,double Urad,double Tbb);
-        void bb_seed(double Urad,double Tbb);	
-        void shsdisk_seed(double tin,double rin,double rout,double h,double z);		
         void shsdisk_seed(const double *seed_arr,double tin,double rin,double rout,double h,double z);
 
         void set_frequency(double numin,double numax); 

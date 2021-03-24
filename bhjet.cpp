@@ -10,8 +10,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     //STEP 1: VARIABLE/OBJECT DEFINITIONS
     //----------------------------------------------------------------------------------------------
 
-    bool IsCounterjet = true;					//flag to decide whether to include a counterjet	
-    bool IsShock = false;						//flag to check shock heating
+    bool IsShock = false;						//flag to set shock heating
 
     int nz = 100;								//total number of zones
     int nel = 70;
@@ -229,7 +228,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     //The parameters for the method to set the momentum array are set to dummy values that result in a fully
     //thermal distribution 
     Thermal dummy_elec(nel);
-    dummy_elec.set_mass(emgm);
     dummy_elec.set_temp(t_e);
     dummy_elec.set_p();	
     dummy_elec.set_norm(1.);	
@@ -258,13 +256,13 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     //initial temperature has to be ~10^4 kev
     if(velsw==0){   
         velprof_ad(spline_speed);
-        equipartition(IsCounterjet,npsw,jet_dyn,nozzle_ener);	
+        equipartition(npsw,jet_dyn,nozzle_ener);	
     } else if(velsw==1){
       	velprof_iso(spline_speed);
-      	equipartition(IsCounterjet,npsw,jet_dyn,nozzle_ener);
+      	equipartition(npsw,jet_dyn,nozzle_ener);
     } else {
         velprof_mag(jet_dyn,spline_speed);
-        equipartition(IsCounterjet,jetrat,jet_dyn,nozzle_ener);
+        equipartition(jetrat,jet_dyn,nozzle_ener);
     }	
 
     //check that the pair content is not negative, and also if running bljet that it's not too high
@@ -340,7 +338,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         //calculate particle distribution in each zone
         if(zone.nth_frac == 0.){		
             Thermal th_lep(nel);
-            th_lep.set_mass(emgm);
             th_lep.set_temp(zone.eltemp);
             th_lep.set_p();
             th_lep.set_norm(zone.lepdens);
@@ -365,7 +362,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),kboltz_kev2erg);
             }					
             Mixed acc_lep(nel);
-            acc_lep.set_mass(emgm);
             acc_lep.set_temp(zone.eltemp);
             acc_lep.set_pspec(pspec);
             acc_lep.set_plfrac(zone.nth_frac);
@@ -401,7 +397,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 IsShock = true;
             }
             Thermal dummy_elec(nel);
-            dummy_elec.set_mass(emgm);
             dummy_elec.set_temp(zone.eltemp);
             dummy_elec.set_p();
             dummy_elec.set_norm(zone.lepdens);
@@ -409,7 +404,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             double pbrk = dummy_elec.av_p();
             
             Bknpower acc_lep(nel);
-            acc_lep.set_mass(emgm);
             acc_lep.set_pspec1(-2.);
             acc_lep.set_pspec2(pspec);
                         
@@ -443,7 +437,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
                 IsShock = true;
             }
             Thermal dummy_elec(nel);
-            dummy_elec.set_mass(emgm);
             dummy_elec.set_temp(zone.eltemp);
             dummy_elec.set_p();
             dummy_elec.set_norm(zone.lepdens);
@@ -451,7 +444,6 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             double pmin = dummy_elec.av_p();
             
             Powerlaw acc_lep(nel);
-            acc_lep.set_mass(emgm);
             acc_lep.set_pspec(pspec);
                         
             if (f_sc<10.){
@@ -532,22 +524,14 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         Syncro.set_bfield(zone.bfield);
         Syncro.set_beaming(theta,zone.beta,zone.delta);
         Syncro.set_geometry("cylinder",zone.r,zone.delz);
-        //IsCounterjet = true;
-        Syncro.set_counterjet(IsCounterjet);
+        Syncro.set_counterjet(true);
         Syncro.cycsyn_spectrum(gmin,gmax,spline_eldis,acc_eldis,spline_deriv,acc_deriv);
-
+        sum_counterjet(nsyn,Syncro.get_energy_obs(),Syncro.get_nphot_obs(),syn_en,syn_lum);	
+        
         if (infosw>=5){
             Syncro.test();
         }
-        //Sum counterjet if present, then save emission from the zone in syn_en/syn_lum
-        if (IsCounterjet==true){
-            sum_counterjet(nsyn,Syncro.get_energy_obs(),Syncro.get_nphot_obs(),syn_en,syn_lum);			
-        } else {
-            for(int k=0;k<nsyn;k++){
-                syn_en[k] = Syncro.get_energy_obs()[k];
-                syn_lum[k] = Syncro.get_nphot_obs()[k];		
-            }
-        }
+  
         //Include zone's emission to the pre/post particle acceleration spectrum
         if(z<z_diss){
             sum_zones(nsyn,ne,syn_en,syn_lum,tot_en,tot_syn_pre);
@@ -560,7 +544,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             //Set up the calculation by reading in/calculating beaming,volume,counterjet presence,tau
             InvCompton.set_beaming(theta,zone.beta,zone.delta);
             InvCompton.set_geometry("cylinder",zone.r,zone.delz);
-            InvCompton.set_counterjet(IsCounterjet);	
+            InvCompton.set_counterjet(true);	
             InvCompton.set_tau(zone.lepdens,zone.eltemp/emerg);
             //Multiple scatters only if ypar and tau are large enough
             if(InvCompton.get_ypar() > 1.e-2 && InvCompton.get_tau() > 5.e-2){
@@ -583,19 +567,12 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             }
             //Calculate the spectrum with whichever fields have been invoked		
             InvCompton.compton_spectrum(gmin,gmax,spline_eldis,acc_eldis);
-
+            sum_counterjet(ncom,InvCompton.get_energy_obs(),InvCompton.get_nphot_obs(),com_en,com_lum);    
+            
             if (infosw>=5){
                 InvCompton.test();
             }
-            //Sum counterjet if present, then save emission from the zone in com_en/com_lum		
-            if (IsCounterjet==true){
-                sum_counterjet(ncom,InvCompton.get_energy_obs(),InvCompton.get_nphot_obs(),com_en,com_lum);
-            } else {
-                for(int k=0;k<ncom;k++){
-    	            com_en[k] = InvCompton.get_energy_obs()[k];
-                    com_lum[k] = InvCompton.get_nphot_obs()[k];
-	            }			
-            }
+
             //Include zone's emission to the pre/post particle acceleration spectrum
             if(z<z_diss){
                 sum_zones(ncom,ne,com_en,com_lum,tot_en,tot_com_pre);

@@ -37,6 +37,31 @@ void Radiation::set_geometry(std::string geom,double l1,double l2){
     }
 }
 
+void Radiation::set_geometry(std::string geom,double l1){
+    if (geom == "cylinder") {
+        std::cout << "Only one length input, assuming the radius and height of the cylinder are the same" << std::endl;
+        r = l1;
+        z = l1;
+        vol = pi*pow(r,2.)*z;
+        dopnum = 2.;
+        geometry = geom;
+    } else if (geom == "sphere"){
+        r = l1;
+        z = r;
+        vol = (4./3.)*pi*pow(r,3.);
+        dopnum = 3.;
+        geometry = geom;
+    } else {
+        std::cout << "Input wrong, assuming sphere of radius 1 cm" << std::endl;
+        std::cout << "Choose either sphere or cylinder!" << std::endl;
+        r = 1.;
+        z = 1.;
+        vol = 4.*pi/3.;
+        dopnum = 3.;
+        geometry = "wrong!";
+    }
+}
+
 //Simple integration method to integrate num_phot_obs and get the luminosity between numin and numax
 double Radiation::integrated_luminosity(double numin, double numax){
     double temp = 0.;

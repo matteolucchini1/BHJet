@@ -271,37 +271,15 @@ void Compton::cyclosyn_seed(const double *seed_arr,const double *seed_lum){
     gsl_spline_init(seed_ph,seed_energ,seed_urad,seed_size);
 }
 
-//Method to include black body to seed field for IC; overloaded to initialize seed_freq if desired
+//Method to include black body to seed field for IC; 
 //Note: Urad and Tbb need to be passed in the co-moving frame, the function does NOT account for beaming
-void Compton::bb_seed(double Urad,double Tbb){
-    double ulim,bbfield;
-
-    ulim = 1e2*Tbb*kboltz_kev2erg;
-
-    for(int i=0;i<seed_size;i++){
-        if(seed_energ[i]<ulim){
-            bbfield = (2.*Urad*pow(seed_energ[i]/herg,2.))/(herg*pow(cee,2.)*sbconst*
-                      pow(Tbb*kboltz_kev2erg/kboltz,4)*(exp(seed_energ[i]/(Tbb*kboltz_kev2erg))-1.));
-        } else {
-            bbfield = 1.e-100;
-        }
-        if (seed_urad[i] != 0) {
-            seed_urad[i] = log10(pow(10.,seed_urad[i]) + bbfield);
-        } else if (bbfield > 0) {
-            seed_urad[i] = log10(bbfield);
-        } else {
-            seed_urad[i] = -100;
-        }
-    }
-    gsl_spline_init(seed_ph,seed_energ,seed_urad,seed_size);
-}
 
 void Compton::bb_seed(const double *seed_arr,double Urad,double Tbb){
     double ulim,bbfield;
 
     ulim = 1e2*Tbb*kboltz_kev2erg;
-
     seed_freq_array(seed_arr);	
+    
     for(int i=0;i<seed_size;i++){
         if(seed_energ[i]<ulim){
             bbfield = (2.*Urad*pow(seed_energ[i]/herg,2.))/(herg*pow(cee,2.)*sbconst*
@@ -350,46 +328,6 @@ double disk_integral(double alfa,void *p){
     Urad = 4.*pi*pow(nu_eff,2.)/(herg*pow(cee,3.)*(exp(fac)-1.));
 
     return Urad;
-}
-
-void Compton::shsdisk_seed(double tin,double rin,double rout,double h,double z){
-    double ulim,blim,nulim,Gamma,result,error,diskfield;
-
-    Gamma = 1./pow((1.-pow(beta,2.)),1./2.);
-
-    blim = atan(rin/z);
-    if(z<h*rout/2.){
-        ulim = pi/2.+atan((h*rout/2.-z)/rout);
-    } else {
-        ulim = atan(rout/(z-h*rout/2.));
-    }
-
-    nulim = 1e1*tin*kboltz;
-
-    for(int i=0;i<seed_size;i++){
-        if (seed_energ[i] < nulim){
-            gsl_integration_workspace *w1;	
-            w1 = gsl_integration_workspace_alloc (100); 
-            gsl_function F;
-        	struct disk_ic_params Fparams = {Gamma,beta,tin,rin,rout,h,z,seed_energ[i]/herg};
-        	F.function     = &disk_integral;
-        	F.params       = &Fparams;       
-        	gsl_integration_qag(&F,blim,ulim,0,1e-7,100,2,w1,&result,&error); 
-            gsl_integration_workspace_free (w1);
-            
-            diskfield = result;
-        } else {
-            diskfield = 1.e-100;
-        }
-        if (seed_urad[i] != 0) {
-            seed_urad[i] = log10(pow(10.,seed_urad[i])+diskfield);
-        } else if (diskfield > 0) {
-            seed_urad[i] = log10(diskfield);	
-        } else {
-            seed_urad[i] = -100;
-        }	
-    }
-    gsl_spline_init(seed_ph,seed_energ,seed_urad,seed_size);	
 }
 
 void Compton::shsdisk_seed(const double *seed_arr,double tin,double rin,double rout,double h,double z){

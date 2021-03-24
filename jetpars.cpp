@@ -71,24 +71,24 @@ void velprof_mag(jet_dynpars &dyn,gsl_spline *spline){
 //Equipartition functions: calculate bfield,lepton number density,proton number density at the base for given
 //jet power, jet base radius, initial speed, initial plasma beta, accounting for 1 or 2 jets.
 //One of two functions is called depending on the base assumptions (magnetic/thermal driven jet)
-void equipartition(bool cj,int npsw,jet_dynpars &dyn,jet_enpars &en){
+void equipartition(int npsw,jet_dynpars &dyn,jet_enpars &en){
     double eq_fac,dyn_fac;				//the two numbers that change equipartition are the jet dynamics and
-								    //equipartition assumptions		
+								        //equipartition assumptions		
     if(npsw==0){
         eq_fac = en.av_gamma*emerg*(1.+1./en.pbeta);
-        dyn_fac = (cj+1.)*pi*pow(dyn.r0,2.)*dyn.beta0*dyn.gam0*cee;
+        dyn_fac = 2.*pi*pow(dyn.r0,2.)*dyn.beta0*dyn.gam0*cee;
         en.lepdens = en.Nj/(eq_fac*dyn_fac);
         en.protdens = 0;
         en.bfield = pow(8.*pi*en.av_gamma*en.lepdens*emgm*pow(cee,2.)/en.pbeta,1./2.);	
     } else if(npsw==1){
         eq_fac = 2.*en.av_gamma*emerg*(1.+1./en.pbeta);
-        dyn_fac = (cj+1.)*pi*pow(dyn.r0,2.)*dyn.beta0*dyn.gam0*cee;
+        dyn_fac = 2.*pi*pow(dyn.r0,2.)*dyn.beta0*dyn.gam0*cee;
         en.lepdens = en.Nj/(eq_fac*dyn_fac);
         en.protdens = (1.+1./en.pbeta)*en.av_gamma*en.lepdens*(emgm/pmgm);
         en.bfield = pow(8.*pi*en.av_gamma*en.lepdens*emgm*pow(cee,2.)/en.pbeta,1./2.);
     } else if (npsw ==2){
         eq_fac = emerg*(pmgm/emgm+en.av_gamma*(1.+1./en.pbeta));
-        dyn_fac =  (cj+1.)*pi*pow(dyn.r0,2.)*dyn.beta0*dyn.gam0*cee;
+        dyn_fac =  2.*pi*pow(dyn.r0,2.)*dyn.beta0*dyn.gam0*cee;
         en.lepdens = en.Nj/(eq_fac*dyn_fac);
         en.protdens = en.lepdens;
         en.bfield = pow(8.*pi*en.av_gamma*en.lepdens*emgm*pow(cee,2.)/en.pbeta,1./2.);
@@ -97,12 +97,11 @@ void equipartition(bool cj,int npsw,jet_dynpars &dyn,jet_enpars &en){
     en.sig0 = pow(en.bfield,2.)/(4.*pi*en.protdens*pmgm*pow(cee,2.));
 }
 
-void equipartition(bool cj,double Nj,jet_dynpars &dyn,jet_enpars &en){
+void equipartition(double Nj,jet_dynpars &dyn,jet_enpars &en){
     double equip,eq_fac,dyn_fac;
 
     //step one: calculate proton number density from initial equipartition assumptions
     en.sig0 = (1.+en.sig_acc)*dyn.gamf/dyn.gam0-1.;
-
     if (en.pbeta == 0){
         en.eta = 1.;
         equip = (en.sig0/2.)*(4./3.+(pmgm)/(en.av_gamma*emgm));//NOTE: check energy vs lorentz factor
@@ -111,7 +110,7 @@ void equipartition(bool cj,double Nj,jet_dynpars &dyn,jet_enpars &en){
         en.eta = (en.sig0*pmgm)/(en.av_gamma*emgm*(2.*equip-en.sig0*4./3.));
     }
     eq_fac = pmgm*pow(cee,2.)+en.eta*en.av_gamma*emerg*(1.+equip);
-    dyn_fac = (cj+1.)*pi*pow(dyn.r0,2.)*dyn.gam0*dyn.beta0*cee;
+    dyn_fac = 2.*pi*pow(dyn.r0,2.)*dyn.gam0*dyn.beta0*cee;
     en.protdens = Nj/(eq_fac*dyn_fac); 
     //step two: calculate lepton number density and magnetic field
     en.lepdens = en.eta*en.protdens;
