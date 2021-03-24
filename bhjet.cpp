@@ -178,17 +178,17 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     	Disk.set_mbh(Mbh);
 	    Disk.set_rin(r_in);
 	    Disk.set_rout(r_out);
-	    Disk.set_luminosity(l_disk);		
+	    Disk.set_luminosity(abs(l_disk));		
 	    Disk.set_inclination(theta);
 	    Disk.disk_spectrum();
-	    if (compsw != 2) {
+	    if (compsw != 2 && l_disk > 0) {
 	        sum_ext(50,ne,Disk.get_energy_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);   	    
 	    }			
         if(infosw >= 3) {
             Disk.test();
             cout << endl;
         }	
-    }	
+    }
 
     //Depending on the value of compsw, we either include a) an extra homogeneous black body in every zone or
     //b) the radiation field of the broad line region/torus of a bright AGN. For bright AGN, the reprocessed
@@ -213,11 +213,13 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         
         Disk.cover_disk(compar1+compar2);		
         if(infosw>=3){
-            cout << "BLR radius in Rg: " << agn_com.rblr/Rg << endl;
-            cout << "DT radius in Rg: " << agn_com.rdt/Rg << endl;
+            cout << "BLR radius in Rg: " << agn_com.rblr/Rg << " and in cm: " << agn_com.rblr<< endl;
+            cout << "DT radius in Rg: " << agn_com.rdt/Rg  << " and in cm: " << agn_com.rdt<< endl;
         }
         sum_ext(40,ne,Torus.get_energy_obs(),Torus.get_nphot_obs(),tot_en,tot_lum);
-        sum_ext(50,ne,Disk.get_energy_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);   		
+        if (l_disk > 0) {
+            sum_ext(50,ne,Disk.get_energy_obs(),Disk.get_nphot_obs(),tot_en,tot_lum);    
+        }          		
     }	
 	
     //STEP 4: JET BASE EQUIPARTITION CALCULATIONS AND SETUP
@@ -264,6 +266,15 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         velprof_mag(jet_dyn,spline_speed);
         equipartition(IsCounterjet,jetrat,jet_dyn,nozzle_ener);
     }	
+
+    //check that the pair content is not negative, and also if running bljet that it's not too high
+    if(nozzle_ener.eta < 1){
+        cout << "Unphysical pair content: " << nozzle_ener.eta << " pairs per proton. Check the value of " <<
+                "plasma beta!" << endl;
+    } else if (velsw>1 && nozzle_ener.eta >= 1e2){
+           cout << "Pair content is too high for bljet: " << nozzle_ener.eta << " pairs per proton. Check the value of " 
+                << "plasma beta!" << endl; 
+    }
 
     if(infosw>=3){
         cout << "Jet base parameters: " << endl;

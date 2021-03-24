@@ -26,11 +26,11 @@ fluxconv = 4.*math.pi*(pars[2]*3.*10**21)**2
 
 if (pars[0] >= 1.e3):
     ulim_f1 = 1.e25
-    blim_f1 = 1e8
+    blim_f1 = 1e9
     ulim_f2 = 1.e13
     blim_f2 = 0.5e9
-    ulim_fl = 1.e-9
-    blim_fl = 1.e-15
+    ulim_fl = 8.e-10
+    blim_fl = 3.e-14
     ulim_fd = 5.e2
     blim_fd = 0.3
 else:
@@ -149,16 +149,16 @@ else:
 	ax1.set_ylabel('Flux (erg/s/cm^2)',fontsize=18)
 
 fig2, (ax2) = plt.subplots(1,1,figsize=(7.5,6))
-ax2.plot(Total.T[0]/kevconv,Total.T[1]*Total.T[0]*mjy*fluxconv,linewidth=1.5,color='black',zorder=nzones+1,label='Total')
+#ax2.plot(Total.T[0]/kevconv,Total.T[1]*Total.T[0]*mjy*fluxconv,linewidth=1.5,color='black',zorder=nzones+1,label='Total')
 ax2.plot(Postsyn.T[0]/kevconv,Postsyn.T[1]*Postsyn.T[0]*mjy*fluxconv,linewidth=2.5,color=plot_colors[0],zorder=nzones+1,linestyle=(0,(5,1)),label='Syn, $z\\geq z_{\\rm diss}$')
 ax2.plot(Postcom.T[0]/kevconv,Postcom.T[1]*Postcom.T[0]*mjy*fluxconv,linewidth=2.5,color=plot_colors[1],zorder=nzones+1,linestyle=(0,(5,3)),label='IC, $z\\geq z_{\\rm diss}$')
-ax2.plot(Disk.T[0]/kevconv,Disk.T[1]*Disk.T[0]*mjy*fluxconv,linewidth=2.5,color=plot_colors[2],zorder=nzones+1,linestyle=(0,(3,3,3,3)),label='Disk')
-ax2.plot(BB.T[0]/kevconv,BB.T[1]*BB.T[0]*mjy*fluxconv,linewidth=2.5,color=plot_colors[3],zorder=nzones+1,linestyle=(0,(3,1,1,1)),label='Torus')
-#ax2.plot(Presyn.T[0]/kevconv,Presyn.T[1]*Presyn.T[0]*mjy*fluxconv,linewidth=2.5,color=plot_colors[4],zorder=nzones+1,linestyle=(0,(3,3,1,3,1,3)),label='Syn, $z<z_{\\rm diss}$')
-#ax2.plot(Precom.T[0]/kevconv,Precom.T[1]*Precom.T[0]*mjy*fluxconv,linewidth=2.5,color=plot_colors[5],zorder=nzones+1,linestyle=(0,(3,1,1,1,1,1)),label='IC, $z<z_{\\rm diss}$')
+ax2.plot(Disk.T[0]/kevconv,Disk.T[1]*Disk.T[0]*mjy*fluxconv,linewidth=2.5,color=plot_colors[2],zorder=nzones+1,linestyle=(0,(3,1,1,1)),label='Disk')
+ax2.plot(BB.T[0]/kevconv,BB.T[1]*BB.T[0]*mjy*fluxconv,linewidth=2.5,color=plot_colors[3],zorder=nzones+1,linestyle=(0,(3,3,1,3)),label='Torus')
+ax2.plot(Presyn.T[0]/kevconv,Presyn.T[1]*Presyn.T[0]*mjy*fluxconv,linewidth=2.5,color=plot_colors[4],zorder=nzones+1,linestyle=(0,(3,2,1,2,1,2)),label='Syn, $z<z_{\\rm diss}$')
+ax2.plot(Precom.T[0]/kevconv,Precom.T[1]*Precom.T[0]*mjy*fluxconv,linewidth=2.5,color=plot_colors[5],zorder=nzones+1,linestyle=(0,(3,1,1,1,1,1)),label='IC, $z<z_{\\rm diss}$')
 ax2.set_ylim([blim_fl*fluxconv,ulim_fl*fluxconv])
 ax2.set_xlim([blim_f1/kevconv,ulim_f1/kevconv])
-ax2.legend(loc='upper left',fontsize=18)
+ax2.legend(loc='upper left',fontsize=18,ncol=2)
 ax2.set_xscale('log', base=10)
 ax2.set_yscale('log', base=10)
 if (kevconv !=1):

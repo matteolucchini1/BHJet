@@ -66,7 +66,7 @@ mjy = 1.e-26
 
 i = 0
 j = 0
-nzones = 80
+nzones = 100
 
 colors = pl.cm.magma(np.linspace(0.,0.9,nzones))
 

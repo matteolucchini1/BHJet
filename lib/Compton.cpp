@@ -79,7 +79,7 @@ Compton::Compton(int s1,int s2){
     seed_energ = new double[seed_size];
     seed_urad = new double[seed_size]; 		
 
-    Niter = 1;	
+    Niter = 20;	
     ypar = 0;
     escape_corr = 1.;
 
@@ -480,7 +480,7 @@ void Compton::set_tau(double n,double theta){
         std::cout << "Don't trust the output spectrum slope and change parameters!" << std::endl;
         escape_corr = gsl_spline2d_eval(esc_p_cyl,20.,tau,acc_Te,acc_tau);
     } else if (Te_kev > 2500.) {
-        std::cout << "Temperature too low, assuming it's 2500 kev for IC calculation!" << std::endl;
+        std::cout << "Temperature too high, assuming it's 2500 kev for IC calculation!" << std::endl;
         std::cout << "Don't trust the output spectrum slope and change parameters!" << std::endl;
         escape_corr = gsl_spline2d_eval(esc_p_cyl,2500.,tau,acc_Te,acc_tau);    
     }
