@@ -15,7 +15,7 @@ class Kappa: public Particles {
         void set_p(double max);					
         void set_ndens();
         void set_kappa(double k);
-        void set_temp(double T);
+        void set_temp_kev(double T);
         void set_norm(double n);
 
         friend double norm_kappa_int(double x,void *p);

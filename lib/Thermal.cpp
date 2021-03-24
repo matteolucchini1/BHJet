@@ -23,8 +23,8 @@ Thermal::Thermal(int s) {
 
 //Method to initialize momentum array a with default interval
 void Thermal::set_p(){						        //
-    double emin = (1./100.)*(Temp/kboltz_kev2erg);	//minimum energy in kev, 1/50 lower than peak
-    double emax = 20.*(Temp/kboltz_kev2erg); 		//maximum energy in kev, 20 higher than peak
+    double emin = (1./100.)*Temp;	    //minimum energy in kev, 1/100 lower than peak
+    double emax = 20.*Temp; 		    //maximum energy in kev, 20 higher than peak
     double gmin, gmax, pmin, pmax, pinc;
 
     gmin = emin/mass_kev+1.;
@@ -50,9 +50,9 @@ void Thermal::set_ndens(){
 }	
 
 //methods to set the temperature and normalization. NOTE: temperature must be in ergs, no factor kb
-void Thermal::set_temp(double T){
+void Thermal::set_temp_kev(double T){
     Temp = T;
-    theta = Temp/(mass_gr*cee*cee);
+    theta = (Temp*kboltz_kev2erg)/(mass_gr*cee*cee);
 }
 
 void Thermal::set_norm(double n){

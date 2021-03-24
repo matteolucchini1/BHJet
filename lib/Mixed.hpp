@@ -17,7 +17,7 @@
 
 class Mixed: public Particles {
     private:
-        double thnorm, theta;
+        double thnorm, theta, Temp;
         double pspec, plnorm;
         double pmin_th, pmax_th, pmin_pl, pmax_pl;
         double plfrac;
@@ -27,7 +27,7 @@ class Mixed: public Particles {
         void set_p(double ucom,double bfield,double betaeff,double r,double fsc);
         void set_p(double gmax);	
         void set_ndens();
-        void set_temp(double T);
+        void set_temp_kev(double T);
         void set_norm(double n);
         void set_plfrac(double f);				
         void set_pspec(double s1);	

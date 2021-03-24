@@ -28,11 +28,11 @@ Kappa::Kappa(int s){
 }
 
 //Method to set the temperature, using ergs as input
-void Kappa::set_temp(double T){
-    theta = T/(mass_gr*cee*cee);
+void Kappa::set_temp_kev(double T){
+    theta = T*kboltz_kev2erg/(mass_gr*cee*cee);
 
-    double emin = (1./100.)*(T/kboltz_kev2erg);	//minimum energy in kev, 1/50 lower than peak
-    double emax = 20.*(T/kboltz_kev2erg); 		//maximum energy in kev, 20 higher than peak
+    double emin = (1./100.)*T;	                //minimum energy in kev, 1/100 lower than peak
+    double emax = 20.*T; 		//maximum energy in kev, 20 higher than peak
     double gmin, gmax;
 
     gmin = emin/mass_kev+1.;

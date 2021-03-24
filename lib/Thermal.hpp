@@ -15,7 +15,7 @@ class Thermal: public Particles {
 	
         void set_p();						
         void set_ndens();
-        void set_temp(double T);
+        void set_temp_kev(double T);
         void set_norm(double n);
 
         double K2(double x);

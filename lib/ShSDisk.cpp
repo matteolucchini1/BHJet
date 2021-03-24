@@ -118,10 +118,29 @@ void ShSDisk::set_luminosity(double L){
     }
 }
 
-void ShSDisk::set_tin(double T){
+void ShSDisk::set_tin_kev(double T){
     double emin,emax,einc;
 
+    //note: 1 keV = kboltz_kev2erg/kboltz keV
     Tin = T*kboltz_kev2erg/kboltz;
+    Ldisk = 2.*sbconst*pow(Tin,4.)*pow(r,2.)/(1.25e38*Mbh);    
+    Hratio = std::max(0.1,Ldisk);
+    emin = 0.0001*kboltz*Tin;
+    emax = 30.*kboltz*Tin;
+    einc = (log10(emax)-log10(emin))/(size-1);
+
+    for(int i=0;i<size;i++){
+        en_phot_obs[i] = pow(10.,log10(emin)+i*einc);
+        en_phot[i] = en_phot_obs[i];
+        num_phot[i] = 0.;
+        num_phot_obs[i] = 0.;
+    }
+}
+
+void ShSDisk::set_tin_k(double T){
+    double emin,emax,einc;    
+    
+    Tin = T;
     Ldisk = 2.*sbconst*pow(Tin,4.)*pow(r,2.)/(1.25e38*Mbh);    
     Hratio = std::max(0.1,Ldisk);
     emin = 0.0001*kboltz*Tin;

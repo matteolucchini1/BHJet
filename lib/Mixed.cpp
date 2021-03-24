@@ -70,10 +70,11 @@ void Mixed::set_ndens(){
 }
 
 //methods to set the temperature, pl fraction, and normalizations. Temperature must be in ergs, no factor kb
-void Mixed::set_temp(double T){
-    theta = T/(mass_gr*cee*cee);
-    double emin_th = (1./100.)*(T/kboltz_kev2erg);	//minimum energy in kev, 1/50 lower than peak
-    double emax_th = 20.*(T/kboltz_kev2erg); 		//maximum energy in kev, 20 higher than peak
+void Mixed::set_temp_kev(double T){
+    Temp = T;
+    theta = T*kboltz_kev2erg/(mass_gr*cee*cee);
+    double emin_th = (1./100.)*T;	    
+    double emax_th = 20.*T; 		    
     double gmin_th, gmax_th;
 
     gmin_th = emin_th/mass_kev+1.;
@@ -310,7 +311,7 @@ double Mixed::av_pl_gamma(){
 //simple method to check quantities.
 void Mixed::test(){
     std::cout << "Mixed distribution;" << std::endl;
-    std::cout << "Temperature: " << theta*mass_gr*cee*cee/kboltz_kev2erg << " kev" << std::endl;
+    std::cout << "Temperature in keV: " << Temp << std::endl;
     std::cout << "Number density: " << count_particles() << std::endl;	
     std::cout << "Thermal monetum limits: " << pmin_th << " " << pmax_th << std::endl;
     std::cout << "Non-thermal momentum limits: " << pmin_pl << " " << pmax_pl << std::endl;

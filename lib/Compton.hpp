@@ -39,7 +39,8 @@ class Compton: public Radiation {
         //double compton_spectrum_parallel();//WIP
 
         void cyclosyn_seed(const double *seed_energ,const double *seed_lum);
-        void bb_seed(const double *seed_energ,double Urad,double Tbb);
+        void bb_seed_k(const double *seed_energ,double Urad,double Tbb);
+        void bb_seed_kev(const double *seed_energ,double Urad,double Tbb);
         void shsdisk_seed(const double *seed_arr,double tin,double rin,double rout,double h,double z);
 
         void set_frequency(double numin,double numax); 

@@ -112,7 +112,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     z_diss = param[6]*Rg;
     z_acc = param[7]*Rg;	
     z_max = param[8]*Rg;
-    t_e = param[9]*kboltz_kev2erg;
+    t_e = param[9];
     f_nth = param[10];
     f_pl = param[11];
     pspec = param[12];
@@ -228,7 +228,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     //The parameters for the method to set the momentum array are set to dummy values that result in a fully
     //thermal distribution 
     Thermal dummy_elec(nel);
-    dummy_elec.set_temp(t_e);
+    dummy_elec.set_temp_kev(t_e);
     dummy_elec.set_p();	
     dummy_elec.set_norm(1.);	
     dummy_elec.set_ndens();
@@ -300,9 +300,9 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
 
         //This is to avoid crashes due to low (sub 1 kev) particle temperatures
         if (z < z_diss) {
-            zone.eltemp = max(tshift*t_e,kboltz_kev2erg);    
+            zone.eltemp = max(tshift*t_e,1.);    
         } else {
-            zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),kboltz_kev2erg);
+            zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),1.);
         }
         
         
@@ -338,7 +338,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         //calculate particle distribution in each zone
         if(zone.nth_frac == 0.){		
             Thermal th_lep(nel);
-            th_lep.set_temp(zone.eltemp);
+            th_lep.set_temp_kev(zone.eltemp);
             th_lep.set_p();
             th_lep.set_norm(zone.lepdens);
             th_lep.set_ndens();
@@ -359,10 +359,10 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             if (IsShock==false){
                 t_e = f_heat*t_e;
                 IsShock = true;
-                zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),kboltz_kev2erg);
+                zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),1.);
             }					
             Mixed acc_lep(nel);
-            acc_lep.set_temp(zone.eltemp);
+            acc_lep.set_temp_kev(zone.eltemp);
             acc_lep.set_pspec(pspec);
             acc_lep.set_plfrac(zone.nth_frac);
             
@@ -393,11 +393,11 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         } else if (zone.nth_frac < 1.) {
             if (IsShock==false){
                 t_e = f_heat*t_e;
-                zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),kboltz_kev2erg);
+                zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),1.);
                 IsShock = true;
             }
             Thermal dummy_elec(nel);
-            dummy_elec.set_temp(zone.eltemp);
+            dummy_elec.set_temp_kev(zone.eltemp);
             dummy_elec.set_p();
             dummy_elec.set_norm(zone.lepdens);
             dummy_elec.set_ndens();
@@ -433,11 +433,11 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         } else if (zone.nth_frac == 1.) {
             if (IsShock==false){
                 t_e = f_heat*t_e;
-                zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),kboltz_kev2erg);
+                zone.eltemp = max(tshift*t_e*pow(log10(z_diss)/log10(z),f_pl),1.);
                 IsShock = true;
             }
             Thermal dummy_elec(nel);
-            dummy_elec.set_temp(zone.eltemp);
+            dummy_elec.set_temp_kev(zone.eltemp);
             dummy_elec.set_p();
             dummy_elec.set_norm(zone.lepdens);
             dummy_elec.set_ndens();
@@ -479,7 +479,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             Ub = pow(zone.bfield,2.)/(8.*pi);
             cout << endl <<  "Jetpars; Bfield: " << zone.bfield <<  ", Lepton ndens: " << zone.lepdens 
                  << ", speed: " << zone.gamma << ", delta: " << zone.delta << endl;
-            cout << "tshift: " << tshift << ", Temperature in keV: " << zone.eltemp/kboltz_kev2erg << endl;
+            cout << "tshift: " << tshift << ", Temperature in keV: " << zone.eltemp << endl;
             cout << "Grid; R: " << zone.r/Rg << ", delz: " << zone.delz/Rg << ", z: " << z/Rg << ", z+delz: " 
                  << (zone.delz+z)/Rg << endl;
             cout << "Equipartition check; Sigma: " << 2.*Ub/Up << " Ue/Ub: " << Ue/Ub << endl;
@@ -545,7 +545,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             InvCompton.set_beaming(theta,zone.beta,zone.delta);
             InvCompton.set_geometry("cylinder",zone.r,zone.delz);
             InvCompton.set_counterjet(true);	
-            InvCompton.set_tau(zone.lepdens,zone.eltemp/emerg);
+            InvCompton.set_tau(zone.lepdens,zone.eltemp);
             //Multiple scatters only if ypar and tau are large enough
             if(InvCompton.get_ypar() > 1.e-2 && InvCompton.get_tau() > 5.e-2){
                 InvCompton.set_niter(15);		
@@ -558,12 +558,12 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             }
             //Black body photons included only if compsw==1
             if(compsw==1){						
-                InvCompton.bb_seed(Syncro.get_energy(),Ubb1,zone.delta*BlackBody.temp_kev());
+                InvCompton.bb_seed_k(Syncro.get_energy(),Ubb1,zone.delta*BlackBody.temp_k());
             }
             //AGN photon fields photons are considered only if disk is present and compsw==2
             if(compsw==2 && r_in<r_out){
-                InvCompton.bb_seed(Syncro.get_energy(),Ubb1,zone.delta*BLR.temp_kev());
-                InvCompton.bb_seed(Syncro.get_energy(),Ubb2,zone.delta*Torus.temp_kev());
+                InvCompton.bb_seed_k(Syncro.get_energy(),Ubb1,zone.delta*BLR.temp_k());
+                InvCompton.bb_seed_k(Syncro.get_energy(),Ubb2,zone.delta*Torus.temp_k());
             }
             //Calculate the spectrum with whichever fields have been invoked		
             InvCompton.compton_spectrum(gmin,gmax,spline_eldis,acc_eldis);

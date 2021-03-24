@@ -273,8 +273,31 @@ void Compton::cyclosyn_seed(const double *seed_arr,const double *seed_lum){
 
 //Method to include black body to seed field for IC; 
 //Note: Urad and Tbb need to be passed in the co-moving frame, the function does NOT account for beaming
+void Compton::bb_seed_k(const double *seed_arr,double Urad,double Tbb){
+    double ulim,bbfield;
 
-void Compton::bb_seed(const double *seed_arr,double Urad,double Tbb){
+    ulim = 1e2*Tbb*kboltz;
+    seed_freq_array(seed_arr);	
+    
+    for(int i=0;i<seed_size;i++){
+        if(seed_energ[i]<ulim){
+            bbfield = (2.*Urad*pow(seed_energ[i]/herg,2.))/(herg*pow(cee,2.)*sbconst*
+                      pow(Tbb,4)*(exp(seed_energ[i]/(kboltz*Tbb))-1.));
+        } else {		
+            bbfield = 1.e-100;
+        }
+        if (seed_urad[i] != 0) {
+            seed_urad[i] = log10(pow(10.,seed_urad[i])+bbfield);
+        } else if (bbfield > 0) {
+            seed_urad[i] = log10(bbfield);
+        } else {
+            seed_urad[i] = -100;
+        }	
+    }
+    gsl_spline_init(seed_ph,seed_energ,seed_urad,seed_size);
+}
+
+void Compton::bb_seed_kev(const double *seed_arr,double Urad,double Tbb){
     double ulim,bbfield;
 
     ulim = 1e2*Tbb*kboltz_kev2erg;
@@ -392,9 +415,10 @@ void Compton::set_niter(int n){
 //Sets optical depth for given number density of emitting region (assuming radius is set correctly), 
 //and compton-Y for a given electron average Lorentz factor. In some cases not covered by the radiative 
 //transfer tables, escape_corr reverts to the constructor default value of 1.
-void Compton::set_tau(double n,double theta){
-    double Te_kev = theta*511.;
+void Compton::set_tau(double n,double Te){
+    double theta;
     
+    theta = Te*kboltz_kev2erg/emerg;
     tau = n*r*sigtom;
     ypar = std::max(tau*tau,tau)*(pow(4.0*theta,1)+pow(4.0*theta,2));
     rphot = 1./(n*sigtom);
@@ -403,21 +427,21 @@ void Compton::set_tau(double n,double theta){
     //if it's too low, avoid any problems by only doing one scattering    
     //if tau is too high, assume the value for tau =3 (which is wrong!) and yell at the user
     //if the temperature is too low or high, revert to the 20 or 2500 kev case and yell at the user
-    if (geometry == "sphere" && tau >= 0.05 && tau <= 3. && Te_kev >= 20. && Te_kev <= 2500.) {
-        escape_corr = gsl_spline2d_eval(esc_p_sph,Te_kev,tau,acc_Te,acc_tau);
-    } else if (geometry == "cylinder" && tau >= 0.05 && tau <= 3. && Te_kev >= 20. && Te_kev <= 2500.) {
-        escape_corr = gsl_spline2d_eval(esc_p_cyl,Te_kev,tau,acc_Te,acc_tau);
+    if (geometry == "sphere" && tau >= 0.05 && tau <= 3. && Te >= 20. && Te <= 2500.) {
+        escape_corr = gsl_spline2d_eval(esc_p_sph,Te,tau,acc_Te,acc_tau);
+    } else if (geometry == "cylinder" && tau >= 0.05 && tau <= 3. && Te >= 20. && Te <= 2500.) {
+        escape_corr = gsl_spline2d_eval(esc_p_cyl,Te,tau,acc_Te,acc_tau);
     } else if (tau < 0.05){
         Niter = 1;
-    } else if (tau > 3. && Te_kev >= 20. && Te_kev <= 2500.) {
+    } else if (tau > 3. && Te >= 20. && Te <= 2500.) {
         std::cout << "Optical depth too high, assuming it's 3 for IC calculation!" << std::endl;
         std::cout << "Don't trust the output spectrum slope and change parameters!" << std::endl;
-        escape_corr = gsl_spline2d_eval(esc_p_cyl,Te_kev,3.,acc_Te,acc_tau);        
-    } else if (Te_kev < 20.){
+        escape_corr = gsl_spline2d_eval(esc_p_cyl,Te,3.,acc_Te,acc_tau);        
+    } else if (Te < 20.){
         std::cout << "Temperature too low, assuming it's 20 kev for IC calculation!" << std::endl;
         std::cout << "Don't trust the output spectrum slope and change parameters!" << std::endl;
         escape_corr = gsl_spline2d_eval(esc_p_cyl,20.,tau,acc_Te,acc_tau);
-    } else if (Te_kev > 2500.) {
+    } else if (Te > 2500.) {
         std::cout << "Temperature too high, assuming it's 2500 kev for IC calculation!" << std::endl;
         std::cout << "Don't trust the output spectrum slope and change parameters!" << std::endl;
         escape_corr = gsl_spline2d_eval(esc_p_cyl,2500.,tau,acc_Te,acc_tau);    

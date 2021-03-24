@@ -34,7 +34,8 @@ class ShSDisk: public Radiation {
         void set_rin(double R);
         void set_rout(double R);
         void set_luminosity(double L);
-        void set_tin(double T);
+        void set_tin_k(double T);
+        void set_tin_kev(double T);
 
         void test();
 };
