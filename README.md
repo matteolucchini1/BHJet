@@ -20,37 +20,38 @@ The codes in /BHJet/ and /Examples/ can be compiled with the ./MakeBHJet and ./M
 
 Please cite (Lucchini et al. 2021a,b -- placeholder) if you find Kariba useful in your research. If you find BHJet useful, please also cite the original agnjet paper, Markoff et al. 2001, 2005. The bibtex entries are:
 
-@ARTICLE{2005ApJ...635.1203M,
-       author = {{Markoff}, Sera and {Nowak}, Michael A. and {Wilms}, J{\"o}rn},
-        title = "{Going with the Flow: Can the Base of Jets Subsume the Role of Compact Accretion Disk Coronae?}",
-      journal = {\apj},
-     keywords = {Accretion, Accretion Disks, Black Hole Physics, Radiation Mechanisms: Nonthermal, X-Rays: Binaries, X-Rays: General, Astrophysics},
-         year = 2005,
-        month = dec,
-       volume = {635},
-       number = {2},
-        pages = {1203-1216},
-          doi = {10.1086/497628},
-archivePrefix = {arXiv},
-       eprint = {astro-ph/0509028},
- primaryClass = {astro-ph},
-       adsurl = {https://ui.adsabs.harvard.edu/abs/2005ApJ...635.1203M},
-      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-}
+    @ARTICLE{2005ApJ...635.1203M,
+           author = {{Markoff}, Sera and {Nowak}, Michael A. and {Wilms}, J{\"o}rn},
+            title = "{Going with the Flow: Can the Base of Jets Subsume the Role of Compact Accretion Disk Coronae?}",
+          journal = {\apj},
+         keywords = {Accretion, Accretion Disks, Black Hole Physics, Radiation Mechanisms: Nonthermal, X-Rays: Binaries, X-Rays: General, Astrophysics},
+             year = 2005,
+            month = dec,
+           volume = {635},
+           number = {2},
+            pages = {1203-1216},
+              doi = {10.1086/497628},
+    archivePrefix = {arXiv},
+           eprint = {astro-ph/0509028},
+     primaryClass = {astro-ph},
+           adsurl = {https://ui.adsabs.harvard.edu/abs/2005ApJ...635.1203M},
+          adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+    }
 
-@ARTICLE{2001A&A...372L..25M,
-       author = {{Markoff}, S. and {Falcke}, H. and {Fender}, R.},
-        title = "{A jet model for the broadband spectrum of XTE J1118+480. Synchrotron emission from radio to X-rays in the Low/Hard spectral state}",
-      journal = {\aap},
-     keywords = {X-RAYS: BINARIES, X-RAYS: INDIVIDUAL: XTE J1118+480, RADIATION MECHANISMS: NON-THERMAL, STARS: WINDS, OUTFLOWS -BLACK HOLE PHYSICS, ACCRETION, ACCRETION DISKS, Astrophysics},
-         year = 2001,
-        month = jun,
-       volume = {372},
-        pages = {L25-L28},
-          doi = {10.1051/0004-6361:20010420},
-archivePrefix = {arXiv},
-       eprint = {astro-ph/0010560},
- primaryClass = {astro-ph},
-       adsurl = {https://ui.adsabs.harvard.edu/abs/2001A&A...372L..25M},
-      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-}
+
+    @ARTICLE{2001A&A...372L..25M,
+           author = {{Markoff}, S. and {Falcke}, H. and {Fender}, R.},
+            title = "{A jet model for the broadband spectrum of XTE J1118+480. Synchrotron emission from radio to X-rays in the Low/Hard spectral state}",
+          journal = {\aap},
+         keywords = {X-RAYS: BINARIES, X-RAYS: INDIVIDUAL: XTE J1118+480, RADIATION MECHANISMS: NON-THERMAL, STARS: WINDS, OUTFLOWS -BLACK HOLE PHYSICS, ACCRETION, ACCRETION DISKS, Astrophysics},
+             year = 2001,
+            month = jun,
+           volume = {372},
+            pages = {L25-L28},
+              doi = {10.1051/0004-6361:20010420},
+    archivePrefix = {arXiv},
+           eprint = {astro-ph/0010560},
+     primaryClass = {astro-ph},
+           adsurl = {https://ui.adsabs.harvard.edu/abs/2001A&A...372L..25M},
+          adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+    }
