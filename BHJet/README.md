@@ -4,11 +4,13 @@ BHJET is a semi-analytical, multi-zone jet model designed for modelling steady-s
 1) It is applicable across the entire black hole mass scale, from black hole X-ray binaries (both low and high mass) to active galactic nuclei of any class (from low-luminosity AGN to flat spectrum radio quasars),
 2) It is designed to be more comparable than other codes to GRMHD simulations and/or RMHD semi-analytical solutions.
 The model is fairly complex and fitting it to data is not always straightforward. As such, it is highly recommended to read this file carefully before running the code. It takes little time and will save you a lot of headaches later on. 
-All the physics of the model, the assumptions going into it, as well as some applications, are discussed in depth in Lucchini et al. 2021, arxiv: WIP, DOI: WIP , and references therein.
+All the physics of the model, the assumptions going into it, as well as some applications, are discussed in depth in Lucchini et al. 2021, arxiv: WIP, DOI: WIP , and references therein
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
 As a quick reference guide, the free parameters of the model are:
+
+Updates: include more explanation on what most parameters do. Include mention of negative l_disk not including emission to the continuum (to include more complex disk models)
 
  - mbh         : mass of the black hole. Always frozen before the fit, bhjet should NOT be used to estimate BH masses from SED modelling.
  - Incl        : viewing angle of the jet. Sets Doppler factor for the various regions. Typically frozen before the fit.
@@ -42,7 +44,7 @@ Generally, no more than ~9 parameters should be fitted at the same time due to m
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
-The code is based on a simple C++ library called Kariba. It is contained and documented in the /Kariba/ folder; /Examples/ includes a set of simple codes to highlight features of Kariba and to replicate the plots included in Lucchini et al, 2021. The classes in Kariba handle the particle distribution and radiation calculations through their methods. The structure of the code is straightforward, but there are a few important points:
+The code is based on a simple C++ library called Kariba. It is contained and documented in the /lib folder, along with a corresponding readme file. The classes in Kariba handle the particle distribution and radiation calculations through their methods. The structure of the code is straightforward, but there are a few important points:
 1) The jet is arbitrarily divided into 100 zones (controlled by the integer variable nz) which do not interact with each other in any way. As the calculations move from the base of the jet to zmax, the grid which defines each zone changes. Up to 1000 Rg, the grid advances in steps of 2*r, where r is the radius of the jet at that particular distance. Outwards, the grid uses logarithmic steps instead. The reason for this choice (discussed in Connors et al. 2018) is that it prevents the final spectrum from being resolution-dependent. On top of that, the code runtime increases linearly with the zone count, so anything above ~70 will simply slow the code down for no gain. Note that particularly large values of zmax and/or small values of r0 can result in the number of zones being insufficient to cover the entire jet length; this is why nz is set slightly higher than the 70 segments necessary to optimize performance in most applications.
 2) The bulk of the code runtime is caused by the inverse Compton calculation, in particular for cases of moderate to high optical depth (>~0.05, when multiple scatters are considered) and/or when many zones in the jet produce bright IC emission. The code uses two adjustments to improve the efficiency of the radiation calculations: a) the frequency grid over which the emission of each zone (both inverse Compton and synchrotron) is updated dynamically after calculating the appropriate scale frequencies, and b) the inverse Compton itself is only calculated when it's expected to be bright enough to contribute meaningfully to the SED through the Compton\_check function. Depending on the source and model parameters, this reduces the code run time by a factor of ~3-50. _It is extremely important to double check whether Compton\_check is being too aggressive in neglecting zones to compute IC or not! You can do this simply by forcing Compton\_check to always return true, thus calculating the IC emission for every zone, and comparing the result with the standard prescriptions in the function._
 
