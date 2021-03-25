@@ -32,7 +32,7 @@ void Thermal::set_p(){						        //
    
     pmin = pow(pow(gmin,2.)-1.,1./2.)*mass_gr*cee;
     pmax = pow(pow(gmax,2.)-1.,1./2.)*mass_gr*cee;	
-    pinc = (log10(pmax)-log10(pmin))/size;
+    pinc = (log10(pmax)-log10(pmin))/(size-1);
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin)+i*pinc);

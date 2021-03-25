@@ -34,7 +34,7 @@ void Mixed::set_p(double ucom,double bfield,double betaeff,double r,double fsc){
     pmin_pl = av_th_p();
     pmax_pl = std::max(max_p(ucom,bfield,betaeff,r,fsc),pmax_th);	
 
-    double pinc = (log10(pmax_pl)-log10(pmin_th))/size;
+    double pinc = (log10(pmax_pl)-log10(pmin_th))/(size-1);
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin_th)+i*pinc);
@@ -47,7 +47,7 @@ void Mixed::set_p(double gmax){
     pmin_pl = av_th_p();
     pmax_pl = pow(pow(gmax,2.)-1.,1./2.)*mass_gr*cee;
 
-    double pinc = (log10(pmax_pl)-log10(pmin_th))/size;
+    double pinc = (log10(pmax_pl)-log10(pmin_th))/(size-1);
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin_th)+i*pinc);

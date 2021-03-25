@@ -78,6 +78,7 @@ double cyclosyn_emis(double gamma,void *p){
         psquared = pow(gamma,2.)-1.;
         emisfunc = (2.*psquared)/(1.+3.*psquared)*exp((2.*(1.-x))/(1.+3.*psquared));
     }
+
     ngamma = gsl_spline_eval(eldis,gamma,acc_eldis);
 
     return ngamma*gamma*emisfunc;
@@ -165,7 +166,6 @@ void Cyclosyn::cycsyn_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_int
         if(counterjet == true){ 
             en_phot_obs[k+size] = en_phot[k]*dopfac_cj;
         }
-
         emis = emis_integral(en_phot[k]/herg,gmin,gmax,eldis,acc_eldis);
         abs = abs_integral(en_phot[k]/herg,gmin,gmax,eldis_diff,acc_eldis_diff);
         if (log10(emis) < -50. || log10(abs) < -50.){

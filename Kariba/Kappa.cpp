@@ -49,7 +49,7 @@ void Kappa::set_kappa(double k){
 void Kappa::set_p(double ucom,double bfield,double betaeff,double r,double fsc){	
     pmax = std::max(max_p(ucom,bfield,betaeff,r,fsc),pmax);	
 
-    double pinc = (log10(pmax)-log10(pmin))/size;
+    double pinc = (log10(pmax)-log10(pmin))/(size-1);
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin)+i*pinc);
@@ -61,7 +61,7 @@ void Kappa::set_p(double ucom,double bfield,double betaeff,double r,double fsc){
 void Kappa::set_p(double gmax){
     pmax = pow(pow(gmax,2.)-1.,1./2.)*mass_gr*cee;
 
-    double pinc = (log10(pmax)-log10(pmin))/size;
+    double pinc = (log10(pmax)-log10(pmin))/(size-1);
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin)+i*pinc);

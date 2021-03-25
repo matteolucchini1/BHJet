@@ -14,6 +14,9 @@ Powerlaw::Powerlaw(int s){
     gdens_diff = new double[size];
 
     plnorm = 1.;
+    
+    mass_gr = emgm;
+    mass_kev = emgm*gr_to_kev;
 
     for (int i=0;i<size;i++){
         p[i] = 0;
@@ -29,7 +32,7 @@ void Powerlaw::set_p(double min,double ucom,double bfield,double betaeff,double 
     pmin = min;
     pmax = max_p(ucom,bfield,betaeff,r,fsc);	
 
-    double pinc = (log10(pmax)-log10(pmin))/size;
+    double pinc = (log10(pmax)-log10(pmin))/(size-1);
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin)+i*pinc);
@@ -40,8 +43,8 @@ void Powerlaw::set_p(double min,double ucom,double bfield,double betaeff,double 
 void Powerlaw::set_p(double min,double gmax){
     pmin = min;
     pmax = pow(pow(gmax,2.)-1.,1./2.)*mass_gr*cee;
-
-    double pinc = (log10(pmax)-log10(pmin))/size;
+    
+    double pinc = (log10(pmax)-log10(pmin))/(size-1);
 
     for (int i=0;i<size;i++){
         p[i] = pow(10.,log10(pmin)+i*pinc);
