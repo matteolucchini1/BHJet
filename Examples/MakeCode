@@ -4,4 +4,5 @@ g++ -fopenmp  -I/opt/local/include -fPIC -L/opt/local/lib kariba_corona_examples
 rm *.o
 g++ -c -w -Wall -fopenmp -fPIC -I/opt/local/include -L/opt/local/lib kariba_particles_examples.cpp utils.cpp ../Kariba/BBody.cpp ../Kariba/Cyclosyn.cpp ../Kariba/Mixed.cpp ../Kariba/Particles.cpp ../Kariba/ShSDisk.cpp ../Kariba/Compton.cpp ../Kariba/Kappa.cpp ../Kariba/Powerlaw.cpp ../Kariba/Bknpower.cpp ../Kariba/Radiation.cpp ../Kariba/Thermal.cpp
 g++ -fopenmp  -I/opt/local/include -fPIC -L/opt/local/lib kariba_particles_examples.o utils.o BBody.o Cyclosyn.o Mixed.o Particles.o ShSDisk.o Compton.o Kappa.o Powerlaw.o Bknpower.o Radiation.o Thermal.o -o particles_examples.x -L. -lgsl -lgslcblas -lm
-
+g++ -c -w -Wall -fopenmp -fPIC -I/opt/local/include -L/opt/local/lib kariba_singlezone_examples.cpp utils.cpp ../Kariba/BBody.cpp ../Kariba/Cyclosyn.cpp ../Kariba/Mixed.cpp ../Kariba/Particles.cpp ../Kariba/ShSDisk.cpp ../Kariba/Compton.cpp ../Kariba/Kappa.cpp ../Kariba/Powerlaw.cpp ../Kariba/Bknpower.cpp ../Kariba/Radiation.cpp ../Kariba/Thermal.cpp
+g++ -fopenmp  -I/opt/local/include -fPIC -L/opt/local/lib kariba_singlezone_examples.o utils.o BBody.o Cyclosyn.o Mixed.o Particles.o ShSDisk.o Compton.o Kappa.o Powerlaw.o Bknpower.o Radiation.o Thermal.o -o singlezone_examples.x -L. -lgsl -lgslcblas -lm
