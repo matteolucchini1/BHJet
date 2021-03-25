@@ -1,3 +1,0 @@
-rm *.o
-g++ -c -w -g -O3 -Wall -fopenmp -fPIC -I/opt/local/include -L/opt/local/lib bhwrap.cpp bhjet.cpp utils.cpp jetpars.cpp lib/BBody.cpp lib/Cyclosyn.cpp lib/Kappa.cpp lib/Mixed.cpp lib/Particles.cpp lib/ShSDisk.cpp lib/Compton.cpp lib/Bknpower.cpp lib/Powerlaw.cpp lib/Radiation.cpp lib/Thermal.cpp
-g++ -fopenmp  -I/opt/local/include -fPIC -L/opt/local/lib bhwrap.o bhjet.o utils.o jetpars.o BBody.o Cyclosyn.o Kappa.o Mixed.o Particles.o ShSDisk.o Compton.o Bknpower.o Powerlaw.o Radiation.o Thermal.o -o bhwrap.x -L. -lgsl -lgslcblas -lm
