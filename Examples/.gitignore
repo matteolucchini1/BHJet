@@ -1,2 +1,4 @@
 *.o
-*.x
+corona_examples.x
+singlezone_examples.x
+particle_examples.x
