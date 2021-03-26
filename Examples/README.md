@@ -1,9 +1,10 @@
-#Examples
+# Examples
 
 This section of the repository contains three examples to familiarise users with Kariba, the CompPS spectra generated to compute 
 the radiative transfer corrections in Kariba, and a set of Python scripts to replicate figures 3,4,6 and 7 of Lucchini et al. 2021. 
 
 The three example codes are as follows:
+
 ----------------------------------------------------------------------------------------------------------------------------------
 ## kariba_particles_examples.cpp
 
