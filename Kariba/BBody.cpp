@@ -78,7 +78,7 @@ void BBody::set_lum(double L){
 //Method to set BB spectrum
 void BBody::bb_spectrum(){
     for (int i=0;i<size;i++){
-	    num_phot[i] = normbb*2.*herg*pow(en_phot_obs[i]/herg,3.)/
+	    num_phot[i] = normbb*2.*pi*herg*pow(en_phot_obs[i]/herg,3.)/
                       (pow(cee,2.)*(exp(en_phot_obs[i]/(Tbb*kboltz))-1.));
         num_phot_obs[i] = num_phot[i];
     }
