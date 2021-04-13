@@ -9,3 +9,4 @@ Makefile
 Output/*.dat
 Input/*.dat
 *.dat
+bhjet.mf

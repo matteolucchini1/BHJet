@@ -1,3 +1,3 @@
 rm *.o
-g++ -c -w -g -O3 -Wall -fopenmp -fPIC -I/opt/local/include -L/opt/local/lib bhwrap.cpp bhjet.cpp utils.cpp jetpars.cpp ../Kariba/BBody.cpp ../Kariba/Cyclosyn.cpp ../Kariba/Kappa.cpp ../Kariba/Mixed.cpp ../Kariba/Particles.cpp ../Kariba/ShSDisk.cpp ../Kariba/Compton.cpp ../Kariba/Bknpower.cpp ../Kariba/Powerlaw.cpp ../Kariba/Radiation.cpp ../Kariba/Thermal.cpp
-g++ -fopenmp  -I/opt/local/include -fPIC -L/opt/local/lib bhwrap.o bhjet.o utils.o jetpars.o BBody.o Cyclosyn.o Kappa.o Mixed.o Particles.o ShSDisk.o Compton.o Bknpower.o Powerlaw.o Radiation.o Thermal.o -o bhwrap.x -L. -lgsl -lgslcblas -lm
+g++ -c -w -g -O3 -Wall -fopenmp -fPIC bhwrap.cpp bhjet.cpp utils.cpp jetpars.cpp ../Kariba/BBody.cpp ../Kariba/Cyclosyn.cpp ../Kariba/Kappa.cpp ../Kariba/Mixed.cpp ../Kariba/Particles.cpp ../Kariba/ShSDisk.cpp ../Kariba/Compton.cpp ../Kariba/Bknpower.cpp ../Kariba/Powerlaw.cpp ../Kariba/Radiation.cpp ../Kariba/Thermal.cpp
+g++ -fopenmp  -fPIC  bhwrap.o bhjet.o utils.o jetpars.o BBody.o Cyclosyn.o Kappa.o Mixed.o Particles.o ShSDisk.o Compton.o Bknpower.o Powerlaw.o Radiation.o Thermal.o -o bhwrap.x -L. -lgsl -lgslcblas -lm

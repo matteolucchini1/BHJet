@@ -149,7 +149,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
        	tot_lum[i] = 1.;	
     }
 
-    if(infosw>=1){			
+    if (infosw>=1) {			
         clean_file("Output/Presyn.dat",2);
         clean_file("Output/Postsyn.dat",2);
         clean_file("Output/Precom.dat",2);
@@ -158,12 +158,17 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         clean_file("Output/BB.dat",2);
         clean_file("Output/Total.dat",2);	
     }
-    if(infosw>=2){	
+    if (infosw>=2) {	
         clean_file("Output/Numdens.dat",4);
         clean_file("Output/Cyclosyn_zones.dat",2);
         clean_file("Output/Compton_zones.dat",2);			
     }
-
+    if (infosw>=3) {
+        clean_file("Output/Spectral_properties.dat",7);    
+    }
+    if (infosw>=5) {
+        clean_file("Output/Profiles.dat",6);
+    }
     //STEP 3: DISK/EXTERNAL PHOTON CALCULATIONS
     //The disk is disabled by setting r_in<r_out; its contribution is summed to the total only if there are no 
     //AGN photon fields that reprocess part of the luminosity, otherwise it is done later
@@ -258,7 +263,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     }	
 
     //check that the pair content is not negative, and also if running bljet that it's not too high
-    if(nozzle_ener.eta < 1){
+    if(nozzle_ener.eta<1){
         cout << "Unphysical pair content: " << nozzle_ener.eta << " pairs per proton. Check the value of " <<
                 "plasma beta!" << endl;
     } else if (velsw>1 && nozzle_ener.eta >= 1e2){
@@ -470,6 +475,12 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             cout << "Grid; R: " << zone.r/Rg << ", delz: " << zone.delz/Rg << ", z: " << z/Rg << ", z+delz: " 
                  << (zone.delz+z)/Rg << endl;
             cout << "Equipartition check; Sigma: " << 2.*Ub/Up << " Ue/Ub: " << Ue/Ub << endl;
+            
+            std::ofstream file;
+            file.open("Output/Profiles.dat",std::ios::app);	
+            file << z/Rg << " " << zone.r/Rg << " " << zone.bfield << " " << zone.lepdens << " " << zone.gamma << " " <<
+                    zone.eltemp << " " << std::endl;
+            file.close();	
         }
         //calculate emission of each zone		
         //note: the syn_en array is used for the seed photon fields in the IC part, so it needs to include
@@ -496,7 +507,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         Compton InvCompton(ncom,nsyn);
         InvCompton.set_frequency(com_min,com_max);	
         
-        if(infosw > 1) {
+        if(infosw>1) {
             for (int k=0;k<ncom;k++){
                 com_lum[k] = 0;
                 com_en[k] = InvCompton.get_energy()[k];
@@ -513,7 +524,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         Syncro.set_counterjet(true);
         Syncro.cycsyn_spectrum(gmin,gmax,spline_eldis,acc_eldis,spline_deriv,acc_deriv);
         sum_counterjet(nsyn,Syncro.get_energy_obs(),Syncro.get_nphot_obs(),syn_en,syn_lum);	        
-        if (infosw>=5){
+        if (infosw>=4){
             Syncro.test();
         }  
         //Include zone's emission to the pre/post particle acceleration spectrum
@@ -553,7 +564,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             //Calculate the spectrum with whichever fields have been invoked		
             InvCompton.compton_spectrum(gmin,gmax,spline_eldis,acc_eldis);
             sum_counterjet(ncom,InvCompton.get_energy_obs(),InvCompton.get_nphot_obs(),com_en,com_lum);             
-            if (infosw>=5){
+            if (infosw>=4){
                 InvCompton.test();
             }
             
@@ -596,25 +607,30 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         plot_write(ne,tot_en,tot_lum,"Output/Total.dat",dist,redsh);
     }
     if (infosw >=3) {
-        cout << "Observed 0.1-5 keV disk luminosity: "
-             << integrate_lum(50,0.1*2.41e17,5.*2.41e17,Disk.get_energy_obs(),Disk.get_nphot_obs()) << endl;
-        cout << "Observed 0.1-300 keV Inverse Compton luminosity: " 	
-             << integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre) << endl; 
-        cout << "Observed 0.1-300 keV total luminosity: " 
-             << integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_lum) << endl; 
-        cout << "Observed 3-7 GHz luminosity: " << integrate_lum(ne,3e9,7e9,tot_en,tot_lum) << endl;
-        cout << "X-ray 10-100 keV photon index estimate: " 
-             << photon_index(ne,10.*2.41e17,100.*2.41e17,tot_en,tot_lum) << endl;
-        cout << "Radio 10-100 GHz spectral index estimate: " 
-             << 1.+photon_index(ne,1e10,1e11,tot_en,tot_lum) << endl << endl;
-        double compactness = integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre)*sigtom
-                             /(r_0*emerg*cee);      
-        cout << "Jet base compactness: " << compactness << endl;
+        double disk_lum,IC_lum,Xray_lum,Radio_lum,Xray_index,Radio_index,compactness;
+        disk_lum = integrate_lum(50,0.3*2.41e17,5.*2.41e17,Disk.get_energy_obs(),Disk.get_nphot_obs());
+        IC_lum = integrate_lum(ne,0.3*2.41e17,300.*2.41e17,tot_en,tot_com_pre);
+        Xray_lum = integrate_lum(ne,1.*2.41e17,10.*2.41e17,tot_en,tot_lum);
+        Radio_lum = integrate_lum(ne,4e9,6e9,tot_en,tot_lum);
+        Xray_index = photon_index(ne,10.*2.41e17,100.*2.41e17,tot_en,tot_lum);
+        Radio_index = 1.+photon_index(ne,1e10,1e11,tot_en,tot_lum);
+        compactness = integrate_lum(ne,0.1*2.41e17,300.*2.41e17,tot_en,tot_com_pre)*sigtom/(r_0*emerg*cee);   
+        cout << "Observed 0.3-5 keV disk luminosity: " << disk_lum << endl;
+        cout << "Observed 0.3-300 keV Inverse Compton luminosity: " << IC_lum << endl; 
+        cout << "Observed 1-10 keV total luminosity: " << Xray_lum << endl; 
+        cout << "Observed 4-6 GHz luminosity: " << Radio_lum << endl;
+        cout << "X-ray 10-100 keV photon index estimate: " << Xray_index << endl;
+        cout << "Radio 10-100 GHz spectral index estimate: " << Radio_index << endl;                   
+        cout << "Jet base compactness: " << compactness << endl << endl;
+        std::ofstream file;
+        file.open("Output/Spectral_properties.dat",std::ios::app);	
+        file << disk_lum << " " << IC_lum << " " << Xray_lum << " " << Radio_lum << " " << Xray_index << " " << Radio_index <<
+            " " << compactness << std::endl;
+        file.close();
         if (compactness >= 10.*(param[9]/511.)*exp(511./param[9])) {
             cout << "Possible pair production in the jet base!" << endl; 
             cout << "Lower limit on allowed compactness: " << 10.*(param[9]/511.)*exp(511./param[9]) << endl;
-            cout << "Note: this is for a slab, a cylinder allows higher l by a factor of ~10" << std::endl;
-        }
+            cout << "Note: this is for a slab, a cylinder allows higher l by a factor of ~10" << std::endl;}
     }	
 
     gsl_spline_free(spline_eldis), gsl_interp_accel_free(acc_eldis);

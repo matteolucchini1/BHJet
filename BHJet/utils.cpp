@@ -235,17 +235,18 @@ void clean_file(std::string path,int check){
     std::ofstream file;
     file.open(path.c_str(),std::ios::trunc);
 
-    if (check == 1) {
-        file << std::left << std::setw(20) << "#Parameter:" << std::endl;
-    } else if (check==2){
-        file << std::left << std::setw(20) << "#nu [Hz] " << std::setw(20) << "Flux [mJy] " << std::endl;
+    if (check==2){
+        file <<"#nu [Hz]: " <<  " Flux [mJy]:" << std::endl;
     } else if (check==4){
-        file << std::left << std::setw(20) << "#p [g cm s-1] " << std::setw(20) << "g [] " << std::setw(20) << 
-             " n(p) [# cm^-3 p^-1] " << std::setw(20) << " n(g) [# cm^-3 g^-1]" << std::setw(20)<<  std::endl;
+        file << "#p [g cm s-1]: " << " g []: " << " n(p) [# cm^-3 p^-1]: " << " n(g) [# cm^-3 g^-1]:" << std::endl;
+    } else if (check==6) {
+        file << "#Z [Rg]: " << " R [Rg]: " << " B(z) [G]: " << " ne(z) [# cm^-3]: " << " gamma(z): " << " Te(z) [kev]:" << std::endl;
+    } else if (check==7) {
+        file  << "#0.3-5keV Disk: " << " 0.3-300keV Compton: " << " 1-10 keV total: " << " 4-6 GHz total: " << 
+            " 10-100 keV PL estimate: " << " 10-100 GHz spectral index estimate: "  << " Compactness:" << std::endl;                
     } else {
         std::cout << "File to be cleaned not supported" << std::endl;
     }	
-
     file.close();
 }
 
