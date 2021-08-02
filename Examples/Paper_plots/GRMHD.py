@@ -100,6 +100,25 @@ ax4.set_ylabel("Number density (arb. units)",fontsize=24)
 
 plt.tight_layout()
 
-plt.savefig("MHD_comparison.pdf")
-plt.show()
+plt.savefig("MHD_comparison1.pdf")
 
+CH19=np.load('Chatterjee19/Chatterjee19.npz')
+#jet speeds now
+fig2, ax5 = plt.subplots(1,1,figsize=(7.5,6.))
+rad=CH19['radius']
+LF_gam=CH19['gamma']
+ax5.loglog(rad,LF_gam,linewidth=2.5,label="CLTM 19")
+ax5.loglog(bljet_spine.T[0],bljet_spine.T[4],linewidth=2.5,label='Bljet spine')
+ax5.loglog(bljet_sheath.T[0],bljet_sheath.T[4],linewidth=2.5,label='Bljet sheath')
+ax5.loglog(agnjet_sheath.T[0],agnjet_sheath.T[4],linewidth=2.5,label='Agnjet sheath')
+ax5.set_xlim(1e1,1e5)
+ax5.set_ylim(1.,27.5)
+ax5.legend(loc='upper right',fontsize=18)
+ax5.set_xlabel("Distance from BH ($R_{\\rm g}$)",fontsize=24)
+ax5.set_ylabel("Lorenz factor $\\gamma(z)$",fontsize=24)
+
+plt.tight_layout()
+
+plt.savefig("MHD_comparison2.pdf")
+
+plt.show()

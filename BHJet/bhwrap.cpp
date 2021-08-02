@@ -1,19 +1,3 @@
-// =====================================================================================
-// 
-//       Filename:  jetwrap.cc
-// 
-//    Description:  c++ wrapper for agnjet routines. Needs agnjet_merged.{cc/hh} to work.
-// 
-//        Version:  1.0
-//        Created:  05/31/2012 16:30:16
-//       Revision:  none
-//       Compiler:  g++ -Wall -m32 -g -O0 -o jetwrap mj_aven.cc thermal.cc agnjet.cc jetwrap.cc -lgsl -lgslcblas -lm
-// 
-//         Author:  Samia Drappeau (sd), drappeau.samia@gmail.com
-//        Company:  
-// 
-// =====================================================================================
-
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
@@ -54,6 +38,7 @@ int main(){
         ebins[i]= pow(10,(emin+i*einc));		
     }
 
+
     read_params("Input/ip.dat", param);
 
     jetmain(ebins,ne-1,param,spec,dumarr);
@@ -63,7 +48,7 @@ int main(){
     end = omp_get_wtime();
     cout << "Total running time: " << end-start << " seconds" << endl;
 
-    system("python3 Plot.py");
+    system("python3 Plot_separate.py");
 
     return EXIT_SUCCESS;
 }				// ----------  end of function main  ----------
