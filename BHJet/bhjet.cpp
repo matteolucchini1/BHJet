@@ -266,9 +266,11 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     if(nozzle_ener.eta<1){
         cout << "Unphysical pair content: " << nozzle_ener.eta << " pairs per proton. Check the value of " <<
                 "plasma beta!" << endl;
-    } else if (velsw>1 && nozzle_ener.eta >= 1e2){
-           cout << "Pair content is too high for bljet: " << nozzle_ener.eta << " pairs per proton. Check the value of " 
-                << "plasma beta!" << endl; 
+    } else if (velsw>1 && dummy_elec.av_gamma()*nozzle_ener.eta >= 3e2){
+           cout << "Pair content or temperature too high for  for bljet! " << endl;
+           cout << "Pair content: " << nozzle_ener.eta << " pairs per proton" << endl;
+           cout << "Average lepton Lorenz factor: " << dummy_elec.av_gamma() << endl;
+           cout << "Check the value of Te and/or plasma beta!" << endl;
     }
 
     if(infosw>=3){
