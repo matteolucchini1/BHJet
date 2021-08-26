@@ -70,15 +70,15 @@ ax2.fill_between(shade5,0,2e3,color=colors[5],alpha=0.4)
 
 ax2.legend(loc='upper left',fontsize=24)
 ax2.set_xlabel("$\\beta_{\\rm p}$",fontsize=24)
-ax2.set_yticklabels([])
-ax2.axes.get_yaxis().set_visible(False)
+#ax2.set_yticklabels([])
+#ax2.axes.get_yaxis().set_visible(False)
 ax2.set_xlim([1.1e-4,1.])
 ax2.set_ylim([0.3,1.5e3])
 ax2.set_xscale("log",base=10)
 ax2.set_yscale("log",base=10)
 
 fig.tight_layout()
-fig.subplots_adjust(wspace=0)
+#fig.subplots_adjust(wspace=0)
 fig.savefig('bhjet_content.pdf')
 
 plt.show()
