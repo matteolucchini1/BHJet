@@ -40,7 +40,7 @@ There are two important notes for running the code with acceptable performance:
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
-For running outside as a stand-alone code:
+## For running outside as a stand-alone code:
 
 Compile using:
 
@@ -64,7 +64,7 @@ system("python Plot.py");
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
-For running inside ISIS:
+## For running inside ISIS:
 
 ```
 ./slirpAgnjet
@@ -81,5 +81,139 @@ append_to_isis_module_path(path+"path/to/your/agnjet/folder");
 
 (on some systems if gsl libs aren't on obvious path you may need to
        explicitly include with -I and -L, but try this first!)
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+## For use with Sherpa:
+
+The following instructions are based on a conda install of [CIAO
+4.14](https://cxc.harvard.edu/ciao4.14/download/) on a Linux
+platform. It may need tweaking for the macOS platform or if
+`ciao-install` was used to install CIAO.
+
+With the CIAO conda environment activated - that is, the following
+works:
+
+```
+% python -c 'from sherpa.astro import xspec; print(xspec.get_xsversion())'
+12.12.0
+```
+
+then the `bhjet` module can be installed with the following (the
+details may differ slightly, but the last line is the important one):
+
+```
+% cd sherpa
+% pip install .
+Processing /home/dburke/sherpa/BHJet/BHJet/sherpa
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... done
+  Preparing metadata (pyproject.toml) ... done
+Building wheels for collected packages: bhjet
+  Building wheel for bhjet (pyproject.toml) ... done
+  Created wheel for bhjet: filename=bhjet-0.1-cp38-cp38-linux_x86_64.whl size=520719 sha256=2970dc1974d647b07eb716104ecd114fcb320bd367360edbd75ee12e9374b2f7
+  Stored in directory: /tmp/pip-ephem-wheel-cache-5bmumad7/wheels/24/48/13/afb0e0b6b0c25ab5b591aed8645fd627b67b0d8f5dc7bcbcad
+Successfully built bhjet
+Installing collected packages: bhjet
+Successfully installed bhjet-0.1
+```
+
+### Notes
+
+The model contains 28, rather than 27, parameters as it adds on a
+normalization value (it linearly scales the model).
+
+### Use in Sherpa
+
+At this point you can either use the model from Sherpa (in any
+directory) by saying
+
+```
+% sherpa
+-----------------------------------------------------
+Welcome to Sherpa: CXC's Modeling and Fitting Package
+-----------------------------------------------------
+Sherpa 4.14.0
+
+Python 3.8.12 | packaged by conda-forge | (default, Oct 12 2021, 21:57:06)
+Type 'copyright', 'credits' or 'license' for more information
+IPython 7.30.1 -- An enhanced Interactive Python. Type '?' for help.
+
+IPython profile: sherpa
+Using matplotlib backend: TkAgg
+
+sherpa In [1]: import bhjet.ui
+Adding additive model: bhjet
+
+sherpa In [2]: create_model_component("bhjet", "mdl")
+Out[2]: <BHJet model instance 'bhjet.mdl'>
+
+sherpa In [3]: print(mdl)
+bhjet.mdl
+   Param        Type          Value          Min          Max      Units
+   -----        ----          -----          ---          ---      -----
+   mdl.mbh      frozen        1e+06            3        3e+10       msun
+   mdl.incl     frozen           40            2           80        deg
+   mdl.dkpc     frozen         3000            1        1e+06        kpc
+   mdl.redshift frozen            0            0            7
+   mdl.jetrat   thawed        0.005        1e-07            1      L_edd
+   mdl.r_0      thawed           20            2           80        r_g
+   mdl.z_diss   thawed         1000           50       500000        r_g
+   mdl.z_acc    frozen         1000          300       500000        r_g
+   mdl.z_max    frozen        1e+07       100000        1e+09        r_g
+   mdl.t_e      thawed          100           10         2000        keV
+   mdl.f_nth    frozen          0.1         0.05         0.95
+   mdl.f_pl     frozen            0            0           10
+   mdl.pspec    thawed            2          1.5            3
+   mdl.compsw   frozen            0 -3.40282e+38  3.40282e+38
+   mdl.velsw    frozen            1            1           25
+   mdl.infosw   frozen            0 -3.40282e+38  3.40282e+38
+   mdl.norm     frozen            1            0        1e+24
+
+```
+
+### Use in Python
+
+The model can be used "outside" of Sherpa - for instance if you just want
+to create a plot of a model for one or more sets of parameters (this can
+be done "inside" Sherpa too).
+
+```
+>>> from matplotlib import pyplot as plt
+>>> import numpy as np
+>>> import bhjet
+>>> mdl = bhjet.BHJet()
+>>> print(mdl)
+bhjet
+   Param        Type          Value          Min          Max      Units
+   -----        ----          -----          ---          ---      -----
+   mdl.mbh      frozen        1e+06            3        3e+10       msun
+   mdl.incl     frozen           40            2           80        deg
+   mdl.dkpc     frozen         3000            1        1e+06        kpc
+   mdl.redshift frozen            0            0            7
+   mdl.jetrat   thawed        0.005        1e-07            1      L_edd
+   mdl.r_0      thawed           20            2           80        r_g
+   mdl.z_diss   thawed         1000           50       500000        r_g
+   mdl.z_acc    frozen         1000          300       500000        r_g
+   mdl.z_max    frozen        1e+07       100000        1e+09        r_g
+   mdl.t_e      thawed          100           10         2000        keV
+   mdl.f_nth    frozen          0.1         0.05         0.95
+   mdl.f_pl     frozen            0            0           10
+   mdl.pspec    thawed            2          1.5            3
+   mdl.compsw   frozen            0 -3.40282e+38  3.40282e+38
+   mdl.velsw    frozen            1            1           25
+   mdl.infosw   frozen            0 -3.40282e+38  3.40282e+38
+   mdl.norm     frozen            1            0        1e+24
+>>> pars = np.genfromtxt("Input/ip.dat")
+>>> for pobj, pval in zip(mdl.pars, pars):
+...     pobj.val = pval
+...
+>>> egrid = np.logspace(-10, 10, 201)
+>>> elo = egrid[:-1]
+>>> ehi = egrid[1:]
+>>> emid = (elo + ehi) / 2
+>>> y = mdl(elo, ehi)
+>>> plt.plot(emid, y)
+```
 
 ---------------------------------------------------------------------------------------------------------------------------------------

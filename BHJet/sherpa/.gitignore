@@ -1,0 +1,4 @@
+build/
+__pycache__/
+src/bhjet.egg-info/
+src/bhjet/_models.cpython*
