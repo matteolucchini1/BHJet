@@ -5,8 +5,8 @@ The free parameters of the model are:
  - mbh         : mass of the black hole. Always frozen before the fit, bhjet should NOT be used to estimate BH masses from SED modelling.
  - Incl        : viewing angle of the jet. Sets Doppler factor for the various regions. Typically frozen before the fit.
  - dkpc        : distance from source in kpc. Always frozen before the fit.
- - redshfit    : self explanatory. Only used for modelling AGN and set before the fit.
  - jetrat      : amount of power injected at the base of the jet. Increasing values increase the normalisation of the synchrotron flux, and the importance of Comptonisation. Measured in Eddington units. 
+ - redshift    : self explanatory. Only used for modelling AGN and set before the fit.
  - r\_0        : radius of the nozzle/corona, described by an outflowing, magnetized cylinder of radius r\_0 and height 2r\_0. Decreasing values increase the optical depth of the nozzle. Measured in units of r\_g.
  - z\_diss     : location of non-thermal particle injection region. Sets optically thick to thin break, overall normalization and Compton dominance of non-thermal component, and for high accretion rate AGN sets the EC target field (BLR or BLR+torus). Decreasing values move the synchrotron thick-to-thin break to higher frequencies. Measured in units of r\_g.
  - z\_acc      : if velsw > 1, sets location of the jet acceleration. Sets the jet speed and dependency of magnetic field with distance; smaller values correspond to faster dissipation before z\_acc (see velsw below). Measured in r\_g like zdiss. 
