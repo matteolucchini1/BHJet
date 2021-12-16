@@ -80,7 +80,7 @@ class BHJet(XSAdditiveModel):
     .. [1] https://github.com/matteolucchini1/BHJet
 
     """
-    _calc = _models.wrapper_jetmain
+    _calc = _models.xspec_jetinterp
 
     def __init__(self, name='bhjet'):
         self.mbh = XSParameter(name, 'mbh', 1000000.0, min=3.0, max=30000000000.0, hard_min=3.0, hard_max=30000000000.0, frozen=True, units='msun')

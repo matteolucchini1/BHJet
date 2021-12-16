@@ -64,7 +64,7 @@ system("python Plot.py");
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
-## For running inside ISIS:
+## For running inside ISIS
 
 ```
 ./slirpAgnjet
@@ -84,7 +84,7 @@ append_to_isis_module_path(path+"path/to/your/agnjet/folder");
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
-## For use with Sherpa:
+## For use with Sherpa
 
 The following instructions are based on a conda install of [CIAO
 4.14](https://cxc.harvard.edu/ciao4.14/download/) on a Linux
@@ -215,5 +215,18 @@ bhjet
 >>> y = mdl(elo, ehi)
 >>> plt.plot(emid, y)
 ```
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+## For use with XSPEC
+
+There is a wrapper for the BHJet model in `wrap_xspec.cpp` - which is
+also used by the Sherpa interface - and a model definition in
+`lmodel_bhjet`, **BUT** this has not been used to create an XSPEC
+model.
+
+The model definition in `lmodel_bhjet` uses values that look sensible
+for the "delta" value for each parameter, but they have not been
+informed by actual use, and so could need modifying.
 
 ---------------------------------------------------------------------------------------------------------------------------------------

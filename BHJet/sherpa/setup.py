@@ -58,7 +58,7 @@ karibas = glob.glob(search)
 if len(karibas) == 0:
     raise OSError(f"No match for: {search}")
 
-bhs = ["../bhjet.cpp", "../utils.cpp", "../jetpars.cpp"]
+bhs = ["../bhjet.cpp", "../utils.cpp", "../jetpars.cpp", "../wrap_xspec.cpp"]
 
 srcnames = ["src/bhjet/_models.cxx"] + bhs + karibas
 

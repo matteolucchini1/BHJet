@@ -7,25 +7,17 @@
 //
 #include "sherpa/astro/xspec_extension.hh"
 
-extern void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec);
-
 extern "C" {
 
-  // The Sherpa wrapper code follows XSPEC conventions and so we need a
-  // wrapper routine to convert.
-  //
-  void wrapper_jetmain(const double *ear, int ne, const double *param, int spectrumNumber,
+  void xspec_jetinterp(const double *ear, int ne, const double *param, int spectrumNumber,
 		       double *photeng, double *photspec,
-		       const char* initStr) {
-    jetmain(const_cast<double *>(ear), ne,
-	    const_cast<double *>(param), photeng, photspec);
-  }
+		       const char* initStr);
 }
 
 // Wrapper
 
 static PyMethodDef Wrappers[] = {
-  XSPECMODELFCT_C_NORM(wrapper_jetmain, 28),
+  XSPECMODELFCT_C_NORM(xspec_jetinterp, 28),
   { NULL, NULL, 0, NULL }
 };
 
