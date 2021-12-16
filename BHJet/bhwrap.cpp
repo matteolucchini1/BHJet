@@ -65,7 +65,7 @@ void read_params(string file, double *pars){
     string line;
     int line_nb = 0;
     if(!inFile){
-        cerr << "Can't open input file" << endl;
+        cerr << "Can't open input file '" << file << "'" << endl;
         exit(1);
     }
     while(getline(inFile, line)){
