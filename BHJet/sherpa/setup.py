@@ -11,7 +11,6 @@ from distutils.core import Extension
 from distutils.command.build_ext import build_ext
 
 import numpy
-from numpy.distutils import fcompiler
 
 import sherpa
 
