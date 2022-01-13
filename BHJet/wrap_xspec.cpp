@@ -38,12 +38,12 @@ extern "C" {
 
     // Can the definition of egrid be moved to compile time?
     //
-    double *egrid = new double [NBINS];
+    double *egrid = new double [NBINS + 1];
     double *energ = new double [NBINS];
     double *phot = new double [NBINS];
 
     double ebin = LOG10_EMIN;
-    for (int i = 0; i < NBINS; i++) {
+    for (int i = 0; i <= NBINS; i++) {
       egrid[i] = std::pow(10, ebin);
       ebin += LOG10_ESTEP;
     }
