@@ -104,7 +104,7 @@ void ShSDisk::set_luminosity(double L){
     double emin,emax,einc;
 
     Ldisk = L;
-    Tin =  pow(Ldisk*1.25e38*Mbh/(2.*sbconst*pow(r,2.)),0.25);
+    Tin =  pow(Ldisk*1.25e38*Mbh/(2.*pi*sbconst*pow(r,2.)),0.25);
     Hratio = std::max(0.1,Ldisk);    
     emin = 0.0001*kboltz*Tin;
     emax = 30.*kboltz*Tin;

@@ -189,7 +189,7 @@ void Cyclosyn::cycsyn_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_int
             if (geometry == "cylinder") {
                 tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
             } else {
-                tsyn_obs = pi/2.*asyn*r/(dopfac);    
+                tsyn_obs = pi/3.*asyn*r/(dopfac);    
             }
             if(tsyn_obs >= 1.){
                 absfac_obs	= (1.-exp(-tsyn_obs));
@@ -197,15 +197,19 @@ void Cyclosyn::cycsyn_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_int
             else{
                 absfac_obs	= tsyn_obs-pow(tsyn_obs,2.)/2.+pow(tsyn_obs,3.)/6.;
             }  
-
             num_phot[k]	= pi*r*r*absfac*epsasyn;    
             num_phot_obs[k]	= 2.*r*z*absfac_obs*epsasyn*pow(dopfac,dopnum);
-
+            //this bit accounts for additional geometrical factors 
+            if (geometry == "cylinder"){
+                num_phot_obs[k] = sin(angle)*num_phot_obs[k];
+            } else {
+                num_phot_obs[k] = 2.*num_phot_obs[k];
+            }
             if(counterjet == true){    	
                 if (geometry == "cylinder") {
-                tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
+                    tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
                 } else {
-                    tsyn_obs = pi/2.*asyn*r/(dopfac);    
+                    tsyn_obs = pi/3.*asyn*r/(dopfac);    
                 }        
                 if(tsyn_obs >= 1.){
                 	absfac_obs	= (1.-exp(-tsyn_obs));
@@ -214,6 +218,12 @@ void Cyclosyn::cycsyn_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_int
                 	absfac_obs	= tsyn_obs-pow(tsyn_obs,2.)/2.+pow(tsyn_obs,3.)/6.;
                 }
                 num_phot_obs[k+size] = 2.*r*z*absfac_obs*epsasyn*pow(dopfac_cj,dopnum);
+                //same as above, here we account for additional geometric factors 
+                if (geometry == "cylinder"){
+                    num_phot_obs[k+size] = sin(angle)*num_phot_obs[k+size];
+                } else {
+                    num_phot_obs[k+size] = 2.*num_phot_obs[k+size];
+                }
             } else {
                 num_phot_obs[k+size] = 0.;
             }        

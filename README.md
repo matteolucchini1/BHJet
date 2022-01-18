@@ -20,7 +20,24 @@ The codes in /BHJet/ and /Examples/ can be compiled with the ./MakeBHJet and ./M
 
 ## Citing BHJet
 
-Please cite (Lucchini et al. 2021a,b -- placeholder) if you find Kariba useful in your research. If you find BHJet useful, please also cite the original agnjet paper, Markoff et al. 2001, 2005. The bibtex entries are:
+Please cite (Lucchini et al. 2021) if you find Kariba useful in your research. If you find BHJet useful, please also cite the original agnjet paper, Markoff et al. 2001, 2005. The bibtex entries are:
+
+    @ARTICLE{2021arXiv210812011L,
+           author = {{Lucchini}, M. and {Ceccobello}, C. and {Markoff}, S. and {Kini}, Y. and {Chhotray}, A. and {Connors}, R.~M.~T. and {Crumley}, P. and {Falcke}, H. and {Kantzas}, D. and {Maitra}, D.},
+            title = "{Bhjet: a public multi-zone, steady state jet + thermal corona spectral model}",
+          journal = {arXiv e-prints},
+         keywords = {Astrophysics - High Energy Astrophysical Phenomena},
+             year = 2021,
+            month = aug,
+              eid = {arXiv:2108.12011},
+            pages = {arXiv:2108.12011},
+    archivePrefix = {arXiv},
+           eprint = {2108.12011},
+     primaryClass = {astro-ph.HE},
+           adsurl = {https://ui.adsabs.harvard.edu/abs/2021arXiv210812011L},
+          adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+    }
+
 
     @ARTICLE{2005ApJ...635.1203M,
            author = {{Markoff}, Sera and {Nowak}, Michael A. and {Wilms}, J{\"o}rn},
