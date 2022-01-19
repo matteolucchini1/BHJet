@@ -3,6 +3,9 @@
 BBody::~BBody(){
     delete[] en_phot_obs;
     delete[] num_phot_obs;
+
+    delete[] en_phot;
+    delete[] num_phot;
 }
 
 BBody::BBody(){
@@ -15,10 +18,10 @@ BBody::BBody(){
 
     for(int i=0;i<size;i++){
         en_phot[i] = 0.;
-        num_phot[i] = 0.;  
+        num_phot[i] = 0.;
         en_phot_obs[i] = 0.;
-        num_phot_obs[i] = 0.;       
-    }	
+        num_phot_obs[i] = 0.;
+    }
 }
 
 //Methods to set BB quantities
@@ -35,7 +38,7 @@ void BBody::set_temp_kev(double T){
     for(int i=0;i<size;i++){
         en_phot[i] = pow(10.,log10(emin)+i*einc);
         en_phot_obs[i] = en_phot[i];
-    }	
+    }
 }
 
 void BBody::set_temp_k(double T){
@@ -51,7 +54,7 @@ void BBody::set_temp_k(double T){
     for(int i=0;i<size;i++){
         en_phot[i] = pow(10.,log10(emin)+i*einc);
         en_phot_obs[i] = en_phot[i];
-    }	
+    }
 }
 
 void BBody::set_temp_hz(double nu){
@@ -67,7 +70,7 @@ void BBody::set_temp_hz(double nu){
     for(int i=0;i<size;i++){
         en_phot[i] = pow(10.,log10(emin)+i*einc);
         en_phot_obs[i] = en_phot[i];
-    }	
+    }
 }
 
 void BBody::set_lum(double L){
@@ -85,7 +88,7 @@ void BBody::bb_spectrum(){
 }
 
 
-//Methods to return BB temperature, luminosity, energy density at a given distance d (or for a given radius d 
+//Methods to return BB temperature, luminosity, energy density at a given distance d (or for a given radius d
 //of the source)
 const double BBody::temp_kev(){
     return Tbb*kboltz/kboltz_kev2erg;
