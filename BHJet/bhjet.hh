@@ -154,3 +154,7 @@ void zone_agn_phfields(double z,zone_pars &zone,double &ublr_zone,double &udt_zo
 
 void clean_file(std::string path,int check);
 void jetinterp(double *ear,double *energ,double *phot,double *photar,int ne,int newne);
+
+void ebl_atten_dom(int size,double* en,double* lum,double redsh);
+void ebl_atten_gil(int size,double* en,double* lum,double redsh);
+void ebl_atten_fran(int size,double* en,double* lum,double redsh);

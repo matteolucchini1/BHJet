@@ -15,7 +15,7 @@ define bhjet_fit(lo,hi,par)
    variable ear = [_A(hi),_A(lo[0])];
    variable nein = length(lo), photar=Double_Type[nein], photer=@photar;
    
-   variable pars = par[[1:27]];
+   variable pars = par[[1:28]];
 
    % !!!  It is important to match the type for arrays that are input, !!!
    % !!!  and recieve return values.  I.e., phot & energ go in and     !!!
@@ -72,6 +72,7 @@ static variable jet_input = {
 "compsw",			 0.,     0.,	 3.,
 "velsw", 	         1.,     1.,    25.,
 "infosw",	         0.,     0.,     5.,	
+"EBLsw",		0.,	0.,	3.,
 };
 
 variable npar=length(jet_input)/4;
@@ -93,7 +94,7 @@ static variable jet_frz = Integer_Type[npar];
 
 % Default above is no frozen parameters, now set the frozen ones
 
-jet_frz[[0,1,2,3,4,8,9,11,12,14,15,18,21,22,23,24,25,26,27]]=1;
+jet_frz[[0,1,2,3,4,8,9,11,12,14,15,18,21,22,23,24,25,26,27,28]]=1;
 
 add_slang_function("bhjet",jet_pars);
 
@@ -110,6 +111,6 @@ set_param_default_hook("bhjet","bhjet_defaults");
 % of the above
 
 variable par = @jet_def;
-variable pars = par[[1:27]];
+variable pars = par[[1:28]];
 variable lo = _A([-11.0:10.0:0.07]);
 variable hi = make_hi_grid(lo);
