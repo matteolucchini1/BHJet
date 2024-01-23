@@ -54,6 +54,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     double compsw;								//switch to activate different external Compton fields
     double velsw;								//velocity profile parameter
     int infosw;									//switch to print info
+    int EBLsw;									//switch to activate EBL attenuation
 
     double z;									//distance along the jet axis
     double tshift;								//temperature shift from initial value due to ad. cooling	
@@ -133,6 +134,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     compsw = param[24];
     velsw = param[25];
     infosw = param[26];
+    EBLsw = param[27];
     zmin = 2.*Rg;
     
     if (infosw>=1) {
@@ -591,6 +593,20 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     for(int k=0;k<ne;k++){
         tot_lum[k] = (tot_lum[k]+tot_syn_pre[k]+tot_syn_post[k]+tot_com_pre[k]+tot_com_post[k]);
         photeng[k] = log10(tot_en[k]/herg);
+    }
+    
+    // Apply EBL attenuation factor for extragalactic sources
+    if(redsh > 0. && EBLsw != 0){
+    	if(EBLsw == 1){ //EBL attenuation model by Dominguez et al. (2011)
+    		ebl_atten_dom(ne,tot_en,tot_lum,redsh); //correction for total luminosity
+    		ebl_atten_dom(ne,tot_en,tot_com_post,redsh); //correction for post Compton luminosity
+    	} else if(EBLsw == 2){ //EBL attenuation model by Gilmore et al. (2012)
+        	ebl_atten_gil(ne,tot_en,tot_lum,redsh); //correction for total luminosity
+    		ebl_atten_gil(ne,tot_en,tot_com_post,redsh); //correction for post Compton luminosity
+    	} else if(EBLsw == 3){ //EBL attenuation model by Francheschini & Rodighieri (2017)
+        	ebl_atten_fran(ne,tot_en,tot_lum,redsh); //correction for total luminosity
+    		ebl_atten_fran(ne,tot_en,tot_com_post,redsh); //correction for post Compton luminosity
+    	}
     }
     output_spectrum(ne,tot_en,tot_lum,photspec,redsh,dist);
 	
