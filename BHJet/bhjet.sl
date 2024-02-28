@@ -72,7 +72,7 @@ static variable jet_input = {
 "compsw",			 0.,     0.,	 3.,
 "velsw", 	         1.,     1.,    25.,
 "infosw",	         0.,     0.,     5.,	
-"EBLsw",		0.,	0.,	3.,
+"EBLsw",		1.,	0.,	1.,
 };
 
 variable npar=length(jet_input)/4;
