@@ -509,7 +509,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
         com_en = new double[ncom];			
         com_lum = new double[ncom];		
         Compton InvCompton(ncom,nsyn);
-        InvCompton.set_frequency(com_min,com_max);	
+        InvCompton.set_frequency(com_min,com_max);
         
         if(infosw>1) {
             for (int k=0;k<ncom;k++){
@@ -552,6 +552,7 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
             }
             //Cyclosynchrotron photons are always considered in the scattering						
             InvCompton.cyclosyn_seed(Syncro.get_energy(),Syncro.get_nphot());
+            
             //Disk photons are included only if the disk is present
             if(r_in<r_out){
                 InvCompton.shsdisk_seed(Syncro.get_energy(),Disk.tin(),r_in,r_out,Disk.hdisk(),z+zone.delz/2.);
@@ -596,17 +597,9 @@ void jetmain(double *ear,int ne,double *param,double *photeng,double *photspec) 
     }
     
     // Apply EBL attenuation factor for extragalactic sources
-    if(redsh > 0. && EBLsw != 0){
-    	if(EBLsw == 1){ //EBL attenuation model by Dominguez et al. (2011)
-    		ebl_atten_dom(ne,tot_en,tot_lum,redsh); //correction for total luminosity
-    		ebl_atten_dom(ne,tot_en,tot_com_post,redsh); //correction for post Compton luminosity
-    	} else if(EBLsw == 2){ //EBL attenuation model by Gilmore et al. (2012)
-        	ebl_atten_gil(ne,tot_en,tot_lum,redsh); //correction for total luminosity
-    		ebl_atten_gil(ne,tot_en,tot_com_post,redsh); //correction for post Compton luminosity
-    	} else if(EBLsw == 3){ //EBL attenuation model by Francheschini & Rodighieri (2017)
-        	ebl_atten_fran(ne,tot_en,tot_lum,redsh); //correction for total luminosity
-    		ebl_atten_fran(ne,tot_en,tot_com_post,redsh); //correction for post Compton luminosity
-    	}
+    if(redsh > 0. && EBLsw == 1){
+        ebl_atten_gil(ne,tot_en,tot_lum,redsh); //correction for total luminosity
+    	ebl_atten_gil(ne,tot_en,tot_com_post,redsh); //correction for post Compton luminosity
     }
     output_spectrum(ne,tot_en,tot_lum,photspec,redsh,dist);
 	

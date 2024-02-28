@@ -107,8 +107,8 @@ void sum_counterjet(int size,const double* input_en,const double* input_lum,doub
         en[i] = pow(10.,log10(en_cj_min)+i*einc);
         en_j[i] = input_en[i];
         en_cj[i] = input_en[i+size];
-        lum_j[i] = input_lum[i];
-        lum_cj[i] = input_lum[i+size];
+        lum_j[i] = std::max(input_lum[i],1.e-50);
+        lum_cj[i] = std::max(input_lum[i+size],1.e-50);
     }	
 
     gsl_interp_accel *acc_j = gsl_interp_accel_alloc();
@@ -125,11 +125,11 @@ void sum_counterjet(int size,const double* input_en,const double* input_lum,doub
         } else if (i==size-1){
             lum[i] = lum_j[i];
         }else if(en[i] < en_j_min){
-            lum[i] = gsl_spline_eval(spline_cj,en[i],acc_cj);
+            lum[i] = gsl_spline_eval(spline_cj,en[i]*1.0000001,acc_cj);
         } else if (en[i] < en_cj_max){
             lum[i] = gsl_spline_eval(spline_j,en[i],acc_j) + gsl_spline_eval(spline_cj,en[i],acc_cj); 
         } else {
-            lum[i] = gsl_spline_eval(spline_j,en[i],acc_j);//note: the factor 0.999 is to avoid 
+            lum[i] = gsl_spline_eval(spline_j,en[i]*0.999999,acc_j);//note: the factor 0.999 is to avoid 
 														         	//occasional gsl interpolation errors 
 														         	//due to numerical inaccuracies
         }
