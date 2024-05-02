@@ -178,7 +178,11 @@ void Cyclosyn::cycsyn_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_int
             acons = -cee*cee/(8.*pi*pow(en_phot[k]/herg,2.));
             asyn = acons*elcons*abs;
             epsasyn	= emis/(acons*abs);
-            tsyn	= pi/2. * asyn*r;
+            if (geometry == "cylinder") {
+                tsyn = pi/2.*asyn*r;    
+            } else {
+                tsyn = pi/3.*asyn*r;    
+            }
             if(tsyn >= 1.){
                 absfac	= (1.-exp(-tsyn));
             }
@@ -189,7 +193,7 @@ void Cyclosyn::cycsyn_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_int
             if (geometry == "cylinder") {
                 tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
             } else {
-                tsyn_obs = pi/2.*asyn*r/(dopfac);    
+                tsyn_obs = pi/3.*asyn*r;    
             }
             if(tsyn_obs >= 1.){
                 absfac_obs	= (1.-exp(-tsyn_obs));
@@ -203,9 +207,9 @@ void Cyclosyn::cycsyn_spectrum(double gmin,double gmax,gsl_spline *eldis,gsl_int
 
             if(counterjet == true){    	
                 if (geometry == "cylinder") {
-                tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
+                	tsyn_obs = pi/2.*asyn*r/(dopfac*sin(angle));    
                 } else {
-                    tsyn_obs = pi/2.*asyn*r/(dopfac);    
+                    tsyn_obs = pi/3.*asyn*r;    
                 }        
                 if(tsyn_obs >= 1.){
                 	absfac_obs	= (1.-exp(-tsyn_obs));
